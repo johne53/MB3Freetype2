@@ -184,8 +184,13 @@ typedef unsigned long  ulg;
 /* Diagnostic functions */
 #ifdef DEBUG
 #  include <stdio.h>
-   extern int z_verbose;
+#  ifdef ZLIB_DLL  /* This section added by JE - 21-01-2011 */
+   __declspec(dllimport) int  z_verbose;
+   __declspec(dllimport) void z_error    OF((char *m));
+#  else
+   extern int  z_verbose;
    extern void z_error    OF((char *m));
+#  endif
 #  define Assert(cond,msg) {if(!(cond)) z_error(msg);}
 #  define Trace(x) {if (z_verbose>=0) fprintf x ;}
 #  define Tracev(x) {if (z_verbose>0) fprintf x ;}
