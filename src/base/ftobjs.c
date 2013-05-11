@@ -41,6 +41,16 @@
 #include "ftbase.h"
 #endif
 
+
+#ifdef FT_DEBUG_LEVEL_TRACE
+#include FT_BITMAP_H
+#define free md5_free /* suppress a shadow warning */
+  /* it's easiest to include `md5.c' directly */
+#include "md5.c"
+#undef free
+#endif
+
+
 #define GRID_FIT_METRICS
 
 
@@ -4046,6 +4056,47 @@
       }
     }
 
+#ifdef FT_DEBUG_LEVEL_TRACE
+
+#undef  FT_COMPONENT
+#define FT_COMPONENT  trace_bitmap
+
+    /* we convert to a single bitmap format for computing the checksum */
+    {
+      FT_Bitmap  bitmap;
+      FT_Error   err;
+
+
+      FT_Bitmap_New( &bitmap );
+
+      err = FT_Bitmap_Convert( library, &slot->bitmap, &bitmap, 1 );
+      if ( !err )
+      {
+        MD5_CTX        ctx;
+        unsigned char  md5[16];
+        int            i;
+
+
+        MD5_Init( &ctx);
+        MD5_Update( &ctx, bitmap.buffer, bitmap.rows * bitmap.pitch );
+        MD5_Final( md5, &ctx );
+
+        FT_TRACE3(( "MD5 checksum for %dx%d bitmap:\n"
+                    "  ",
+                    bitmap.rows, bitmap.pitch ));
+        for ( i = 0; i < 16; i++ )
+          FT_TRACE3(( "%02X", md5[i] ));
+        FT_TRACE3(( "\n" ));
+      }
+
+      FT_Bitmap_Done( library, &bitmap );
+    }
+
+#undef  FT_COMPONENT
+#define FT_COMPONENT  trace_objs
+
+#endif /* FT_DEBUG_LEVEL_TRACE */
+
     return error;
   }
 
@@ -4762,70 +4813,6 @@
 
     return result;
   }
-
-
-#ifdef FT_CONFIG_OPTION_OLD_INTERNALS
-
-  FT_BASE_DEF( FT_Error )
-  ft_stub_set_char_sizes( FT_Size     size,
-                          FT_F26Dot6  width,
-                          FT_F26Dot6  height,
-                          FT_UInt     horz_res,
-                          FT_UInt     vert_res )
-  {
-    FT_Size_RequestRec  req;
-    FT_Driver           driver = size->face->driver;
-
-
-    if ( driver->clazz->request_size )
-    {
-      req.type   = FT_SIZE_REQUEST_TYPE_NOMINAL;
-      req.width  = width;
-      req.height = height;
-
-      if ( horz_res == 0 )
-        horz_res = vert_res;
-
-      if ( vert_res == 0 )
-        vert_res = horz_res;
-
-      if ( horz_res == 0 )
-        horz_res = vert_res = 72;
-
-      req.horiResolution = horz_res;
-      req.vertResolution = vert_res;
-
-      return driver->clazz->request_size( size, &req );
-    }
-
-    return 0;
-  }
-
-
-  FT_BASE_DEF( FT_Error )
-  ft_stub_set_pixel_sizes( FT_Size  size,
-                           FT_UInt  width,
-                           FT_UInt  height )
-  {
-    FT_Size_RequestRec  req;
-    FT_Driver           driver = size->face->driver;
-
-
-    if ( driver->clazz->request_size )
-    {
-      req.type           = FT_SIZE_REQUEST_TYPE_NOMINAL;
-      req.width          = width  << 6;
-      req.height         = height << 6;
-      req.horiResolution = 0;
-      req.vertResolution = 0;
-
-      return driver->clazz->request_size( size, &req );
-    }
-
-    return 0;
-  }
-
-#endif /* FT_CONFIG_OPTION_OLD_INTERNALS */
 
 
   /* documentation is in freetype.h */

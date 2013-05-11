@@ -35,11 +35,6 @@
 #include FT_TRIGONOMETRY_H
 
 
-#ifdef FT_LONG64
-  typedef FT_INT64  FT_Int64;
-#endif
-
-
   /* the Cordic shrink factor 0.858785336480436 * 2^32 */
 #define FT_TRIG_SCALE      0xDBD95B16UL
 
@@ -119,8 +114,8 @@
   static FT_Int
   ft_trig_prenorm( FT_Vector*  vec )
   {
-    FT_Fixed  x, y;
-    FT_Int    shift;
+    FT_Pos  x, y;
+    FT_Int  shift;
 
 
     x = vec->x;
@@ -131,8 +126,8 @@
     if ( shift <= FT_TRIG_SAFE_MSB )
     {
       shift  = FT_TRIG_SAFE_MSB - shift;
-      vec->x = x << shift;
-      vec->y = y << shift;
+      vec->x = (FT_Pos)( (FT_ULong)x << shift );
+      vec->y = (FT_Pos)( (FT_ULong)y << shift );
     }
     else
     {
@@ -392,8 +387,8 @@
       else
       {
         shift  = -shift;
-        vec->x = v.x << shift;
-        vec->y = v.y << shift;
+        vec->x = (FT_Pos)( (FT_ULong)v.x << shift );
+        vec->y = (FT_Pos)( (FT_ULong)v.y << shift );
       }
     }
   }
@@ -429,7 +424,7 @@
     if ( shift > 0 )
       return ( v.x + ( 1 << ( shift - 1 ) ) ) >> shift;
 
-    return v.x << -shift;
+    return (FT_Fixed)( (FT_UInt32)v.x << -shift );
   }
 
 
@@ -454,7 +449,8 @@
 
     v.x = ft_trig_downscale( v.x );
 
-    *length = ( shift >= 0 ) ? ( v.x >> shift ) : ( v.x << -shift );
+    *length = ( shift >= 0 ) ?                      ( v.x >>  shift )
+                             : (FT_Fixed)( (FT_UInt32)v.x << -shift );
     *angle  = v.y;
   }
 
