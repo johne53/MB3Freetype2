@@ -482,6 +482,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\freetype\ftcffdrv.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\freetype\config\ftconfig.h"
 				>
 			</File>
