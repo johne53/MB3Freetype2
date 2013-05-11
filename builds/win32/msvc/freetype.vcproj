@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="freetype"
-	ProjectGUID="{B2C2301E-3460-4f21-A902-8D9CC3A58C1D}"
+	ProjectGUID="{B2C2301E-3460-4F21-A902-8D9CC3A58C1D}"
 	RootNamespace="freetype"
 	>
 	<Platforms>
