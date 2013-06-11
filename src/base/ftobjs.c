@@ -43,12 +43,28 @@
 
 
 #ifdef FT_DEBUG_LEVEL_TRACE
+
 #include FT_BITMAP_H
-#define free md5_free /* suppress a shadow warning */
+
+#if defined( _MSC_VER )      /* Visual C++ (and Intel C++)   */
+  /* We disable the warning `conversion from XXX to YYY,     */
+  /* possible loss of data' in order to compile cleanly with */
+  /* the maximum level of warnings: `md5.c' is non-FreeType  */
+  /* code, and it gets used during development builds only.  */
+#pragma warning( push )
+#pragma warning( disable : 4244 )
+#endif /* _MSC_VER */
+
   /* it's easiest to include `md5.c' directly */
+#define free  md5_free /* suppress a shadow warning */
 #include "md5.c"
 #undef free
+
+#if defined( _MSC_VER )
+#pragma warning( pop )
 #endif
+
+#endif /* FT_DEBUG_LEVEL_TRACE */
 
 
 #define GRID_FIT_METRICS
@@ -2525,6 +2541,8 @@
 
       if ( w == FT_PIX_ROUND( bsize->x_ppem ) || ignore_width )
       {
+        FT_TRACE3(( "FT_Match_Size: bitmap strike %d matches\n", i ));
+
         if ( size_index )
           *size_index = (FT_ULong)i;
 
@@ -2881,9 +2899,6 @@
       if ( error )
         return error;
 
-      FT_TRACE3(( "FT_Request_Size: bitmap strike %lu matched\n",
-                  strike_index ));
-
       return FT_Select_Size( face, (FT_Int)strike_index );
     }
 
@@ -3188,7 +3203,7 @@
   {
     FT_CMap_Class  clazz  = cmap->clazz;
     FT_Face        face   = cmap->charmap.face;
-    FT_Memory      memory = FT_FACE_MEMORY(face);
+    FT_Memory      memory = FT_FACE_MEMORY( face );
 
 
     if ( clazz->done )
@@ -4516,7 +4531,7 @@
 
   /* documentation is in ftmodapi.h */
 
-  FT_Error
+  FT_EXPORT_DEF( FT_Error )
   FT_Property_Set( FT_Library        library,
                    const FT_String*  module_name,
                    const FT_String*  property_name,
@@ -4532,7 +4547,7 @@
 
   /* documentation is in ftmodapi.h */
 
-  FT_Error
+  FT_EXPORT_DEF( FT_Error )
   FT_Property_Get( FT_Library        library,
                    const FT_String*  module_name,
                    const FT_String*  property_name,

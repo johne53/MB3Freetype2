@@ -205,6 +205,20 @@ FT_BEGIN_HEADER
 
   /*************************************************************************/
   /*                                                                       */
+  /*  PNG bitmap support.                                                  */
+  /*                                                                       */
+  /*   FreeType now handles loading color bitmap glyphs in the PNG format. */
+  /*   This requires help from the external libpng library.  Uncompressed  */
+  /*   color bitmaps do not need any external libraries and will be        */
+  /*   supported regardless of this configuration.                         */
+  /*                                                                       */
+  /*   Define this macro if you want to enable this `feature'.             */
+  /*                                                                       */
+#define FT_CONFIG_OPTION_USE_PNG
+
+
+  /*************************************************************************/
+  /*                                                                       */
   /* Define to disable the use of file stream functions and types, FILE,   */
   /* fopen() etc.  Enables the use of smaller system libraries on embedded */
   /* systems that have multiple system libraries, some with or without     */
@@ -733,6 +747,25 @@ FT_BEGIN_HEADER
   /* driver.                                                               */
   /*                                                                       */
 #undef T1_CONFIG_OPTION_NO_MM_SUPPORT
+
+
+  /*************************************************************************/
+  /*************************************************************************/
+  /****                                                                 ****/
+  /****         C F F   D R I V E R    C O N F I G U R A T I O N        ****/
+  /****                                                                 ****/
+  /*************************************************************************/
+  /*************************************************************************/
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* CFF_CONFIG_OPTION_OLD_ENGINE controls whether the pre-Adobe CFF       */
+  /* engine gets compiled into FreeType.  If defined, it is possible to    */
+  /* switch between the two engines using the `hinting-engine' property of */
+  /* the cff driver module.                                                */
+  /*                                                                       */
+/* #define CFF_CONFIG_OPTION_OLD_ENGINE */
 
 
   /*************************************************************************/
