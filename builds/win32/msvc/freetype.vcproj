@@ -360,6 +360,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\sfnt\pngshim.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\psaux\psaux.c"
 					>
 				</File>
@@ -415,6 +419,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\freetype\config\ftconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\freetype\internal\ftdebug.h"
 				>
 			</File>
 			<File
