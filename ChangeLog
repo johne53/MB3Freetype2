@@ -1,3 +1,84 @@
+2013-06-19  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.5.0.1 released.
+	===========================
+
+
+	Tag sources with `VER-2-5-0-1'.
+
+	* include/freetype/config/ftoption.h: Undefine
+	CFF_CONFIG_OPTION_OLD_ENGINE.
+	* devel/ftoption.h: Define CFF_CONFIG_OPTION_OLD_ENGINE.
+
+2013-06-19  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/install.mk (install): Don't create `cache' directory.
+
+	Found by Peter Breitenlohner <peb@mppmu.mpg.de>.
+
+2013-06-19  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.5.0 released.
+	=========================
+
+
+	Tag sources with `VER-2-5-0'.
+
+	* docs/VERSION.DLL: Update documentation and bump version number to
+	2.5.0.
+
+	* README, Jamfile (RefDoc),
+	builds/win32/vc2005/freetype.vcproj, builds/win32/vc2005/index.html,
+	builds/win32/vc2008/freetype.vcproj, builds/win32/vc2008/index.html,
+	builds/win32/vc2010/freetype.vcxproj, builds/win32/vc2010/index.html,
+	builds/win32/visualc/freetype.dsp,
+	builds/win32/visualc/freetype.vcproj,
+	builds/win32/visualc/index.html, builds/win32/visualce/freetype.dsp,
+	builds/win32/visualce/freetype.vcproj,
+	builds/win32/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.4.12/2.5.0/, s/2412/250/.
+
+	* include/freetype/freetype.h (FREETYPE_MINOR): Set to 5.
+	(FREETYPE_PATCH): Set to 0.
+
+	* builds/unix/configure.raw (version_info): Set to 16:2:10.
+
+	* src/base/ftobjs.c (FT_Open_Face): Pacify compiler.
+	* src/truetype/ttinterp.c (Ins_MSIRP, Ins_MIRP): Ditto.
+
+2013-06-18  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #39269.
+
+	* src/base/ftgloadr.c (FT_GlyphLoader_CheckPoints): Free memory in
+	case of reacollocation failures.
+
+2013-06-18  Andrew Church  <achurch+savannah@achurch.org>
+
+	Fix Savannah bug #39266.
+
+	If memory allocations fail at certain points while opening a font,
+	FreeType can either crash due to a NULL dereference or leak memory.
+
+	* include/freetype/internal/ftobjs.c (FT_Face_InternalRec,
+	FT_LibraryRec): Make `refcount' a signed integer.  If, for example,
+	FT_Open_Face() fails in a memory allocation before the face's
+	reference count is set to 1, a subsequent `FT_Done_Library' call
+	would otherwise loop over `FT_Done_Face' 2^32 times before freeing
+	the face.
+
+	* src/base/ftobjs.c (open_face): Initialize `stream' and friends
+	earlier.
+	(FT_Open_Face) <Fail>: Behave correctly if `node' is NULL.
+	(FT_Destroy_Module) <Fail>: Check that `renderer_clazz' is valid.
+
+2013-06-14  Werner Lemberg  <wl@gnu.org>
+
+	* src/smooth/ftgrays.c One final pragma to silence 64-bit MSVC.
+
 2013-06-06  Dave Arnold  <darnold@adobe.com>
 	    Werner Lemberg  <wl@gnu.org>
 
@@ -6,7 +87,7 @@
 	* src/cff/cffgload.c (cff_slot_load): If we get
 	FT_Err_Glyph_Too_Big, retry unhinted and scale up later on.
 
-2013-06-12  Werner Lemberg  <wl@gnu.org>.
+2013-06-12  Werner Lemberg  <wl@gnu.org>
 
 	Another try on pragmas.
 
