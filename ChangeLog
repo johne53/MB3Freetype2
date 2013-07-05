@@ -1,3 +1,69 @@
+2013-06-28  Werner Lemberg  <wl@gnu.org>
+
+	* docs/CHANGES: Updated.
+
+2013-06-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/winfonts/winfnt.c (FNT_Load_Glyph): Fix bitmap width guard.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Add darkening limit to `darkening-parameters'.
+
+	* src/cff/cffdrivr.c (cff_property_set): Add check.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Add `darkening-parameters' property.
+
+	* include/freetype/ftcffdrv.h: Document it.
+
+	* src/cff/cffdrivr.c (cff_property_set, cff_property_get): Handle
+	`darkening-parameters' property.
+
+	* src/cff/cf2font.h (CF2_FontRec): Add `darkenParams' array.
+
+	* src/cff/cf2font.c (cf2_computeDarkening): Add `darkenParams'
+	argument and use it.
+	Update all callers.
+
+	* src/cff/cf2ft.c (cf2_decoder_parse_charstrings): Copy
+	`darken_params' values.
+
+	* src/cff/cffobjs.h (CFF_DriverRec): Add `darken_params' array.
+
+	* src/cff/cffobjs.c (cff_driver_init): Set default values for
+	`darken_params'.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Code shuffling.
+
+	* src/tools/docmaker/tohtml.py (re_url): Move regexp...
+	* src/tools/docmaker/sources.py: ... to this file.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Remove unused functions.
+
+	* src/tools/docmaker/content.py (DocMarkup.get_start,
+	DocBlock.get_markup_name): Removed.
+	* src/tools/docmaker/tohtml.py (html_quote0, dump_html_code,
+	HtmlFormatter.make_html_words): Removed.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	* builds/freetype.mk (dll): Remove target.
+
+	Problem reported by Jörg Günnewig <joerg.guennewig@googlemail.com>.
+
+2013-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Recognise URLs.
+
+	* src/tools/docmaker/tohtml.py (re_url): New regular expression.
+	(make_html_para): Use it.
+
 2013-06-19  Werner Lemberg  <wl@gnu.org>
 
 	* Version 2.5.0.1 released.
