@@ -66,7 +66,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(LibSuffix)D.lib"
+				OutputFile="$(OutDir)\$(ProjectName)32$(LibSuffix)D.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(LibSuffix).lib"
+				OutputFile="$(OutDir)\$(ProjectName)32$(LibSuffix).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -212,7 +212,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(LibSuffix)RDC.lib"
+				OutputFile="$(OutDir)\$(ProjectName)32$(LibSuffix)RDC.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
