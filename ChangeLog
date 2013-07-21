@@ -1,3 +1,238 @@
+2013-07-20  Werner Lemberg  <wl@gnu.org>
+
+	* docs/INSTALL.GNU: Updated.
+
+2013-07-20  Behdad Esfahbod  <behdad@google.com>
+
+	[sfnt] Fix `sbix' table version handling.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit) [TT_SBIT_TABLE_TYPE_SBIX]:
+	USHORT version numbers are to be considered as `minor'.
+
+2013-07-19  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix segment classification for blue zones.
+
+	The old code (essentially unchanged since the very beginning)
+	incorrectly handled this configuration
+
+	               x -o- x
+	                /   \
+	               /     \
+	              /       \
+	             o         o
+
+	as flat and this
+
+	                o               o
+	               /               /
+	             x|              x|
+	              |               |
+	              o---------------o
+
+	as round.  (`o' and `x' are on and off points, respectively). 
+
+	This is a major change which should improve the rendering results
+	enormously for many TrueType fonts, especially in the range approx. 
+	20-40ppem, fixing the appearance of many overshoots.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Look at the
+	first and last points of the segment, not the points right before
+	and after.
+
+2013-07-19  Behdad Esfahbod  <behdad@google.com>
+
+	[sfnt] `sbix' fix-ups.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Apple's `sbix' color bitmaps
+	are rendered scaled and then the `glyf' outline rendered on top.  We
+	don't support that yet, so just ignore the `glyf' outline and
+	advertise it as a bitmap-only font.
+
+	* src/sfnt/ttsbit.c (tt_face_load_strike_metrics)
+	[TT_SBIT_TABLE_TYPE_SBIX]: Return metrics in 26.6 units.
+	(tt_face_load_sbix_image): Typo.
+
+2013-07-18  Behdad Esfahbod  <behdad@google.com>
+
+	[sfnt] Add support for Apple's `sbix' color bitmap table.
+
+	* include/freetype/internal/tttypes.h (TT_SBit_MetricsRec): Widen
+	fields to FT_Short and FT_UShort, respectively.
+	(TT_SBitTableType): New enumeration.
+	(TT_FaceRec): Add `sbit_table_type' field.
+
+	* include/freetype/tttags.h (TTAG_sbix): New macro.
+
+	* src/sfnt/pngshim.c (Load_SBit_Png): Pass a more generic
+	FT_GlyphSlot argument instead FT_Bitmap.
+	Add flag to control map and metrics handling.
+	Update all users.
+
+	* src/sfnt/ttsbit.c: Include `ttmtx.h'.
+	(tt_face_load_eblc): Renamed to...
+	(tt_face_load_sbit): This.
+	Handlic `sbix' bitmaps.
+	(tt_face_free_eblc): Renamed to...
+	(tt_face_load_sbit): This.
+	Updated.
+	(tt_face_load_strike_metrics): Handle `sbix' bitmaps.
+	(tt_face_load_sbix_image): New function.
+	(tt_sbit_decoder_alloc_bitmap, tt_sbit_decoder_load_image,
+	tt_sbit_decoder_load_byte_aligned, tt_sbit_decoder_load_bit_aligned,
+	tt_sbit_decoder_load_compound, tt_sbit_decoder_load_png,
+	tt_sbit_decoder_load_image, tt_sbit_decoder_load_bitmap): Don't pass
+	and handle load flags.
+	(tt_sbit_decoder_load_bitmap) [!FT_CONFIG_OPTION_USE_PNG]: Better
+	handle formats 17-19.
+	Move color to grayscale conversion to...
+	(tt_face_load_sbit_image): Here.
+	Handle `sbix' bitmaps.
+
+	* src/sfnt/pngshim.h: Updated.
+	* src/sfnt/ttsbit.h: Updated.
+	* src/sfnt/sfdriver.c: Updated.
+
+2013-07-18  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Ignore invalid magic number in `head' or `bhed'.
+
+	Other font engines seem to ignore it also.  Problem reported by
+	Hin-Tak Leung <htl10@users.sourceforge.net>.
+
+	* src/sfnt/ttload.c (check_table_dir): Don't abort but warn only if
+	we have an invalid magic number.
+
+2013-07-16  Werner Lemberg  <wl@gnu.org>
+
+	[smooth] Fix segfault caused by previous commit.
+
+	* src/smooth/ftgrays.c (gray_set_cell): Always compute
+	`ras.invalid'.
+
+2013-07-16  David Turner  <digit@google.com>
+
+	[smooth] Improve performance.
+
+	Provide a work-around for an ARM-specific performance bug in GCC. 
+	This speeds up the rasterizer by more than 5%.
+
+	Also slightly optimize `set_gray_cell' and `gray_record_cell' (which
+	also improves performance on other platforms by a tiny bit (<1%).
+
+	* src/smooth/ftgrays.c (FT_DIV_MOD): New macro.
+	Use it where appropriate.
+
+	(gray_record_cell, gray_set_cell, gray_move_to,
+	gray_convert_glyph_inner): Streamline condition handling.
+
+2013-07-16  David Turner  <digit@google.com>
+
+	[truetype] Add assembler code for TT_MulFix14 and TT_DotFix14.
+
+	This patch provides slightly optimized versions for ARM, x86, and
+	x86_64 CPUs if built with GCC.
+
+	Also remove some dead code.
+
+	* src/truetype/ttinterp.c (TT_MulFix14_arm, TT_MulFix14_long_long,
+	TT_DotFix14_long_long): New functions.
+
+2013-07-16  David Turner  <digit@google.com>
+
+	Optimize FT_MulFix for x86_64 GCC builds.
+
+	This patch provides an optimized `FT_MulFix' implementation for
+	x86_64 machines when FreeType is built with GCC, or compatible
+	compilers like Clang.
+
+	Example:
+	  bin/ftbench -p -t 5 -s 14 -f 0008 Arial.ttf
+
+	Before:
+
+	  Load                       4.863 us/op
+	  Load_Advances (Normal)     4.816 us/op
+	  Load_Advances (Fast)       0.028 us/op
+	  Render                     2.753 us/op
+	  Get_Glyph                  0.463 us/op
+	  Get_CBox                   0.077 us/op
+	  Get_Char_Index             0.023 us/op
+	  Iterate CMap              13.898 us/op
+	  New_Face                  12.368 us/op
+	  Embolden                   0.028 us/op
+	  Get_BBox                   0.302 us/op
+
+	After:
+
+	  Load                       4.617 us/op
+	  Load_Advances (Normal)     4.645 us/op
+	  Load_Advances (Fast)       0.027 us/op
+	  Render                     2.789 us/op
+	  Get_Glyph                  0.460 us/op
+	  Get_CBox                   0.077 us/op
+	  Get_Char_Index             0.024 us/op
+	  Iterate CMap              13.403 us/op
+	  New_Face                  12.278 us/op
+	  Embolden                   0.028 us/op
+	  Get_BBox                   0.301 us/op
+
+	* builds/unix/ftconfig.in, include/freetype/config/ftconfig.h
+	(FT_MulFix_x86_64): New function.
+
+2013-07-16  David Turner  <digit@google.com>
+
+	Speed up ARMv7 support.
+
+	When building for ARMv7 with thumb2 instructions, the optimized
+	`FT_MulFix_arm' assembly routine was not being used.
+
+	The reason for this is in the `ftconfig.h' header, namely:
+
+	- The assembly routine uses the `smull' instruction which is not
+	  available when generating Thumb-1 machine code.  It is available
+	  in Thumb-2 mode, though.
+
+	- The header was written a long time ago before Thumb-2 became
+	  widely popular (e.g. with Android).  So it simply doesn't use the
+	  assembly routine if the `__thumb__' built-in macro is defined.
+
+	- When compiling in Thumb-2 mode, the compiler will define both
+	  `__thumb__' and `__thumb2__'.
+
+	By checking for `(__thumb2__ || !__thumb__)', we ensure that the
+	assembly routine is only avoided when generating Thumb-1 code.
+
+	Given that this is performance-sensitive function, this improves
+	`ftbench' as follows on a Galaxy Nexus:
+
+	                           Before (us/op)   After (us/op)
+
+	  - loading Arial.ttf glyphs at 14 ppem [1]
+
+	      Load                   34.285          33.098
+
+	  - same operation with the light auto-hinter [2]
+
+	      Load                   31.317          29.590
+
+	  - same operation without hinting [3]
+
+	      Load                    6.143           5.376
+
+	  - loading Arial.ttf advances at 14 ppem [4]
+
+	      Load_Advances (normal) 34.216          33.016
+	      Load_Advances (fast)    0.176           0.176
+
+	  [1] ftbench -t 5 -p -s 14 -b a -f 0008 Arial.ttf
+	  [2] ftbench -t 5 -p -s 14 -b a -r 1 -f 0028 Arial.ttf
+	  [3] ftbench -t 5 -p -s 14 -b a -f 000a Arial.ttf
+	  [4] ftbench -t 5 -p -s 14 -b b -f 0008 Arial.ttf
+
+	* builds/unix/ftconfig.in, include/freetype/config/ftconfig.h
+	(FT_MULFIX_ASSEMBLER): Fix handling for ARMv7.
+
 2013-06-28  Werner Lemberg  <wl@gnu.org>
 
 	* docs/CHANGES: Updated.
