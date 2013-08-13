@@ -17,33 +17,44 @@
 
 
 #include "afglobal.h"
-#include "afdummy.h"
-#include "aflatin.h"
-#include "afcjk.h"
-#include "afindic.h"
-#include "afpic.h"
+
+  /* get writing system specific header files */
+#undef  WRITING_SYSTEM
+#define WRITING_SYSTEM( ws, WS )  /* empty */
+#include "afwrtsys.h"
 
 #include "aferrors.h"
-
-#ifdef FT_OPTION_AUTOFIT2
-#include "aflatin2.h"
-#endif
+#include "afpic.h"
 
 #ifndef FT_CONFIG_OPTION_PIC
 
-  /* when updating this table, don't forget to update          */
-  /* AF_SCRIPT_CLASSES_COUNT and autofit_module_class_pic_init */
+  /* when updating this table, don't forget to update                  */
+  /* AF_WRITING_SYSTEM_CLASSES_COUNT and autofit_module_class_pic_init */
 
-  /* populate this list when you add new scripts */
-  static AF_ScriptClass const  af_script_classes[] =
+#undef  WRITING_SYSTEM
+#define WRITING_SYSTEM( ws, WS )               \
+          &af_ ## ws ## _writing_system_class,
+
+  FT_LOCAL_ARRAY_DEF( AF_WritingSystemClass )
+  af_writing_system_classes[] =
   {
-    &af_dummy_script_class,
-#ifdef FT_OPTION_AUTOFIT2
-    &af_latin2_script_class,
-#endif
-    &af_latin_script_class,
-    &af_cjk_script_class,
-    &af_indic_script_class,
+
+#include "afwrtsys.h"
+
+    NULL  /* do not remove */
+  };
+
+
+#undef  SCRIPT
+#define SCRIPT( s, S )                \
+          &af_ ## s ## _script_class,
+
+  FT_LOCAL_ARRAY_DEF( AF_ScriptClass )
+  af_script_classes[] =
+  {
+
+#include "afscript.h"
+
     NULL  /* do not remove */
   };
 
@@ -82,18 +93,20 @@
     /* scan each script in a Unicode charmap */
     for ( ss = 0; AF_SCRIPT_CLASSES_GET[ss]; ss++ )
     {
-      AF_ScriptClass      clazz = AF_SCRIPT_CLASSES_GET[ss];
+      AF_ScriptClass      script_class = AF_SCRIPT_CLASSES_GET[ss];
       AF_Script_UniRange  range;
 
 
-      if ( clazz->script_uni_ranges == NULL )
+      if ( script_class->script_uni_ranges == NULL )
         continue;
 
       /*
        *  Scan all Unicode points in the range and set the corresponding
        *  glyph script index.
        */
-      for ( range = clazz->script_uni_ranges; range->first != 0; range++ )
+      for ( range = script_class->script_uni_ranges;
+            range->first != 0;
+            range++ )
       {
         FT_ULong  charcode = range->first;
         FT_UInt   gindex;
@@ -204,13 +217,14 @@
       {
         if ( globals->metrics[nn] )
         {
-          AF_ScriptClass  clazz = AF_SCRIPT_CLASSES_GET[nn];
+          AF_ScriptClass         script_class =
+            AF_SCRIPT_CLASSES_GET[nn];
+          AF_WritingSystemClass  writing_system_class =
+            AF_WRITING_SYSTEM_CLASSES_GET[script_class->writing_system];
 
 
-          FT_ASSERT( globals->metrics[nn]->clazz == clazz );
-
-          if ( clazz->script_metrics_done )
-            clazz->script_metrics_done( globals->metrics[nn] );
+          if ( writing_system_class->script_metrics_done )
+            writing_system_class->script_metrics_done( globals->metrics[nn] );
 
           FT_FREE( globals->metrics[nn] );
         }
@@ -233,11 +247,14 @@
   {
     AF_ScriptMetrics  metrics = NULL;
     FT_UInt           gidx;
-    AF_ScriptClass    clazz;
-    FT_UInt           script     = options & 15;
-    const FT_Offset   script_max = sizeof ( AF_SCRIPT_CLASSES_GET ) /
-                                     sizeof ( AF_SCRIPT_CLASSES_GET[0] );
-    FT_Error          error      = FT_Err_Ok;
+
+    AF_WritingSystemClass  writing_system_class;
+    AF_ScriptClass         script_class;
+
+    FT_UInt          script     = options & 15;
+    const FT_Offset  script_max = sizeof ( AF_SCRIPT_CLASSES_GET ) /
+                                    sizeof ( AF_SCRIPT_CLASSES_GET[0] );
+    FT_Error         error      = FT_Err_Ok;
 
 
     if ( gindex >= (FT_ULong)globals->glyph_count )
@@ -250,37 +267,40 @@
     if ( gidx == 0 || gidx + 1 >= script_max )
       gidx = globals->glyph_scripts[gindex] & AF_SCRIPT_NONE;
 
-    clazz = AF_SCRIPT_CLASSES_GET[gidx];
+    script_class         = AF_SCRIPT_CLASSES_GET[gidx];
+    writing_system_class = AF_WRITING_SYSTEM_CLASSES_GET
+                             [script_class->writing_system];
     if ( script == 0 )
-      script = clazz->script;
+      script = script_class->script;
 
-    metrics = globals->metrics[clazz->script];
+    metrics = globals->metrics[script_class->script];
     if ( metrics == NULL )
     {
       /* create the global metrics object if necessary */
       FT_Memory  memory = globals->face->memory;
 
 
-      if ( FT_ALLOC( metrics, clazz->script_metrics_size ) )
+      if ( FT_ALLOC( metrics, writing_system_class->script_metrics_size ) )
         goto Exit;
 
-      metrics->clazz   = clazz;
-      metrics->globals = globals;
+      metrics->script_class = script_class;
+      metrics->globals      = globals;
 
-      if ( clazz->script_metrics_init )
+      if ( writing_system_class->script_metrics_init )
       {
-        error = clazz->script_metrics_init( metrics, globals->face );
+        error = writing_system_class->script_metrics_init( metrics,
+                                                           globals->face );
         if ( error )
         {
-          if ( clazz->script_metrics_done )
-            clazz->script_metrics_done( metrics );
+          if ( writing_system_class->script_metrics_done )
+            writing_system_class->script_metrics_done( metrics );
 
           FT_FREE( metrics );
           goto Exit;
         }
       }
 
-      globals->metrics[clazz->script] = metrics;
+      globals->metrics[script_class->script] = metrics;
     }
 
   Exit:

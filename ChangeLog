@@ -1,3 +1,296 @@
+2013-08-06  John Tytgat  <John.Tytgat@esko.com>
+
+	Fix Savannah bug #39702.
+
+	* src/cff/cffload.c (cff_index_get_pointers): Check for `cur_offset
+	!= 0'; this stronger test is mandated by the CFF specification.
+	Fix test for INDEX structures which have one or more empty entries
+	at the end.
+
+2013-08-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix gcc pragmas, part 2.
+
+	* src/truetype/ttinterp.c (TT_MulFix14_long_long,
+	TT_DotFix14_long_long): `#pragma gcc diagnostic {push,pop}' has been
+	introduced with gcc version 4.6.
+
+2013-08-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix gcc pragmas.
+
+	* src/truetype/ttinterp.c (TT_MulFix14_long_long,
+	TT_DotFix14_long_long): Older gcc versions don't accept diagnostic
+	pragmas within a function body.
+
+2013-08-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #39700.
+
+	* builds/unix/ftconfig.h: Synchronize with
+	`include/freetype/config/ftconfig.h'.
+
+	* builds/vms/ftconfig.h: Ditto.
+	Make the differences to the master `ftconfig.h' file as small as
+	possible for easier maintainance.
+
+2013-08-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve handling of `near' points.
+
+	Points which are very near to each other are now marked as such.
+	The `weak' flag is then computed by using the `in' vector of the
+	first and the `out' vector of the last point of a group of near
+	points.
+
+	For example, this fixes the rendering of glyph `Oslash' in
+	`Roboto-Thin.ttf'.
+
+	* src/autofit/afhints.h (AF_Flags): New value `AF_FLAGS_NEAR'.
+
+	* src/autofit/afhints.c (af_glyph_hints_reload): Introduce
+	the heuristic value `near_limit' to decide whether the current point
+	is near to the previous one, then set `AF_FLAG_NEAR' accordingly.
+	Store good `in' vector (of last non-near point) in
+	`last_good_in_{x,y}' and use it as an argument to
+	`ft_corner_is_flat' if necessary.
+
+2013-08-02  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/ftcffdrv.h: Improve documentation.
+	This is based on blog entries from David Lemon and Dave Arnold (both
+	from Adobe) with kind permission.  Dave also helped in
+	proof-reading.
+
+2013-08-02  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Move declaration of scripts into separate file.
+
+	This has the benefit that we don't need to duplicate the data at
+	different places.
+
+	* src/autofit/afscript.h: New file.
+
+	* src/autofit/aftypes.h (AF_Script): Include `afscript.h' to define
+	the enumeration values.
+
+	* src/autofit/afglobal.c: Include `afscript.h' to get the script
+	specific header files.
+	(af_script_classes): Include `afscript.h' to fill this array.
+
+	* src/autofit/afpic.c: Include `afscript.h' to get the script
+	specific header files.
+	(autofit_module_class_pic_init): Include `afscript.h' for
+	initialization.
+	* src/autofit/afpic.h (AF_SCRIPT_CLASSES_COUNT,
+	AF_SCRIPT_CLASSES_REC_COUNT): Removed.  Use `AF_SCRIPT_MAX' instead.
+
+	* src/autofit/rules.mk (AUTOF_DRV_H): Updated.
+
+2013-08-02  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Move declaration of writing systems into separate file.
+
+	This has the benefit that we don't need to duplicate the data at
+	different places.
+
+	* src/autofit/afwrtsys.h: New file.
+
+	* src/autofit/aftypes.h (AF_WritingSystem): Include `afwrtsys.h' to
+	define the enumeration values.
+
+	* src/autofit/afglobal.c: Include `afwrtsys.h' to get the writing
+	system specific header files.
+	Include `afpic.h'.
+	(af_writing_system_classes): Include `afwrtsys.h' to fill this
+	array.
+
+	* src/autofit/afpic.c: Include `afwrtsys.h' to get the writing
+	system specific header files.
+	(autofit_module_class_pic_init): Include `afwrtsys.h' for
+	initialization.
+	* src/autofit/afpic.h (AF_WRITING_SYSTEM_CLASSES_COUNT,
+	AF_WRITING_SYSTEM_CLASSES_REC_COUNT): Removed.  Use
+	`AF_WRITING_SYSTEM_MAX' instead.
+
+2013-08-02  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix compilation with g++.
+
+	* src/sfnt/pngshim.c (error_callback, read_data_from_FT_stream): Use
+	cast.
+	(Load_SBit_Png): Pacify compiler.
+
+2013-08-02  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+            Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix `make multi'.
+
+	* include/freetype/config/ftconfig.h (FT_LOCAL_ARRAY,
+	FT_LOCAL_ARRAY_DEF): New macros.
+
+	* src/autofit/afglobal.c (af_writing_system_classes,
+	af_script_classes): Use FT_LOCAL_ARRAY_DEF.
+	* src/autofit/afglobal.h: Declare `af_writing_system_classes' and
+	`af_script_classes'.
+	* src/autofit/afloader.c: Include `afpic.h'.
+
+2013-08-01  Werner Lemberg  <wl@gnu.org>
+
+	Another round of cppcheck nitpicks.
+
+	The call was (from the top-level of the FreeType tree):
+
+	  cppcheck --force \
+	           --enable=all \
+	           -I /usr/include \
+	           -I /usr/local/include \
+	           -I /usr/lib/gcc/i586-suse-linux/4.7/include \
+	           -I include \
+	           -I include/freetype \
+	           -I include/freetype/config \
+	           -I include/freetype/internal \
+	           -DFT2_BUILD_LIBRARY \
+	           . &> cppcheck.log
+
+	using cppcheck git commit f7e93f99.
+
+	Note that cppcheck still can't handle `#include FOO' (with `FOO' a
+	macro).
+
+	*/* Improve variable scopes.
+	*/* Remove redundant initializations which get overwritten.
+
+	* src/gxvalid/*: Comment out redundant code or guard it with
+	FT_DEBUG_LEVEL_TRACE.
+
+2013-07-30  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Introduce `writing systems'.
+
+	This patch adds a new top level to the auto-hinter's script class
+	hierarchy.  It defines `writing systems' which can contain multiple
+	scripts.
+
+	For example, the `latin' writing system (in file `aflatin.c') is
+	able to support scripts like Latin, Cyrillic, Armenian, etc., which
+	can be handled similarly.
+
+	Scripts are now named using four-letter OpenType tags.
+
+	* src/autofit/aftypes.h (AF_ScriptClassRec): Move relevant members
+	to...
+	(AF_WritingSystemClassRec): This new structure.  It holds pointers
+	to functions which can be shared among related scripts.
+	(AF_WritingSystem): New enumeration.
+	(AF_Script): Revised values using four-letter tags.
+	(AF_DEFINE_WRITING_SYSTEM_CLASS): New macro.
+	(AF_DEFINE_SCRIPT_CLASS): Updated.
+
+	* src/autofit/afglobal.c (af_writing_system_classes): New global,
+	constant array.
+	(af_script_classes): Updated.
+	(af_face_globals_free): Updated.
+	Remove assertion.
+	(af_face_globals_get_metrics): Updated.
+
+	* src/autofit/afglobal.h (AF_SCRIPT_FALLBACK)
+	[!AF_CONFIG_OPTION_CJK]: Handle this case.
+
+	* src/autofit/afloader.c (af_loader_load_g, af_loader_load_glyph):
+	Updated.
+
+	* src/autofit/afpic.c (autofit_module_class_pic_init): Updated;
+	initialize structures for both writing systems and scripts.
+	* src/autofit/afpic.h: Updated.
+	(AF_WRITING_SYSTEM_CLASSES_GET): New macro.
+
+	* src/autofit/afcjk.c (af_cjk_writing_system_class): New writing
+	system.
+	(af_cjk_uniranges): Renamed to...
+	(af_hani_uniranges): This.
+	(af_cjk_script_class): Reduced and renamed to...
+	(af_hani_script_class): This.
+	* src/autofit/afcjk.h: Updated.
+
+	* src/autofit/afdummy.c (af_dummy_writing_system_class): New writing
+	system.
+	(af_dummy_script_class): Reduced and renamed to...
+	(af_dflt_script_class): This.
+	* src/autofit/afdummy.h: Updated.
+
+	* src/autofit/afindic.c (af_indic_writing_system_class): New writing
+	system.
+	(af_indic_uniranges): Renamed to...
+	(af_deva_uniranges): This.
+	(af_indic_script_class): Reduced and renamed to...
+	(af_deva_script_class): This.
+	* src/autofit/afcjk.h: Updated.
+
+	* src/autofit/aflatin.c (af_latin_writing_system_class): New writing
+	system.
+	(af_latin_uniranges): Renamed to...
+	(af_latn_uniranges): This.
+	(af_latin_script_class): Reduced and renamed to...
+	(af_latn_script_class): This.
+	* src/autofit/aflatin.h: Updated.
+
+	* src/autofit/aflatin2.c (af_latin2_writing_system_class): New
+	writing system.
+	(af_latin2_uniranges): Renamed to...
+	(af_ltn2_uniranges): This.
+	Synchronize ranges with `latin'.
+	(af_latin2_script_class): Reduced and renamed to...
+	(af_ltn2_script_class): This.
+	* src/autofit/aflatin2.h: Updated.
+
+2013-07-30  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Variable renaming.
+
+	* src/autofit/aftypes.h (AF_ScriptMetricsRec):
+	s/clazz/script_class/.
+	Update all users.
+
+2013-07-30  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Ignore libpng-config under cross-building configuration,
+	because it will return the flags for the hosting environment.
+
+	* builds/unix/configure.raw: Ignore libpng-config when
+	`cross_compiling' == yes.
+
+2013-07-30  Behdad Esfahbod  <behdad@google.com>
+
+	Prevent division by zero by a transparent color.
+
+	* src/base/ftbitmap.c (ft_gray_for_premultiplied_srgb_bgra):
+	Return 0 immediately, when alpha channel is zero.
+
+2013-07-25  Behdad Esfahbod  <behdad@google.com>
+
+	Add FT_FACE_FLAG_COLOR and FT_HAS_COLOR.
+
+	Also disambiguate Google's color bitmap tables.
+
+	* include/freetype/freetype.h (FT_FACE_FLAG_COLOR, FT_HAS_COLOR):
+	New macros.
+
+	* include/freetype/internal/tttypes.h (TT_SbitTableType): Add
+	TT_SBIT_TABLE_TYPE_CBLC.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Handle FT_FACE_FLAG_COLOR.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit,
+	tt_face_load_strike_metrics, tt_face_load_sbit_image): Handle
+	TT_SBIT_TABLE_TYPE_CBLC.
+
+2013-07-24  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[sfnt] Fix for `make multi' target.
+
+	* src/sfnt/pngshim.c (Load_SBit_Png): Use FT_LOCAL_DEF().
+
 2013-07-20  Werner Lemberg  <wl@gnu.org>
 
 	* docs/INSTALL.GNU: Updated.
@@ -596,7 +889,7 @@
 	*/* Improve variable scopes.
 	*/* Remove redundant initializations which get overwritten.
 
-	* src/base/ftmac.c ,builds/mac/ftmac.c (count_faces_scalable):
+	* src/base/ftmac.c, builds/mac/ftmac.c (count_faces_scalable):
 	Remove unused variable.
 
 	* src/base/ftdbgmem.c (ft_mem_table_destroy): `table' can't be zero.
