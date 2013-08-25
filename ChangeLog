@@ -1,3 +1,71 @@
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Introduce data file for blue strings.
+
+	The idea is to have a central file which gets processed by a Perl
+	script to create proper `.c' and `.h' files using templates.  There
+	are two other reasons to do that:
+
+	  . The data file should be easily readable.  We use UTF-8 encoding
+	    which then gets converted to single bytes.
+
+	  . Since the number of supported scripts will increase soon, the
+	    current usage of blue string arrays is a waste of space.  Using
+	    the Perl script it is possible to imitate jagged arrays,
+	    defining enumeration constants as offsets into the arrays.
+
+	This commit only adds files without changing any functionality.
+
+	* src/autofit/afblue.dat: New data file.
+	* src/tools/afblue.pl: New Perl script for processing `afblue.dat'.
+
+	* src/autofit/afblue.cin, src/autofit/afblue.hin: New template files
+	for...
+	* src/autofit/afblue.c, src/autofit/afblue.c: New source files.
+	To avoid a dependency on Perl, we add them too.
+
+2013-08-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Enable new algorithm for BBox_Cubic_Check.
+
+	* src/base/ftbbox.c: Enable new BBox_Cubic_Check algorithm, remove the
+	old one. Improve comments.
+
+2013-08-18  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/unix-def.in (freetype2.pc): Don't set executable bit.
+
+2013-08-18  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #39804.
+
+	* builds/unix/configure.raw (LIBPNG): Define and export.
+	* builds/unix/freetype-config.in, builds/unix/freetype2.in: Handle
+	libpng.
+
+2013-08-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Clean up BBox_Conic_Check.
+
+	* src/base/ftbbox.c (BBox_Conic_Check): Remove redundant checks for
+	extremum at the segment ends, which are already within the bbox.
+	Slightly modify calculations. 
+
+2013-08-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Finish experimental (disabled) BBox_Cubic_Check implementation.
+
+	* src/base/ftbbox.c (BBox_Cubic_Check): Scale arguments to improve
+	accuracy and avoid overflows. 
+
+2013-08-13  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Refactor experimental (disabled) BBox_Cubic_Check.
+
+	* src/base/ftbbox.c (BBox_Cubic_Check): Implement the minimum search
+	as the mirror image of the maximum search implemented here...
+	(update_max): New function.
+
 2013-08-06  John Tytgat  <John.Tytgat@esko.com>
 
 	Fix Savannah bug #39702.
