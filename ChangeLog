@@ -1,3 +1,272 @@
+2013-08-28  Behdad Esfahbod  <behdad@google.com>
+
+	[sfnt] Fix frame access while reading WOFF table directory.
+
+	* src/sfnt/sfobjs.c (woff_open_font): Using single memory frame
+	while reading the directory entries for the whole loop.
+
+2013-08-29  Werner Lemberg  <wl@gnu.org>
+            Behdad Esfahbod  <behdad@google.com>
+
+	Implement support for WOFF containers.
+
+	We simply synthesize a SFNT from the WOFF, create a memory stream
+	for the new data, and load the SFNT as usual.
+
+	Does NOT add any API to access WOFF metadata or private blocks.
+
+	* include/freetype/internal/tttypes.h (WOFF_HeaderRec,
+	WOFF_TableRec): New structures.
+
+	* include/freetype/tttags.h (TTAG_wOFF): New macro.
+
+	* src/base/ftobjs.c (FT_Open_Face): Set `stream' after calling
+	`open_face'.
+
+	* src/sfnt/sfobjs.c [FT_CONFIG_OPTION_SYSTEM_ZLIB]: Include
+	`FT_GZIP_H'.
+	(WRITE_BYTE, WRITE_USHORT, WRITE_ULONG): New temporary macros for
+	writing to a stream.
+	(sfnt_stream_close, compare_offsets, woff_open_font): New functions.
+	(sfnt_open_font): Handle `TTAG_wOFF'.
+	(sfnt_init_face): Set `stream' after calling `sfnt_open_font'.
+
+	* src/truetype/ttobjs.c (tt_face_init): Set `stream' after calling
+	`sfnt->init_face'.
+
+	* src/base/ftobjs.c (open_face): Use a pointer to FT_Stream as an
+	argument so that a changed stream survives.
+	Update callers.
+
+2013-08-28  Werner Lemberg  <wl@gnu.org>
+
+	[gzip] New function `FT_Gzip_Uncompress'.
+
+	This is modeled after zlib's `uncompress' function.  We need this
+	for WOFF support.
+
+	* include/freetype/ftgzip.h, src/gzip/ftgzip.c (FT_Gzip_Uncompress):
+	New function.
+
+	* src/gzip/rules.mk: Rewrite to better reflect dependencies.
+
+2013-08-28  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix `make multi' compilation.
+
+	* src/autofit/afblue.cin, src/autofit/afblue.c: Don't include
+	`afblue.h' but `aftypes.h'.
+	* src/autofit/afcjk.c: Don't include `aftypes.h' but `afglobal.h'.
+
+2013-08-28  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix C++ compilation.
+
+	* src/autofit/afglobal.c (af_face_globals_get_metrics),
+	src/autofit/afdummy.c (af_dflt_script_class), src/autofit/afindic.c
+	(af_deva_script_class): Use proper casts.
+
+2013-08-27  Behdad Esfahbod  <behdad@google.com>
+
+	* src/sfnt/ttload.c (tt_face_load_font_dir): Fix sign typos.
+
+2013-08-27  Behdad Esfahbod  <behdad@google.com>
+
+	FT_Open_Face: Improve external stream handling.
+
+	If the font's `clazz->init_face' function wants to swap to new
+	stream, handling of whether original stream was external could
+	result to either memory leak or double free.  Mark externality into
+	face flags before calling `init_face' such that the clazz can handle
+	external streams properly.
+
+	* src/base/ftobjs.c (FT_Open_Face): Move code to set
+	FT_FACE_FLAG_EXTERNAL_STREAM to...
+	(open_face): This function.
+
+2013-08-27  Werner Lemberg  <wl@gnu.org>
+
+	Remove `FT_SqrtFixed' function.
+
+	It's no longer used.
+
+	* include/freetype/internal/ftcalc.h, src/base/ftcalc.c: Do it.
+
+2013-08-27  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] While tracing, report script names instead of ID values.
+
+	* src/autofit/afglobal.c (af_script_names) [FT_DEBUG_LEVEL_TRACE]:
+	New array.
+	* src/autofit/afglobal.h: Updated.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths,
+	af_cjk_hint_edges): Use `af_script_names'.
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths,
+	af_latin_hint_edges): Ditto.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Report used script while hinting a glyph.
+
+	* src/autofit/afcjk.c (af_cjk_hint_edges), src/autofit/aflatin.c
+	(af_latin_hint_edges): Implement it.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Hebrew script.
+
+	* src/autofit/afblue.dat: Add blue strings for Hebrew.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/aflatin.c (af_hebr_uniranges): New array.
+	(af_hebr_script_class): New script.
+	* src/autofit/aflatin.h, src/autofit/afscript.h: Updated.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve tracing messages.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths): Mention script
+	ID in tracing message.
+	(af_cjk_metrics_init_blues): Initialize `axis' outside of the inner
+	loop.
+	Improve tracing messages.
+	(af_cjk_hint_edges) [FT_DEBUG_LEVEL_TRACE]: New variable
+	`num_actions' to count hinting actions.
+	Improve tracing messages.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths): Mention
+	script ID in tracing message.
+	(af_latin_metrics_init_blues, af_latin_hint_edges): Improve tracing
+	messages.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	Better tracing of loaded glyphs.
+
+	Previously, the loading of a glyph was traced at level 4, if at all. 
+	With this change, all font loading routines emit a tracing message
+	at level 1, making it easier to select tracing output (for example
+	using F2_DEBUG="any:1 afhints:7 aflatin:7").
+
+	* src/bdf/bdfdrivr.c (BDF_Glyph_Load): Add tracing message.
+	* src/cff/cffdrivr.c (cff_glyph_load): Ditto.
+	* src/cff/cffgload.c (cff_decoder_prepare): Improve tracing
+	messages.
+	* src/cid/cidgload.c (cid_load_glyph): Use level 1 for tracing
+	message.
+	* src/pcf/pcfdrivr.c (PCF_Glyph_Load): Ditto.
+	* src/pfr/pfrobjs.c (pfr_slot_load): Add tracing message.
+	* src/truetype/ttgload.c (TT_Load_Glyph): Ditto.
+	* src/type1/t1gload.c (T1_Load_Glyph): Ditto.
+	* src/type42/t42objs.c (T42_GlyphSlot_Load): Ditto.
+	* src/winfonts/winfnt.c (FNT_Load_Glyph): Ditto.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix script selection.
+
+	* src/autofit/afglobal.c (af_face_globals_get_metrics): Use
+	`AF_SCRIPT_DFLT', not value 0.
+	Simplify code.
+
+	* src/autofit/afscript.h: Sort by script name.
+
+2013-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make `dummy' hinter work as expected.
+
+	* src/autofit/afdummy.c (af_dummy_hints_init): Properly set scaling
+	information.
+	(af_dummy_hints_apply): Scale the glyphs.
+
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make `cjk' module use blue stringsets.
+
+	* src/autofit/afcjk.c (AF_CJK_MAX_TEST_CHARACTERS): Removed.
+	(af_cjk_hani_blue_chars): Removed.
+	(AF_CJK_BLUE_TYPE_*): Removed.
+	(af_cjk_metrics_init_blues): Replace AF_CJK_MAX_TEST_CHARACTERS with
+	AF_BLUE_STRING_MAX_LEN.
+	Change loops to use offsets (in file `afblue.h') into the new arrays
+	`af_blue_stringsets' and `af_blue_strings' (in file `afblue.c'). 
+	Instead of three dimensions (as used in the old blue string array)
+	we now use properties to do the same, saving one loop nesting level.
+
+	* src/autofit/afcjk.h: Remove old enumeration values superseded by
+	the new data in `afblue.h'.
+	(AF_CJK_IS_TOP_BLUE, AF_CJK_IS_HORIZ_BLUE, AF_CJK_IS_FILLED_BLUE,
+	AF_CJK_IS_RIGHT_BLUE): New macros, to be used in
+	`af_cjk_metrics_init_blues'.
+	(AF_CJK_BLUE_IS_RIGHT): Remove this now redundant enum value.
+	(AF_CJK_BLUE_IS_TOP): Renamed to...
+	(AF_CJK_BLUE_TOP): This.
+	(AF_CJK_MAX_BLUES): Remove.
+	(AF_CJKAxisRec): Updated.
+
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Typo.
+
+	* src/autofit/afblue.hin, src/autofit/afblue.c (GET_UTF8_CHAR): Use
+	cast.
+
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Synchronize `cjk' with `latin' module (and vice versa).
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths): Add tracing
+	messages.
+	(af_cjk_metrics_init_blues): Don't pass blue string array as
+	argument but use the global array directly.
+	Use `outline' directly.
+	Update and add tracing messages.
+	(af_cjk_metrics_init): Simplify code.
+	(af_cjk_metrics_scale_dim): Improve tracing message.
+	(af_cjk_metrics_scale): Synchronize.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths,
+	af_latin_metrics_init_blues): Improve and add tracing messages.
+
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make `latin' module use blue stringsets.
+
+	* src/autofit/aflatin.c (AF_LATIN_MAX_TEST_CHARACTERS): Removed.
+	(af_latin_blue_chars): Removed.
+	(af_latin_metrics_init_blues): Replace AF_LATIN_MAX_TEST_CHARACTERS
+	with AF_BLUE_STRING_MAX_LEN.
+	Change loops to use offsets (in file `afblue.h') into the new arrays
+	`af_blue_stringsets' and `af_blue_strings' (in file `afblue.c').
+	Use `AF_LATIN_IS_SMALL_TOP_BLUE' macro.
+
+	* src/autofit/aflatin.h: Remove old enumeration values superseded by
+	the new data in `afblue.h'.
+	(AF_LATIN_IS_TOP_BLUE): Updated definition.
+	(AF_LATIN_IS_SMALL_TOP_BLUE): New macro.
+	(AF_LATIN_MAX_BLUES): Remove.
+	(AF_LatinAxisRec): Updated.
+
+2013-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add blue stringsets.
+
+	* src/autofit/aftypes.h: Include `afblue.h'.
+	(AF_ScriptClassRec): Add `blue_stringset' field.
+	(AF_DEFINE_SCRIPT_CLASS): Updated.
+
+	* src/autofit/autofit.c: Include `afblue.c'.
+
+	* src/autofit/afcjk.c (af_hani_script_class), src/autofit/afdummy.c
+	(af_dflt_script_class), src/autofit/afindic.c
+	(af_deva_script_class), src/autofit/aflatin.c
+	(af_latn_script_class), src/autofit/aflatin2.c
+	(af_ltn2_script_class): Updated.
+
+	* src/autofit/rules.mk (AUTOF_DRV_SRC): Add `afblue.c'.
+
 2013-08-25  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Introduce data file for blue strings.
@@ -26,10 +295,11 @@
 
 2013-08-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
-	[base] Enable new algorithm for BBox_Cubic_Check.
+	[base] Enable new algorithm for `BBox_Cubic_Check'.
 
-	* src/base/ftbbox.c: Enable new BBox_Cubic_Check algorithm, remove the
-	old one. Improve comments.
+	* src/base/ftbbox.c: Enable new BBox_Cubic_Check algorithm, remove
+	the old one.
+	Improve comments.
 
 2013-08-18  Werner Lemberg  <wl@gnu.org>
 

@@ -60,8 +60,11 @@
     AF_GlyphHintsRec  hints[1];
 
 
-    FT_TRACE5(( "standard widths computation\n"
-                "===========================\n\n" ));
+    FT_TRACE5(( "\n"
+                "latin standard widths computation (script `%s')\n"
+                "=================================================\n"
+                "\n",
+                af_script_names[metrics->root.script_class->script] ));
 
     af_glyph_hints_init( hints, face->memory );
 
@@ -82,7 +85,7 @@
       if ( glyph_index == 0 )
         goto Exit;
 
-      FT_TRACE5(( "standard character: 0x%X (glyph index %d)\n",
+      FT_TRACE5(( "standard character: U+%04lX (glyph index %d)\n",
                   metrics->root.script_class->standard_char, glyph_index ));
 
       error = FT_Load_Glyph( face, glyph_index, FT_LOAD_NO_SCALE );
@@ -147,22 +150,21 @@
         }
 
         /* this also replaces multiple almost identical stem widths */
-        /* with a single one (the value 100 is heuristic) */
+        /* with a single one (the value 100 is heuristic)           */
         af_sort_and_quantize_widths( &num_widths, axis->widths,
                                      dummy->units_per_em / 100 );
         axis->width_count = num_widths;
       }
 
-  Exit:
+    Exit:
       for ( dim = 0; dim < AF_DIMENSION_MAX; dim++ )
       {
         AF_LatinAxis  axis = &metrics->axis[dim];
         FT_Pos        stdw;
 
 
-        stdw = ( axis->width_count > 0 )
-                 ? axis->widths[0].org
-                 : AF_LATIN_CONSTANT( metrics, 50 );
+        stdw = ( axis->width_count > 0 ) ? axis->widths[0].org
+                                         : AF_LATIN_CONSTANT( metrics, 50 );
 
         /* let's try 20% of the smallest width */
         axis->edge_distance_threshold = stdw / 5;
@@ -194,22 +196,6 @@
   }
 
 
-
-#define AF_LATIN_MAX_TEST_CHARACTERS  12
-
-
-  static const char af_latin_blue_chars[AF_LATIN_MAX_BLUES]
-                                       [AF_LATIN_MAX_TEST_CHARACTERS + 1] =
-  {
-    "THEZOCQS",  /* capital top    */
-    "HEZLOCUS",  /* capital bottom */
-    "fijkdbh",   /* small f top    */
-    "xzroesc",   /* small top      */
-    "xzroesc",   /* small bottom   */
-    "pqgjy"      /* small minor    */
-  };
-
-
   /* Find all blue zones.  Flat segments give the reference points, */
   /* round segments the overshoot positions.                        */
 
@@ -217,39 +203,45 @@
   af_latin_metrics_init_blues( AF_LatinMetrics  metrics,
                                FT_Face          face )
   {
-    FT_Pos        flats [AF_LATIN_MAX_TEST_CHARACTERS];
-    FT_Pos        rounds[AF_LATIN_MAX_TEST_CHARACTERS];
+    FT_Pos        flats [AF_BLUE_STRING_MAX_LEN];
+    FT_Pos        rounds[AF_BLUE_STRING_MAX_LEN];
+
     FT_Int        num_flats;
     FT_Int        num_rounds;
-    FT_Int        bb;
+
     AF_LatinBlue  blue;
     FT_Error      error;
-    AF_LatinAxis  axis  = &metrics->axis[AF_DIMENSION_VERT];
+    AF_LatinAxis  axis = &metrics->axis[AF_DIMENSION_VERT];
     FT_Outline    outline;
 
+    AF_Blue_Stringset         bss = metrics->root.script_class->blue_stringset;
+    const AF_Blue_StringRec*  bs  = &af_blue_stringsets[bss];
 
-    /* we compute the blues simply by loading each character from the    */
-    /* `af_latin_blue_chars[blues]' string, then finding its top-most or */
-    /* bottom-most points (depending on `AF_IS_TOP_BLUE')                */
 
-    FT_TRACE5(( "blue zones computation\n"
-                "======================\n\n" ));
+    /* we walk over the blue character strings as specified in the  */
+    /* script's entry in the `af_blue_stringset' array, finding its */
+    /* top-most or bottom-most points (depending on the string      */
+    /* properties)                                                  */
 
-    for ( bb = 0; bb < AF_LATIN_BLUE_MAX; bb++ )
+    FT_TRACE5(( "latin blue zones computation\n"
+                "============================\n"
+                "\n" ));
+
+    for ( ; bs->string != AF_BLUE_STRING_MAX; bs++ )
     {
-      const char*  p     = af_latin_blue_chars[bb];
-      const char*  limit = p + AF_LATIN_MAX_TEST_CHARACTERS;
+      const char*  p = &af_blue_strings[bs->string];
       FT_Pos*      blue_ref;
       FT_Pos*      blue_shoot;
 
 
-      FT_TRACE5(( "blue zone %d:\n", bb ));
+      FT_TRACE5(( "blue zone %d:\n", axis->blue_count ));
 
       num_flats  = 0;
       num_rounds = 0;
 
-      for ( ; p < limit && *p; p++ )
+      while ( *p )
       {
+        FT_ULong    ch;
         FT_UInt     glyph_index;
         FT_Pos      best_y;                            /* same as points.y */
         FT_Int      best_point, best_contour_first, best_contour_last;
@@ -257,15 +249,23 @@
         FT_Bool     round = 0;
 
 
+        GET_UTF8_CHAR( ch, p );
+
         /* load the character in the face -- skip unknown or empty ones */
-        glyph_index = FT_Get_Char_Index( face, (FT_UInt)*p );
+        glyph_index = FT_Get_Char_Index( face, ch );
         if ( glyph_index == 0 )
+        {
+          FT_TRACE5(( "  U+%04lX unavailable\n", ch ));
           continue;
+        }
 
         error   = FT_Load_Glyph( face, glyph_index, FT_LOAD_NO_SCALE );
         outline = face->glyph->outline;
         if ( error || outline.n_points <= 0 )
+        {
+          FT_TRACE5(( "  U+%04lX contains no outlines\n", ch ));
           continue;
+        }
 
         /* now compute min or max point indices and coordinates */
         points             = outline.points;
@@ -294,7 +294,7 @@
             if ( last <= first )
               continue;
 
-            if ( AF_LATIN_IS_TOP_BLUE( bb ) )
+            if ( AF_LATIN_IS_TOP_BLUE( bs ) )
             {
               for ( pp = first; pp <= last; pp++ )
                 if ( best_point < 0 || points[pp].y > best_y )
@@ -319,7 +319,8 @@
               best_contour_last  = last;
             }
           }
-          FT_TRACE5(( "  %c  %ld", *p, best_y ));
+
+          FT_TRACE5(( "  U+%04lX: best_y = %5ld", ch, best_y ));
         }
 
         /* now check whether the point belongs to a straight or round   */
@@ -466,7 +467,7 @@
       }
       else
       {
-        *blue_ref   = flats[num_flats / 2];
+        *blue_ref   = flats [num_flats  / 2];
         *blue_shoot = rounds[num_rounds / 2];
       }
 
@@ -480,7 +481,7 @@
         FT_Bool  over_ref = FT_BOOL( shoot > ref );
 
 
-        if ( AF_LATIN_IS_TOP_BLUE( bb ) ^ over_ref )
+        if ( AF_LATIN_IS_TOP_BLUE( bs ) ^ over_ref )
         {
           *blue_ref   =
           *blue_shoot = ( shoot + ref ) / 2;
@@ -491,7 +492,7 @@
       }
 
       blue->flags = 0;
-      if ( AF_LATIN_IS_TOP_BLUE( bb ) )
+      if ( AF_LATIN_IS_TOP_BLUE( bs ) )
         blue->flags |= AF_LATIN_BLUE_TOP;
 
       /*
@@ -499,7 +500,7 @@
        * in order to optimize the pixel grid alignment of the top of small
        * letters.
        */
-      if ( bb == AF_LATIN_BLUE_SMALL_TOP )
+      if ( AF_LATIN_IS_SMALL_TOP_BLUE( bs ) )
         blue->flags |= AF_LATIN_BLUE_ADJUSTMENT;
 
       FT_TRACE5(( "    -> reference = %ld\n"
@@ -1672,8 +1673,8 @@
                                AF_Edge_Flags  base_flags,
                                AF_Edge_Flags  stem_flags )
   {
-    AF_LatinMetrics  metrics  = (AF_LatinMetrics) hints->metrics;
-    AF_LatinAxis     axis     = & metrics->axis[dim];
+    AF_LatinMetrics  metrics  = (AF_LatinMetrics)hints->metrics;
+    AF_LatinAxis     axis     = &metrics->axis[dim];
     FT_Pos           dist     = width;
     FT_Int           sign     = 0;
     FT_Int           vertical = ( dim == AF_DIMENSION_VERT );
@@ -1896,8 +1897,9 @@
 #endif
 
 
-    FT_TRACE5(( "%s edge hinting\n",
-                dim == AF_DIMENSION_VERT ? "horizontal" : "vertical" ));
+    FT_TRACE5(( "latin %s edge hinting (script `%s')\n",
+                dim == AF_DIMENSION_VERT ? "horizontal" : "vertical",
+                af_script_names[hints->metrics->script_class->script] ));
 
     /* we begin by aligning all stems relative to the blue zone */
     /* if needed -- that's only for horizontal edges            */
@@ -2432,6 +2434,7 @@
         af_glyph_hints_align_weak_points( hints, (AF_Dimension)dim );
       }
     }
+
     af_glyph_hints_save( hints, outline );
 
   Exit:
@@ -2501,14 +2504,34 @@
   };
 
 
+  static const AF_Script_UniRangeRec  af_hebr_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x0590UL,  0x05FFUL ),  /* Hebrew */
+    AF_UNIRANGE_REC(  0xFB1DUL,  0xFB4FUL ),  /* Alphab. Present. Forms (Hebrew) */
+    AF_UNIRANGE_REC(       0UL,       0UL )
+  };
+
+
   AF_DEFINE_SCRIPT_CLASS(
     af_latn_script_class,
 
     AF_SCRIPT_LATN,
+    AF_BLUE_STRINGSET_LATN,
     AF_WRITING_SYSTEM_LATIN,
 
     af_latn_uniranges,
     'o'
+  )
+
+  AF_DEFINE_SCRIPT_CLASS(
+    af_hebr_script_class,
+
+    AF_SCRIPT_HEBR,
+    AF_BLUE_STRINGSET_HEBR,
+    AF_WRITING_SYSTEM_LATIN,
+
+    af_hebr_uniranges,
+    0x5DD /* ם */
   )
 
 
