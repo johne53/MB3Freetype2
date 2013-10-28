@@ -14,10 +14,13 @@ CHANGES BETWEEN 2.5 and 2.5.1
 
   II. IMPORTANT CHANGES
 
-    - WOFF support has been added.
+    - WOFF font format support has been added.
 
     - The auto-hinter now supports Hebrew.  Greek and Cyrillic support
       has been improved.
+
+    - Support for the forthcoming `OS/2'  SFNT table version 5, as can
+      be found e.g. in the `Sitka' font family for Windows 8.1.
 
 
   III. MISCELLANEOUS
@@ -27,6 +30,13 @@ CHANGES BETWEEN 2.5 and 2.5.1
 
     - `ftgrid' has been updated to toggle various engines with the `H'
       key, similar to `ftview' and `ftdiff'.
+
+    - Some keys  in `ttdebug' have  been reassigned from  lowercase to
+      their uppercase equivalents; for example `q' to quit the program
+      is now `Q'.
+
+    - `ttdebug' now displays  twilight and storage area  data; key `T'
+      shows the twilight point table, key `S' the storage data.
 
     - Better support of ARMv7 and x86_64 processors.
 
@@ -41,6 +51,12 @@ CHANGES BETWEEN 2.5 and 2.5.1
     - `FT_Gzip_Uncompress'   (modeled    after   zlib's   `uncompress'
       function)  has been  added; this  is a  by-product of  the newly
       added WOFF support.
+
+    - Support for  a build with  `cmake' has been contributed  by John
+      Cary <cary@txcorp.com>.
+
+    - Support for x64  builds with Visual C++ has  been contributed by
+      Kenneth Miller <kennethadammiller@yahoo.com>
 
 
 ======================================================================
