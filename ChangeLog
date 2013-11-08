@@ -1,3 +1,99 @@
+2013-11-08  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Fix for hints that touch.
+
+	* src/cff/cf2hints.c (cf2_hintmap_insertHint): Fix condition for
+	finding index value of insertion point.
+
+2013-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix handling of phantom points in composite glyphs.
+	Problem reported by Nigel Tao <nigeltao@golang.org>.
+
+	This is a follow-up commit to the previous one.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Call
+	`tt_get_metrics' after loading the glyph header.
+
+2013-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve emulation of vertical metrics.
+
+	This commit also improves the start values of vertical phantom
+	points.  Kudos to Greg Hitchcock for help.
+
+	* src/truetype/ttgload.c (TT_Get_VMetrics): Add parameter to pass
+	`yMax' value.  Replace code with fixed Microsoft definition.
+	(tt_get_metrics): Updated.
+	(TT_LOADER_SET_PP): Add explanation how to initialize phantom
+	points, taken from both the OpenType specification and private
+	communication with Greg (which will eventually be added to the
+	standard).
+	Fix horizontal position of `pp3' and `pp4'.
+
+	* src/truetype/ttgload.h: Updated.
+
+	* src/truetype/ttdriver.c (tt_get_advances): Updated.
+
+	* docs/CHANGES: Updated.
+
+2013-11-05  Werner Lemberg  <wl@gnu.org>
+
+	* builds/windows/vc2010/freetype.vcxproj: s/v110/v100/.
+	PlatformToolSet version 110 is for VC2012.
+
+	Problem reported (with solution) by Dave Arnold <darnold@adobe.com>.
+
+2013-11-05  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Correctly reset point tags for glyph components.
+	Problem reported by Nigel Tao <nigeltao@golang.org>.
+
+	* src/truetype/ttgload.c (TT_Process_Composite_Glyph): Fix loop.
+
+2013-11-02  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix GETINFO opcode handling of subpixel hinting bits.
+
+	* src/truetype/ttinterp.c (Ins_GETINFO): Don't request bit 6 set to
+	get info on subpixel hinting.
+
+	* docs/CHANGES: Updated.
+
+2013-11-02  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #40451.
+
+	Simply apply the patch from the bug report.
+
+	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
+	include/freetype/config/ftconfig.h: The used #pragma directives only
+	work with gcc versions 4.6 and higher.
+
+2013-11-01  Werner Lemberg  <wl@gnu.org>
+
+	* docs/CHANGES: Updated.
+
+2013-11-01  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Minor code refactoring.
+
+	Two benefits: The allocated FDEF (and IDEF) array gets slightly
+	smaller, and the `ttdebug' demo program has access to function
+	numbers without additional costs.
+
+	Fortunately, no changes to FontForge are necessary – this is the
+	only external TrueType debugger I know of, but others may exist and
+	should check the code accordingly.
+
+	* src/truetype/ttinterp.h (TT_CallRec): Replace `Cur_Restart' and
+	`Cur_End' with a pointer to the corresponding `TT_DefRecord'
+	structure.
+
+	* src/truetype/ttinterp.c (DO_JROT, DO_JMPR, DO_JROF, Ins_ENDF,
+	Ins_CALL, Ins_LOOPCALL, Ins_UNKNOWN, TT_RunIns <Invalid_Opcode>):
+	Updated.
+
 2013-10-27  Werner Lemberg  <wl@gnu.org>
 
 	[sfnt] Implement support for `OS/2' table version 5.
