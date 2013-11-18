@@ -1,3 +1,70 @@
+2013-11-16  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix `OS/2' table version 5 support.
+
+	We now follow the `official' announcement from Microsoft (on the
+	OpenType mailing list, which unfortunately hasn't a public archive).
+
+	* include/freetype/tttables.h (TT_OS2):
+	s/usLowerPointSize/usLowerOpticalPointSize/,
+	s/usUpperPointSize/usUpperOpticalPointSize/.
+
+	* src/sfnt/ttload.c (tt_face_load_os2): Update, and set correct
+	default values.
+
+2013-11-13  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/ft2unix.h: Remove.  No longer necessary.
+
+	* builds/unix/install.mk (install): Updated.
+
+2013-11-13  Werner Lemberg  <wl@gnu.org>
+
+	Simplify header file hierarchy.
+
+	This large patch changes the header file directory layout from
+	`include/freetype/...' to `include/...', effectively removing one
+	level.  Since the file `ft2build.h' is also located in `include'
+	(and it stays there even after installation), all FreeType header
+	files are now in a single directory.
+
+	Applications that use (a) `freetype-config' or FreeType's
+	`pkg-config' file to get the include directory for the compiler, and
+	(b) the documented way for header inclusion like
+
+	  #include <ft2build.h>
+	  #include FT_FREETYPE_H
+	  ...
+
+	don't need any change to the source code.
+
+	* include/freetype/*: Move up to...
+	* include/*: ... this directory.
+
+	* builds/amiga/include/freetype/*: Move up to...
+	* builds/amiga/include/*: ... this directory.
+
+	*/*: Essentially do `s@/freetype/@/@' where appropriate.
+
+	* CMakeList.txt: Simplify.
+	* builds/unix/freetype-config.in, builds/unix/freetype2.in: For
+	`--cflags', return a single directory.
+	* builds/unix/install.mk (install): No longer try to remove `cache'
+	and `internal' subdirectories; instead, remove the `freetype'
+	subdirectory.
+
+2013-11-12  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix last `truetype' commit.
+
+	* src/truetype/ttgload.c (tt_get_metrics): Preserve stream position.
+	Return error value.
+	(load_truetype_glyph): Updated.
+
+2013-11-10  Werner Lemberg  <wl@gnu.org>
+
+	* docs/CMAKE: New dummy file.
+
 2013-11-08  Dave Arnold  <darnold@adobe.com>
 
 	[cff] Fix for hints that touch.
