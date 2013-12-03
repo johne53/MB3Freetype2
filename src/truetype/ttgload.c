@@ -348,9 +348,9 @@
     FT_GlyphLoader  gloader    = load->gloader;
     FT_Int          n_contours = load->n_contours;
     FT_Outline*     outline;
-    TT_Face         face       = (TT_Face)load->face;
     FT_UShort       n_ins;
     FT_Int          n_points;
+    FT_ULong        tmp;
 
     FT_Byte         *flag, *flag_limit;
     FT_Byte         c, count;
@@ -416,14 +416,7 @@
 
     FT_TRACE5(( "  Instructions size: %u\n", n_ins ));
 
-    if ( n_ins > face->max_profile.maxSizeOfInstructions )
-    {
-      FT_TRACE0(( "TT_Load_Simple_Glyph: too many instructions (%d)\n",
-                  n_ins ));
-      error = FT_THROW( Too_Many_Hints );
-      goto Fail;
-    }
-
+    /* check it */
     if ( ( limit - p ) < n_ins )
     {
       FT_TRACE0(( "TT_Load_Simple_Glyph: instruction count mismatch\n" ));
@@ -435,6 +428,20 @@
 
     if ( IS_HINTED( load->load_flags ) )
     {
+      /* we don't trust `maxSizeOfInstructions' in the `maxp' table */
+      /* and thus update the bytecode array size by ourselves       */
+
+      tmp   = load->exec->glyphSize;
+      error = Update_Max( load->exec->memory,
+                          &tmp,
+                          sizeof ( FT_Byte ),
+                          (void*)&load->exec->glyphIns,
+                          n_ins );
+
+      load->exec->glyphSize = (FT_UShort)tmp;
+      if ( error )
+        return error;
+
       load->glyph->control_len  = n_ins;
       load->glyph->control_data = load->exec->glyphIns;
 
@@ -743,8 +750,8 @@
 #ifdef TT_USE_BYTECODE_INTERPRETER
     if ( loader->glyph->control_len > 0xFFFFL )
     {
-      FT_TRACE1(( "TT_Hint_Glyph: too long instructions " ));
-      FT_TRACE1(( "(0x%lx byte) is truncated\n",
+      FT_TRACE1(( "TT_Hint_Glyph: too long instructions" ));
+      FT_TRACE1(( " (0x%lx byte) is truncated\n",
                  loader->glyph->control_len ));
     }
     n_ins = (FT_UInt)( loader->glyph->control_len );
@@ -781,9 +788,13 @@
     }
 #endif
 
-    /* round pp2 and pp4 */
+    /* round phantom points */
+    zone->cur[zone->n_points - 4].x =
+      FT_PIX_ROUND( zone->cur[zone->n_points - 4].x );
     zone->cur[zone->n_points - 3].x =
       FT_PIX_ROUND( zone->cur[zone->n_points - 3].x );
+    zone->cur[zone->n_points - 2].y =
+      FT_PIX_ROUND( zone->cur[zone->n_points - 2].y );
     zone->cur[zone->n_points - 1].y =
       FT_PIX_ROUND( zone->cur[zone->n_points - 1].y );
 
@@ -821,13 +832,10 @@
 #endif
 
     /* save glyph phantom points */
-    if ( !loader->preserve_pps )
-    {
-      loader->pp1 = zone->cur[zone->n_points - 4];
-      loader->pp2 = zone->cur[zone->n_points - 3];
-      loader->pp3 = zone->cur[zone->n_points - 2];
-      loader->pp4 = zone->cur[zone->n_points - 1];
-    }
+    loader->pp1 = zone->cur[zone->n_points - 4];
+    loader->pp2 = zone->cur[zone->n_points - 3];
+    loader->pp3 = zone->cur[zone->n_points - 2];
+    loader->pp4 = zone->cur[zone->n_points - 1];
 
 #ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
     if ( driver->interpreter_version == TT_INTERPRETER_VERSION_38 )
@@ -1216,21 +1224,23 @@
       max_ins = ((TT_Face)loader->face)->max_profile.maxSizeOfInstructions;
       if ( n_ins > max_ins )
       {
-        /* acroread ignores this field, so we only do a rough safety check */
+        /* don't trust `maxSizeOfInstructions'; */
+        /* only do a rough safety check         */
         if ( (FT_Int)n_ins > loader->byte_len )
         {
-          FT_TRACE1(( "TT_Process_Composite_Glyph: "
-                      "too many instructions (%d) for glyph with length %d\n",
+          FT_TRACE1(( "TT_Process_Composite_Glyph:"
+                      " too many instructions (%d) for glyph with length %d\n",
                       n_ins, loader->byte_len ));
           return FT_THROW( Too_Many_Hints );
         }
 
-        tmp = loader->exec->glyphSize;
+        tmp   = loader->exec->glyphSize;
         error = Update_Max( loader->exec->memory,
                             &tmp,
                             sizeof ( FT_Byte ),
                             (void*)&loader->exec->glyphIns,
                             n_ins );
+
         loader->exec->glyphSize = (FT_UShort)tmp;
         if ( error )
           return error;
@@ -1273,8 +1283,11 @@
    * specification defines the initial position of horizontal phantom points
    * as
    *
-   *   pp1 = (xmin - lsb, 0)      ,
-   *   pp2 = (pp1 + aw, 0)        .
+   *   pp1 = (round(xmin - lsb), 0)      ,
+   *   pp2 = (round(pp1 + aw), 0)        .
+   *
+   * Note that the rounding to the grid is not documented currently in the
+   * specification.
    *
    * However, the specification lacks the precise definition of vertical
    * phantom points.  Greg Hitchcock provided the following explanation.
@@ -1290,8 +1303,8 @@
    *
    *   and the initial position of vertical phantom points is
    *
-   *     pp3 = (x, ymax + tsb)       ,
-   *     pp4 = (x, pp3 - ah)         .
+   *     pp3 = (x, round(ymax + tsb))       ,
+   *     pp4 = (x, round(pp3 - ah))         .
    *
    *   See below for value `x'.
    *
@@ -1323,18 +1336,47 @@
    *   x = -DefaultDescender -
    *         ((DefaultAscender - DefaultDescender - aw) / 2)     .
    *
+   * For (old) non-ClearType hinting, `x' is set to zero.
+   *
    */
+#ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
+
 #define TT_LOADER_SET_PP( loader )                                          \
-          do {                                                              \
+          do                                                                \
+          {                                                                 \
+            TT_Face    face_      = (TT_Face)(loader)->face;                \
+            TT_Driver  driver_    = (TT_Driver)FT_FACE_DRIVER( face_ );     \
+            FT_Bool    is_ver_38_ = (FT_Bool)                               \
+                                      ( driver_->interpreter_version ==     \
+                                        TT_INTERPRETER_VERSION_38 );        \
+                                                                            \
+                                                                            \
             (loader)->pp1.x = (loader)->bbox.xMin - (loader)->left_bearing; \
             (loader)->pp1.y = 0;                                            \
             (loader)->pp2.x = (loader)->pp1.x + (loader)->advance;          \
             (loader)->pp2.y = 0;                                            \
-            (loader)->pp3.x = (loader)->advance / 2;                        \
+            (loader)->pp3.x = is_ver_38_ ? (loader)->advance / 2 : 0;       \
             (loader)->pp3.y = (loader)->bbox.yMax + (loader)->top_bearing;  \
-            (loader)->pp4.x = (loader)->advance / 2;                        \
+            (loader)->pp4.x = is_ver_38_ ? (loader)->advance / 2 : 0;       \
             (loader)->pp4.y = (loader)->pp3.y - (loader)->vadvance;         \
           } while ( 0 )
+
+#else /* !TT_CONFIG_OPTION_SUBPIXEL_HINTING */
+
+#define TT_LOADER_SET_PP( loader )                                          \
+          do                                                                \
+          {                                                                 \
+            (loader)->pp1.x = (loader)->bbox.xMin - (loader)->left_bearing; \
+            (loader)->pp1.y = 0;                                            \
+            (loader)->pp2.x = (loader)->pp1.x + (loader)->advance;          \
+            (loader)->pp2.y = 0;                                            \
+            (loader)->pp3.x = 0;                                            \
+            (loader)->pp3.y = (loader)->bbox.yMax + (loader)->top_bearing;  \
+            (loader)->pp4.x = 0;                                            \
+            (loader)->pp4.y = (loader)->pp3.y - (loader)->vadvance;         \
+          } while ( 0 )
+
+#endif /* !TT_CONFIG_OPTION_SUBPIXEL_HINTING */
 
 
   /*************************************************************************/
