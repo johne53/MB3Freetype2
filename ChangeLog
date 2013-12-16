@@ -1,3 +1,116 @@
+2013-12-11  Infinality  <infinality@infinality.net>
+
+	[truetype] Simplify logic of rendering modes.
+
+	This patch unifies the subpixel and non-subpixel cases.
+
+	* src/truetype/ttinterp.h (TT_ExecContextRec): Remove
+	`grayscale_hinting'; all code should refer to `grayscale' instead.
+	Remove unused `native_hinting' member.
+	Rename `subpixel_hinting' member to `subpixel.
+
+	* src/truetype/ttgload.c (TT_LOADER_SET_PP): Updated.
+	(tt_loader_init): Updated.
+
+	* src/truetype/ttinterp.c (Ins_GETINFO): Simplify.
+	Updated.
+
+2013-12-11  Werner Lemberg  <wl@gnu.org>
+
+	[documentation] Add section how to include FreeType header files.
+	Problem reported by David Kastrup <dak@gnu.org>.
+
+	Surprisingly, a description how to do that was completely missing in
+	the API reference.
+
+	* include/freetype.h, include/ftchapters.h: New documentation
+	section `header_inclusion'.
+
+2013-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] s/DFLT/NONE/, s/dflt/none/.
+
+2013-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] s/AF_SCRIPT_NONE/AF_SCRIPT_UNASSIGNED/.
+
+2013-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix scaling of vertical phantom points.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Scale pp3.x and
+	pp4.x also.
+
+2013-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix positioning of composite glyphs.
+	Problem reported by Nigel Tao <nigeltao@golang.org>.
+
+	* src/truetype/ttgload.c (TT_Hint_Glyph): Remove code that shifts
+	the glyph (component) by a fractional value computed from the LSB
+	phantom point.  This is wrong, since the horizontal phantom points
+	get rounded horizontally later on.
+
+2013-12-08  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.5.2 released.
+	=========================
+
+
+	Tag sources with `VER-2-5-2'.
+
+	* docs/VERSION.DLL: Update documentation and bump version number to
+	2.5.2.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.5.1/2.5.2/, s/251/252/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
+
+	* builds/unix/configure.raw (version_info): Set to 17:1:11.
+	* docs/CHANGES: Updated.
+
+2013-12-07  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Next round in phantom point handling.
+
+	Greg Hitchcock provided very interesting insights into the
+	complicated history of the horizontal positions of the TSB and BSB
+	phantom points.
+
+	* src/truetype/ttgload.c (TT_LOADER_SET_PP)
+	[TT_CONFIG_OPTION_SUBPIXEL_HINTING]: Use `subpixel_hinting' and
+	`grayscale_hinting' flags as conditionals for the x position of TSB
+	and BSB.
+
+2013-12-05  Werner Lemberg  <wl@gnu.org>
+
+	* builds/freetype.mk (FT_CC): Removed.  Unused.
+
+2013-12-04  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix handling of embedded bitmap strikes.
+
+	This corrects the commit from 2013-11-21.  Problem reported by
+	Andrey Panov <panov@canopus.iacp.dvo.ru>.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_bitmap): Fix logic to
+	detect excessive bytes for bit-aligned bitmaps.
+
 2013-12-03  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Remove dead code.
@@ -76,6 +189,7 @@
 	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
 
 	* builds/unix/configure.raw (version_info): Set to 17:0:11.
+	* CMakeLists.txt (VERSION_PATCH): Set to 2.
 	* docs/CHANGES, docs/release: Updated.
 
 2013-11-23  Werner Lemberg  <wl@gnu.org>
@@ -101,7 +215,7 @@
 
 2013-11-21  Werner Lemberg  <wl@gnu.org>
 
-	[truetype] Improve handling of buggy embedded bitmap strikes.
+	[sfnt] Improve handling of buggy embedded bitmap strikes.
 
 	We are now able to successfully load `AppleMyoungJo.ttf'.
 	Problem reported by Hin-Tak Leung <htl10@users.sourceforge.net>.

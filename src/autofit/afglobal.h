@@ -48,12 +48,12 @@ FT_BEGIN_HEADER
 #ifdef AF_CONFIG_OPTION_CJK
 #define AF_SCRIPT_FALLBACK  AF_SCRIPT_HANI
 #else
-#define AF_SCRIPT_FALLBACK  AF_SCRIPT_DFLT
+#define AF_SCRIPT_FALLBACK  AF_SCRIPT_NONE
 #endif
   /* a bit mask indicating an uncovered glyph        */
-#define AF_SCRIPT_NONE      0x7F
+#define AF_SCRIPT_UNASSIGNED  0x7F
   /* if this flag is set, we have an ASCII digit     */
-#define AF_DIGIT            0x80
+#define AF_DIGIT              0x80
 
   /* `increase-x-height' property */
 #define AF_PROP_INCREASE_X_HEIGHT_MIN  6
