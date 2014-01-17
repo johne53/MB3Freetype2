@@ -1,3 +1,88 @@
+2014-01-16  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve tracing of style coverages.
+
+	* include/internal/fttrace.h: Add `afglobal' for tracing style
+	coverages.
+
+	* src/autofit/afglobal.c: Include FT_INTERNAL_DEBUG_H.
+	(FT_COMPONENT): Define.
+	(af_face_globals_compute_style_coverage): Trace `gstyles' array
+	data.
+
+2014-01-09  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41158.
+
+	* builds/unix/install.mk (install): Create man page directory.
+
+2014-01-08  Chongyu Zhu  <lembacon@gmail.com>
+
+	[arm] Fix Savannah bug #41138, part 2.
+
+	* builds/unix/ftconfig.in (FT_MulFix_arm), include/config/ftconfig.h
+	(FT_MulFix_arm), src/truetype/ttinterp.c (TT_MulFix14_arm): Fix
+	preprocessor conditionals for `add.w'.
+
+2014-01-08  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix Savannah bug #41138, part 1.
+
+	* src/tools/afblue.pl <Handling #endif>: Produce correct auxiliary
+	enumeration names for generated `#else'.
+
+	* src/autofit/afblue.h: Regenerated.
+
+2014-01-06  Werner Lemberg  <wl@gnu.org>
+
+	Add manual page for `freetype-config'.
+	Contributed by Nis Martensen <nis.martensen@web.de>.
+
+	* docs/freetype-config.1: New file.
+
+	* builds/unix/unix-def.in (mandir): Define.
+	* builds/unix/install.mk (install, uninstall): Handle manpage.
+
+2014-01-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Minor fixes for `afblue.pl'.
+
+	* src/tools/afblue.pl (aux_name): Don't use `reverse'.
+	<Handling #endif>: Use proper indentation for generated `#else'.
+
+	* src/autofit/afblue.h: Regenerated.
+
+2014-01-04  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix Indic scripts.
+
+	Split the single, incorrect Indic entry into separate scripts so
+	that the covered ranges are the same: Bengali, Devanagari, Gujarati,
+	Gurmukhi, Kannada, Limbu, Malayalam, Oriya, Sinhala, Sundanese,
+	Syloti Nagri, Tamil, Telugu, and Tibetan.  At the same time, remove
+	entries for Meetai Mayak and Sharada – the Unicode ranges were
+	incorrect (and nobody has complained about that), fonts are scarce
+	for those scripts, and the Indic auto-hinter support is rudimentary
+	anyways.
+
+	* src/autofit/afscript.h: Updated, using AF_CONFIG_OPTION_INDIC and
+	AF_CONFIG_OPTION_CJK.
+
+	* src/autofit/afstyles.h (STYLE_DEFAULT_INDIC): New auxiliary macro.
+	Use it, together with AF_CONFIG_OPTION_INDIC and
+	AF_CONFIG_OPTION_CJK, to update.
+
+	* src/autofit/afranges.c [AF_CONFIG_OPTION_INDIC]: Updated.
+	[!AF_CONFIG_OPTION_INDIC, !AF_CONFIG_OPTION_CJK]: Removed.
+	Sort entries by tags.
+
+2014-01-03  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Thinko.
+
+	* src/autofit/hbshim.c (af_get_char_index): Similar to
+	`af_get_coverage', reject glyphs which are not substituted.
+
 2014-01-03  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Fix handling of default coverages.

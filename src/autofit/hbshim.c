@@ -289,9 +289,9 @@
     /*
      * Various OpenType features might use the same glyphs at different
      * vertical positions; for example, superscript and subscript glyphs
-     * could be the same.  However, FreeType's auto-hinting is completely
+     * could be the same.  However, the auto-hinter is completely
      * agnostic of OpenType features after the feature analysis has been
-     * completed: FreeType then simply receives a glyph index and returns a
+     * completed: The engine then simply receives a glyph index and returns a
      * hinted and usually rendered glyph.
      *
      * Consider the superscript feature of font `pala.ttf': Some of the
@@ -410,9 +410,13 @@
 
     const hb_feature_t*  feature;
 
+    FT_ULong  in_idx, out_idx;
+
 
     if ( !metrics )
       return FT_THROW( Invalid_Argument );
+
+    in_idx = FT_Get_Char_Index( metrics->globals->face, charcode );
 
     style_class = metrics->style_class;
 
@@ -448,8 +452,20 @@
       ginfo = hb_buffer_get_glyph_infos( buf, &gcount );
       gpos  = hb_buffer_get_glyph_positions( buf, &gcount );
 
-      *codepoint = ginfo[0].codepoint;
-      *y_offset  = gpos[0].y_offset;
+      out_idx = ginfo[0].codepoint;
+
+      /* getting the same index indicates no substitution,         */
+      /* which means that the glyph isn't available in the feature */
+      if ( in_idx == out_idx )
+      {
+        *codepoint = 0;
+        *y_offset  = 0;
+      }
+      else
+      {
+        *codepoint = out_idx;
+        *y_offset  = gpos[0].y_offset;
+      }
 
       hb_buffer_destroy( buf );
 
@@ -461,7 +477,7 @@
     }
     else
     {
-      *codepoint = FT_Get_Char_Index( metrics->globals->face, charcode );
+      *codepoint = in_idx;
       *y_offset  = 0;
     }
 
@@ -469,7 +485,7 @@
   }
 
 
-#else /* !FT_CONFIG_OPTION_USE_HARDBUZZ */
+#else /* !FT_CONFIG_OPTION_USE_HARFBUZZ */
 
 
   FT_Error
