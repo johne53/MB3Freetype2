@@ -1,3 +1,72 @@
+2014-02-03  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix Savannah bug #41363.
+
+	* src/cff/cf2ft.c (cf2_checkTransform): Convert assertion into
+	parameter check.
+	(cf2_decoder_parse_charstrings): Call `cf2_checkTransform' only if
+	we are scaling the outline.
+	(cf2_getPpemY): Remove problematic assertion.
+
+2014-01-26  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Introduce two more slots for standard characters.
+
+	This is useful for OpenType features like `c2sc' (caps to small
+	caps) that don't have lowercase letters by definition, or other
+	features that mainly operate on numerals.
+
+	* src/autofit/afscript.h: Add more standard characters.
+
+	* src/autofit/aftypes.h: Update use of `SCRIPT' macro.
+	(AF_ScriptClassRec): Add members to hold two more standard
+	characters.
+	(AF_DEFINE_SCRIPT_CLASS): Updated.
+
+	* src/autofit/afglobal.c, src/autofit/afglobal.h,
+	* src/autofit/afpic.c, src/autofit/afranges.h, src/autofit/hbshim.c:
+	Update use of `SCRIPT' macro.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths),
+	src/autofit/aflatin.c (af_latin_metrics_init_widths): Scan two more
+	standard characters.
+
+2014-01-24  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41320.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues)
+	<AF_LATIN_IS_LONG_BLUE>: Avoid negative index of `last'.
+
+2014-01-23  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41310.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_bitmap) <glyph_format==5>:
+	Don't check metrics, which this format doesn't have.
+	This is another correction to the commit from 2013-11-21.
+
+2014-01-23  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41309.
+
+	* src/type1/t1load.c (t1_parse_font_matrix): Properly handle result
+	of `T1_ToFixedArray'.
+
+	* src/cid/cidload.c (cid_parse_font_matrix): Synchronize with
+	`t1_parse_font_matrix'.
+
+	* src/type42/t42parse.c (t42_parse_font_matrix): Synchronize with
+	`t1_parse_font_matrix'.
+	(t42_parse_encoding): Synchronize with `t1_parse_encoding'.
+
+	* src/psaux/psobjs.c (ps_parser_load_field) <T1_FIELD_TYPE_BBOX>,
+	<T1_FIELD_TYPE_MMOX>: Properly handle result of `ps_tofixedarray'.
+
+2014-01-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/hbshim.c (af_get_coverage): Fix memory leaks.
+
 2014-01-16  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Improve tracing of style coverages.
