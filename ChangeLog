@@ -1,8 +1,171 @@
+2014-03-03  Werner Lemberg  <wl@gnu.org>
+
+	Rewrite library option handling in `configure'.
+
+	o Introduce `auto' value for `--with-XXX' library options; this is
+	  now the default.
+
+	o First use `pkg-config' for library detection, then fall back to
+	  other tests.
+
+	* builds/unix/configure.raw (--with-zlib, --with-bzip2, --with-png,
+	--with-harfbuzz): Rewrite.
+	Use new `xxx_reqpriv', `xxx_libpriv', and `xxx_libstaticconf'
+	variables to collect data for `freetype2.pc' and `freetype-config'.
+	(FT2_EXTRA_LIBS): Renamed to ...
+	(ft2_extra_libs): This since it gets no longer substituted.
+	(REQUIRES_PRIVATE, LIBS_PRIVATE, LIBS_CONFIG, LIBSSTATIC_CONFIG):
+	New output variables, replacing `XXX_PKG' and `LIBXXX'.
+	Add notice at the end of `configure' showing the library
+	configuration.
+
+	* builds/unix/freetype-config.in (--static): New command line
+	option.
+	(libs): Updated.
+	(staticlibs): New variable, to be used if `--static' is given.
+	* builds/doc/freetype-config.1: Document `--static'.
+
+	* builds/unix/freetype2.in, builds/unix/unix-def.in: Updated.
+
+2014-03-01  Werner Lemberg  <wl@gnu.org>
+
+	Avoid `long long' warnings with older gcc compilers.
+	Problem reported by Hin-Tak Leung <htl10@users.sourceforge.net>.
+
+	* builds/unix/configure.raw: Don't use gcc's `-pedantic' flag for
+	versions < 4.6.  This is especially needed for Max OS X since this
+	OS runs a gcc variant (or emulation) based on version 4.2.1.
+
+2014-03-01  Werner Lemberg  <wl@gnu.org>
+
+	* docs/INSTALL.CROSS: Revised and updated.
+
+2014-03-01  Werner Lemberg  <wl@gnu.org>
+
+	Make `make clean' remove `freetype2.pc'.
+
+	This is a generated file at build time, not configure time.
+
+	* builds/unix/unix-def.in (DISTCLEAN): Move `freetype2.pc' to ...
+	(CLEAN): This variable.
+
+2014-03-01  Werner Lemberg  <wl@gnu.org>
+
+	Use pkg-config for detecting libpng and libbz2 also.
+
+	* builds/unix/configure.raw (HAVE_PKG): New variable.
+	Search for libbz2 using `pkg-config'; s/BZ2/BZIP2/.
+	Search for libpng using `pkg-config'.
+	Fix definition of `LIBHARFBUZZ' variable.
+	* builds/unix/freetype-config.in ($libs): Updated.
+	* builds/unix/freetype2.in: Add `URL' field.
+	Update `Requires.private' and `Libs.private'.
+	* builds/unix/unix-def.in: Updated.
+
+2014-03-01  Werner Lemberg  <wl@gnu.org>
+
+	Add configure support for HarfBuzz.
+
+	* builds/unix/pkg.m4: New file.
+	* builds/unix/configure.raw: Search for libharfbuzz using
+	`pkg-config'.
+	Add `--without-harfbuzz' option.
+	* builds/unix/freetype-config.in, builds/unix/freetype2.in,
+	builds/unix/unix-def.in (freetype-config, freetype2.pc): Handle
+	HarfBuzz.
+
+	* docs/INSTALL.UNIX: Document interdependency of Freetype with
+	HarfBuzz.
+
+2014-02-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[cff] Math simplifications.
+
+	* src/cf2blues.c (cf2_blues_init): Use `FT_MulDiv'.
+	* src/cf2ft.c (cf2_getScaleAndHintFlag): Use simple division.
+
+2014-02-28  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Fix Savannah bug #41697, part 2.
+
+	* src/cff/cf2ft.c (cf2_initLocalRegionBuffer,
+	cf2_initGlobalRegionBuffer): It is possible for a charstring to call
+	a subroutine if no subroutines exist.  This is an error but should
+	not trigger an assert.  Split the assert to account for this.
+
+2014-02-28  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Fix Savannah bug #41697, part 1.
+
+	* src/cff/cf2hints.c (cf2_hintmap_build): Return when `hintMask' is
+	invalid.  In this case, it is not safe to use the length of
+	`hStemHintArray'; the exception has already been recorded in
+	`hintMask'.
+
+2014-02-26  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #41696.
+
+	* src/sfnt/ttcmap.c (tt_cmap0_validate, tt_cmap2_validate,
+	tt_cmap4_validate, tt_cmap14_validate): Fix limit tests.
+
+2014-02-26  Werner Lemberg  <wl@gnu.org>
+
+	[winfnt] Fix Savannah bug #41694.
+
+	* src/winfonts/winfnt.c (FNT_Load_Glyph): Check glyph offset.
+
+2014-02-26  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix Savannah bug #41693.
+
+	* src/cff/cffload.c (CFF_Load_FD_Select): Reject empty array.
+
+2014-02-26  Werner Lemberg  <wl@gnu.org>
+
+	[bdf] Fix Savannah bug #41692.
+
+	bdflib puts data from the input stream into a buffer in chunks of
+	1024 bytes.  The data itself gets then parsed line by line, simply
+	increasing the current pointer into the buffer; if the search for
+	the final newline character exceeds the buffer size, more data gets
+	read.
+
+	However, in case the current line's end is very near to the buffer
+	end, and the keyword to compare with is longer than the current
+	line's length, an out-of-bounds read might happen since `memcmp'
+	doesn't stop properly at the string end.
+
+	* src/bdf/bdflib.c: s/ft_memcmp/ft_strncmp/ to make comparisons
+	stop at string ends.
+
 2014-02-17  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
 	[autofit] Fix `make multi' compilation.
 
 	* src/autofit/hbshim.c: Include `afglobal.h' and `aftypes.h'.
+
+2014-02-19  Werner Lemberg  <wl@gnu.org>
+	    Simon Bünzli  <zeniko@gmail.com>
+
+	Fix Savannah bug #32902.
+
+	Patch taken from
+
+	  https://code.google.com/p/sumatrapdf/source/browse/trunk/ext/_patches/freetype2.patch?spec=svn8620&r=8620#87
+
+	with slight modifications.
+
+	* src/type1/t1parse.c (T1_Get_Private_Dict): Add heuristic test to
+	handle fonts that incorrectly use \r at the beginning of an eexec
+	block.
+
+2014-02-19  Simon Bünzli  <zeniko@gmail.com>
+
+	Fix Savannah bug #41590.
+
+	* src/type1/t1load.c (parse_encoding): Protect against invalid
+	number.
 
 2014-02-12  Dave Arnold  <darnold@adobe.com>
 

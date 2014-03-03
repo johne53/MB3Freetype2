@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType Glue Component to Adobe's Interpreter (body).               */
 /*                                                                         */
-/*  Copyright 2013 Adobe Systems Incorporated.                             */
+/*  Copyright 2013-2014 Adobe Systems Incorporated.                        */
 /*                                                                         */
 /*  This software, and all works of authorship, whether in source or       */
 /*  object code form as indicated by the copyright notice(s) included      */
@@ -238,10 +238,8 @@
 
     if ( *hinted )
     {
-      *x_scale = FT_DivFix( decoder->builder.glyph->x_scale,
-                            cf2_intToFixed( 64 ) );
-      *y_scale = FT_DivFix( decoder->builder.glyph->y_scale,
-                            cf2_intToFixed( 64 ) );
+      *x_scale = ( decoder->builder.glyph->x_scale + 32 ) / 64;
+      *y_scale = ( decoder->builder.glyph->y_scale + 32 ) / 64;
     }
     else
     {
@@ -521,13 +519,15 @@
                               CF2_UInt      idx,
                               CF2_Buffer    buf )
   {
-    FT_ASSERT( decoder && decoder->globals );
+    FT_ASSERT( decoder );
 
     FT_ZERO( buf );
 
     idx += decoder->globals_bias;
     if ( idx >= decoder->num_globals )
       return TRUE;     /* error */
+
+    FT_ASSERT( decoder->globals );
 
     buf->start =
     buf->ptr   = decoder->globals[idx];
@@ -594,13 +594,15 @@
                              CF2_UInt      idx,
                              CF2_Buffer    buf )
   {
-    FT_ASSERT( decoder && decoder->locals );
+    FT_ASSERT( decoder );
 
     FT_ZERO( buf );
 
     idx += decoder->locals_bias;
     if ( idx >= decoder->num_locals )
       return TRUE;     /* error */
+
+    FT_ASSERT( decoder->locals );
 
     buf->start =
     buf->ptr   = decoder->locals[idx];

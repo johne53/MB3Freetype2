@@ -68,6 +68,10 @@ Return compiler flags for linking with the installed FreeType library.
 .B \-\-cflags
 Return compiler flags for compiling against the installed FreeType library.
 .
+.TP
+.B \-\-static
+Make command line options display flags for static linking.
+.
 .
 .SS Path override options
 .
@@ -83,6 +87,22 @@ Override `--prefix' value with
 .BI \-\-exec-prefix= EPREFIX
 Override `--exec-prefix' value with
 .IR EPREFIX .
+.
+.
+.SH BUGS
+In case the libraries FreeType links to are located in non-standard
+directories, the output from option
+.B \-\-libs
+might be incomplete.
+It is thus recommended to use the
+.BR pkg-config (1)
+interface instead, which is able to correctly resolve all dependencies.
+.
+.
+.SH AUTHOR
+.
+This manual page was contributed by Nis Martensen <nis.martensen@web.de>,
+with further refinements from the FreeType team.
 .
 .
 .\" eof

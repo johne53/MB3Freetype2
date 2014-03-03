@@ -34,16 +34,16 @@ INSTALL_PROGRAM := @INSTALL_PROGRAM@
 INSTALL_SCRIPT  := @INSTALL_SCRIPT@
 MKINSTALLDIRS   := $(BUILD_DIR)/mkinstalldirs
 
-CLEAN += $(OBJ_BUILD)/freetype-config
+CLEAN += $(OBJ_BUILD)/freetype-config \
+         $(OBJ_BUILD)/freetype2.pc
 
-DISTCLEAN += $(OBJ_BUILD)/config.cache    \
-             $(OBJ_BUILD)/config.log      \
-             $(OBJ_BUILD)/config.status   \
-             $(OBJ_BUILD)/unix-def.mk     \
-             $(OBJ_BUILD)/unix-cc.mk      \
-             $(OBJ_BUILD)/ftconfig.h      \
-             $(OBJ_BUILD)/freetype2.pc    \
-             $(LIBTOOL)                   \
+DISTCLEAN += $(OBJ_BUILD)/config.cache  \
+             $(OBJ_BUILD)/config.log    \
+             $(OBJ_BUILD)/config.status \
+             $(OBJ_BUILD)/unix-def.mk   \
+             $(OBJ_BUILD)/unix-cc.mk    \
+             $(OBJ_BUILD)/ftconfig.h    \
+             $(LIBTOOL)                 \
              $(OBJ_BUILD)/Makefile
 
 
@@ -62,10 +62,10 @@ version_info := @version_info@
 
 # Variables needed for `freetype-config' and `freetype.pc'.
 #
-FT2_EXTRA_LIBS     := @FT2_EXTRA_LIBS@
-LIBBZ2             := @LIBBZ2@
-LIBZ               := @LIBZ@
-LIBPNG             := @LIBPNG@
+REQUIRES_PRIVATE   := @REQUIRES_PRIVATE@
+LIBS_PRIVATE       := @LIBS_PRIVATE@
+LIBS_CONFIG        := @LIBS_CONFIG@
+LIBSSTATIC_CONFIG  := @LIBSSTATIC_CONFIG@
 build_libtool_libs := @build_libtool_libs@
 ft_version         := @ft_version@
 
@@ -102,17 +102,15 @@ NO_OUTPUT := 2> /dev/null
 
 $(OBJ_BUILD)/freetype-config: $(TOP_DIR)/builds/unix/freetype-config.in
 	rm -f $@ $@.tmp
-	sed -e 's|%FT2_EXTRA_LIBS%|$(FT2_EXTRA_LIBS)|' \
-	    -e 's|%LIBBZ2%|$(LIBBZ2)|' \
-	    -e 's|%LIBZ%|$(LIBZ)|' \
-	    -e 's|%LIBPNG%|$(LIBPNG)|' \
+	sed -e 's|%LIBS_CONFIG%|$(LIBS_CONFIG)|'               \
+	    -e 's|%LIBSSTATIC_CONFIG%|$(LIBSSTATIC_CONFIG)|'   \
 	    -e 's|%build_libtool_libs%|$(build_libtool_libs)|' \
-	    -e 's|%exec_prefix%|$(exec_prefix)|' \
-	    -e 's|%ft_version%|$(ft_version)|' \
-	    -e 's|%includedir%|$(includedir)|' \
-	    -e 's|%libdir%|$(libdir)|' \
-	    -e 's|%prefix%|$(prefix)|' \
-	    $< \
+	    -e 's|%exec_prefix%|$(exec_prefix)|'               \
+	    -e 's|%ft_version%|$(ft_version)|'                 \
+	    -e 's|%includedir%|$(includedir)|'                 \
+	    -e 's|%libdir%|$(libdir)|'                         \
+	    -e 's|%prefix%|$(prefix)|'                         \
+	    $<                                                 \
 	    > $@.tmp
 	chmod +x $@.tmp
 	chmod a-w $@.tmp
@@ -120,17 +118,15 @@ $(OBJ_BUILD)/freetype-config: $(TOP_DIR)/builds/unix/freetype-config.in
 
 $(OBJ_BUILD)/freetype2.pc: $(TOP_DIR)/builds/unix/freetype2.in
 	rm -f $@ $@.tmp
-	sed -e 's|%FT2_EXTRA_LIBS%|$(FT2_EXTRA_LIBS)|' \
-	    -e 's|%LIBBZ2%|$(LIBBZ2)|' \
-	    -e 's|%LIBZ%|$(LIBZ)|' \
-	    -e 's|%LIBPNG%|$(LIBPNG)|' \
+	sed -e 's|%REQUIRES_PRIVATE%|$(REQUIRES_PRIVATE)|'     \
+	    -e 's|%LIBS_PRIVATE%|$(LIBS_PRIVATE)|'             \
 	    -e 's|%build_libtool_libs%|$(build_libtool_libs)|' \
-	    -e 's|%exec_prefix%|$(exec_prefix)|' \
-	    -e 's|%ft_version%|$(ft_version)|' \
-	    -e 's|%includedir%|$(includedir)|' \
-	    -e 's|%libdir%|$(libdir)|' \
-	    -e 's|%prefix%|$(prefix)|' \
-	    $< \
+	    -e 's|%exec_prefix%|$(exec_prefix)|'               \
+	    -e 's|%ft_version%|$(ft_version)|'                 \
+	    -e 's|%includedir%|$(includedir)|'                 \
+	    -e 's|%libdir%|$(libdir)|'                         \
+	    -e 's|%prefix%|$(prefix)|'                         \
+	    $<                                                 \
 	    > $@.tmp
 	chmod a-w $@.tmp
 	mv $@.tmp $@
