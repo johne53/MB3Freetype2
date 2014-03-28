@@ -89,7 +89,7 @@
 #define SCRIPT( s, S, d, h, sc1, sc2, sc3 )  h,
 
 
-  static const hb_tag_t  scripts[] =
+  static const hb_script_t  scripts[] =
   {
 #include "afscript.h"
   };
@@ -107,7 +107,7 @@
     hb_set_t*  gpos_lookups;  /* GPOS lookups for a given script */
     hb_set_t*  gpos_glyphs;   /* glyphs covered by GPOS lookups  */
 
-    hb_tag_t         script;
+    hb_script_t      script;
     const hb_tag_t*  coverage_tags;
     hb_tag_t         script_tags[] = { HB_TAG_NONE,
                                        HB_TAG_NONE,
@@ -347,6 +347,11 @@
       count++;
 #endif
 
+      /* HarfBuzz 0.9.26 and older doesn't validate glyph indices */
+      /* returned by `hb_ot_layout_lookup_collect_glyphs'...      */
+      if ( idx >= (hb_codepoint_t)globals->glyph_count )
+        continue;
+
       if ( gstyles[idx] == AF_STYLE_UNASSIGNED )
         gstyles[idx] = (FT_Byte)style_class->style;
 #ifdef FT_DEBUG_LEVEL_TRACE
@@ -380,7 +385,7 @@
           {                                               \
             {                                             \
               HB_TAG( tag1, tag2, tag3, tag4 ),           \
-              1, 0, -1                                    \
+              1, 0, (unsigned int)-1                      \
             }                                             \
           };
 

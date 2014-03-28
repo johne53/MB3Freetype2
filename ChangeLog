@@ -1,3 +1,187 @@
+2014-03-27  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #38235.
+
+	Work around a bug in pkg-config version 0.28 and earlier: If a
+	variable value gets surrounded by doublequotes (in particular values
+	for the `prefix' variable), the prefix override mechanism fails.
+
+	* builds/unix/freetype2.in: Don't use doublequotes.
+	* builds/unix/unix-def.in (freetype.pc): Escape spaces in directory
+	names with backslashes.
+
+2014-03-24  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41946.
+
+	Based on a patch from Marek Kašík <mkasik@redhat.com>.
+
+	* builds/unix/configure.raw (LIBS_CONFIG): Remove.
+	* builds/unix/freetype-config.in (libs): Hard-code value.
+	* builds/unix/unix-def.in: Updated.
+
+2014-03-22  Werner Lemberg  <wl@gnu.org>
+
+	Another revert for the change from 2014-03-18.
+
+	Problem reported by Nikolaus Waxweiler <madigens@gmail.com>.
+
+	* src/base/ftcalc.c (FT_MulFix): Ensure that an `FT_MulFix' symbol
+	gets always exported.
+
+2014-03-20  Werner Lemberg  <wl@gnu.org>
+
+	CMakeLists.txt: Another fix for include directories.
+
+	Problem reported by Taylor Holberton <taylorcholberton@gmail.com>.
+
+2014-03-19  Werner Lemberg  <wl@gnu.org>
+
+	CMakeLists.txt: Fix include directories.
+
+	Problem reported by Taylor Holberton <taylorcholberton@gmail.com>.
+
+2014-03-19  Werner Lemberg  <wl@gnu.org>
+
+	Partially revert last commit.
+
+	Found by Alexei.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Initializing
+	those variables is plain wrong, since we are in a loop.
+
+2014-03-18  Sean McBride  <sean@rogue-research.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	Fix clang warnings.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Initialize
+	some variables.
+
+	* src/base/ftcalc.c (FT_MulFix): Only use code if
+	`FT_MULFIX_INLINED' is not defined.
+
+	* src/bdf/bdfdrivr.c (bdf_cmap_class), src/cache/ftcbasic.c
+	(ftc_basic_image_family_class, ftc_basic_image_cache_class,
+	ftc_basic_sbit_family_class, ftc_basic_sbit_cache_class),
+	src/cache/ftccmap.c (ftc_cmap_cache_class), src/cache/ftcmanag.c
+	(ftc_size_list_class, ftc_face_list_class), src/pcf/pcfdrivr.c
+	(pcf_cmap_class), src/pfr/pfrdrivr.c (pfr_metrics_service_rec): Make
+	function static.
+
+	* src/type1/t1driver.c (t1_ps_get_font_value): Remove redundant
+	code.
+
+2014-03-17  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #41869.
+
+	This works around a problem with HarfBuzz (<= 0.9.26), which doesn't
+	validate glyph indices returned by
+	`hb_ot_layout_lookup_collect_glyphs'.
+
+	* src/autofit/hbshim.c (af_get_coverage): Guard `idx'.
+
+	* docs/CHANGES: Updated.
+
+2014-03-14  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/configure.raw: Don't show error messages of `which'.
+
+2014-03-09  Alan Coopersmith  <alan.coopersmith@oracle.com>
+
+	Fix cppcheck 1.64 warning.
+
+	* src/autofit/afglobal.c (af_face_globals_new): Catch NULL pointer
+	dereference in case of error.
+
+2014-03-09  Sean McBride  <sean@rogue-research.com>
+
+	* src/sfnt/ttcmap.c (tt_face_build_cmaps): Remove clang warning.
+
+2014-03-06  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.5.3 released.
+	=========================
+
+
+	Tag sources with `VER-2-5-3'.
+
+	* docs/VERSION.DLL: Update documentation and bump version number to
+	2.5.3.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.5.2/2.5.3/, s/252/253/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 3.
+
+	* builds/unix/configure.raw (version_info): Set to 17:2:11.
+	* CMakeLists.txt (VERSION_PATCH): Set to 3.
+	* docs/CHANGES: Updated.
+
+2014-03-06  Werner Lemberg  <wl@gnu.org>
+
+	Fixes for compilation with C++.
+
+	* src/autofit/hbshim.c (scripts): Change type to `hb_script_t'.
+	(af_get_coverage): Updated.
+	(COVERAGE): Add cast.
+
+2014-03-06  Sean McBride  <sean@rogue-research.com>
+
+	Remove more clang analyzer warnings.
+
+	* src/bdf/bdflib.c (_bdf_readstream), src/truetype/ttgload.c
+	(TT_Load_Glyph): Remove dead stores.
+
+2014-03-05  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/configure.raw: Simplify.
+
+2014-03-05  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix a bug in configure in library dependency setting
+	Reported in https://bugs.freedesktop.org/show_bug.cgi?id=75652.
+
+	* builds/unix/configure.raw: Use `x"${xxx}" != xno' style.
+
+2014-03-04  Werner Lemberg  <wl@gnu.org>
+
+	Minor fix for `make devel'.
+
+	* builds/freetype.mk (INCLUDE_FLAGS) [DEVEL_DIR]: Don't use
+	pkg-config for bzip2 since not all GNU/Linux distributions have
+	`bzip2.pc' (and the header file `bzlib.h' is located in /usr/include
+	normally).
+
+2014-03-04  Sean McBride  <sean@rogue-research.com>
+
+	Fix several clang static analyzer dead store warnings.
+
+	* src/autofit/afhints.c (af_glyph_hints_reload,
+	af_glyph_hints_align_weak_points): Remove unnecessary assignments.
+
+	* src/bdf/bdflib.c (bdf_font_load): Ditto.
+
+	* src/pshinter/pshalgo.c (psh_glyph_compute_extrema,
+	psh_glyph_interpolate_other_points): Ditto.
+
+	* src/type1/t1load.c (T1_Set_MM_Blend): Ditto.
+
 2014-03-03  Werner Lemberg  <wl@gnu.org>
 
 	Rewrite library option handling in `configure'.
@@ -988,9 +1172,10 @@
 	builds/wince/vc2008-ce/freetype.vcproj,
 	builds/wince/vc2008-ce/index.html: s/2.5.1/2.5.2/, s/251/252/.
 
-	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 2.
 
 	* builds/unix/configure.raw (version_info): Set to 17:1:11.
+	* CMakeLists.txt (VERSION_PATCH): Set to 2.
 	* docs/CHANGES: Updated.
 
 2013-12-07  Werner Lemberg  <wl@gnu.org>
@@ -1098,7 +1283,7 @@
 	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
 
 	* builds/unix/configure.raw (version_info): Set to 17:0:11.
-	* CMakeLists.txt (VERSION_PATCH): Set to 2.
+	* CMakeLists.txt (VERSION_PATCH): Set to 1.
 	* docs/CHANGES, docs/release: Updated.
 
 2013-11-23  Werner Lemberg  <wl@gnu.org>

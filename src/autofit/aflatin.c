@@ -552,7 +552,8 @@
               {
                 FT_Bool  l2r;
                 FT_Pos   d;
-                FT_Int   p_first, p_last;
+                FT_Int   p_first;
+                FT_Int   p_last;
 
 
                 if ( !hit )

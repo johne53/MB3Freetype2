@@ -1,6 +1,6 @@
 # CMakeLists.txt
 #
-# Copyright 2013 by
+# Copyright 2013, 2014 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # Written by John Cary <cary@txcorp.com>
@@ -41,7 +41,7 @@ project(freetype)
 
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "5")
-set(VERSION_PATCH "2")
+set(VERSION_PATCH "3")
 set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 # Compiler definitions for building the library
@@ -51,16 +51,16 @@ add_definitions(-DFT2_BUILD_LIBRARY)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 # Create the configuration file
-message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include.")
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
+message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include/freetype2.")
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include/freetype2)
 
 # For the auto-generated ftconfig.h file
-include_directories("${PROJECT_BINARY_DIR}/include")
-message(STATUS "Creating ${PROJECT_BINARY_DIR}/include/ftconfig.h.")
+include_directories(BEFORE "${PROJECT_BINARY_DIR}/include/freetype2")
+message(STATUS "Creating ${PROJECT_BINARY_DIR}/include/freetype2/ftconfig.h.")
 execute_process(
   COMMAND sed -e "s/FT_CONFIG_OPTIONS_H/<ftoption.h>/" -e "s/FT_CONFIG_STANDARD_LIBRARY_H/<ftstdlib.h>/" -e "s?/undef ?#undef ?"
   INPUT_FILE ${PROJECT_SOURCE_DIR}/builds/unix/ftconfig.in
-  OUTPUT_FILE ${PROJECT_BINARY_DIR}/include/ftconfig.h
+  OUTPUT_FILE ${PROJECT_BINARY_DIR}/include/freetype2/ftconfig.h
 )
 
 set(BASE_SRCS

@@ -691,7 +691,6 @@
     lineno  = 1;
     buf[0]  = 0;
     start   = 0;
-    end     = 0;
     avail   = 0;
     cursor  = 0;
     refill  = 1;
@@ -2399,7 +2398,6 @@
     {
       /* If the font is not proportional, set the font's monowidth */
       /* field to the width of the font bounding box.              */
-      memory = p->font->memory;
 
       if ( p->font->spacing != BDF_PROPORTIONAL )
         p->font->monowidth = p->font->bbx.width;
