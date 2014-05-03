@@ -1,3 +1,122 @@
+2014-05-01  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add blue-zone support for Devanagari.
+
+	This essentially moves the Devanagari script from the `Indic' hinter
+	to the `Latin' hinter.  Thanks to Girish Dalvi
+	<girish.dalvi@gmail.com> for guidance with blue zone characters!
+
+	* src/autofit/afblue.dat: Add blue zone data for Devanagari.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Devanagari standard characters and
+	move data out of AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afranges.c: Move Devanagari data out of
+	AF_CONFIG_OPTION_INDIC block.
+	Move U+20B9, (new) Rupee sign, from Latin to Devanagari.
+
+	* src/autofit/afstyles.h: Update Devanagari data; in particular, use
+	AF_WRITING_SYSTEM_LATIN.
+
+2014-05-01  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix handling of neutral blue zones in stems.
+
+	* src/autofit/afhints.h (AF_Edge_Flags): New value
+	`AF_EDGE_NEUTRAL'.
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_blue_edges): Trace
+	neutral blue zones with AF_EDGE_NEUTRAL.
+	(af_latin_hint_edges): Skip neutral blue zones if necessary.
+
+2014-04-28  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Introduce neutral blue zones to the latin module.
+
+	Such blue zones match either the top or the bottom of a contour.  We
+	need them for scripts where accent-like elements directly touch the
+	base character (for example, some vowel signs in Devanagari, cf.
+	U+0913 or U+0914).
+
+	* src/autofit/afblue.hin (AF_BLUE_PROPERTY_LATIN_NEUTRAL): New
+	property.
+
+	* src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/aflatin.h (AF_LATIN_IS_NEUTRAL_BLUE): New macro.
+	(AF_LATIN_BLUE_NEUTRAL): New enumeration value.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues,
+	af_latin_hints_compute_blue_edges): Handle neutral blue zones.
+
+2014-04-25  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/hbshim.c: Partially revert commit from 2014-04-17.
+
+	Using input glyph coverage data is simply wrong.
+
+	Problem reported by Nikolaus Waxweiler <madigens@gmail.com> and
+	Mantas Mikulėnas <grawity@gmail.com>.
+
+2014-04-23  Werner Lemberg  <wl@gnu.org>
+
+	* src/raster/ftraster.c (Vertical_Sweep_Span): Use drop-out mode.
+
+	This spot has been missed while introducing support for various
+	drop-out modes years ago (including no drop-out mode, which this
+	commit fixes).
+
+	Problem reported by Patrick Thomas <pthomas505@gmail.com>.
+
+2014-04-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/pngshim.c (error_callback): s/longjmp/ft_longjmp/.
+
+2014-04-20  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix Savannah bug #42148.
+
+	The adaptation of the cjk auto-hinter module to blue stringsets in
+	2013-08-25 had three severe bugs.  Mea culpa.
+
+	1. Contrary to the latin auto-hinter, characters for reference and
+	   overshoot values of a blue zone are specified separately.  Due to
+	   the screwed-up change it didn't work at all.
+
+	2. A boolean comparison was erroneously replaced with a cast,
+	   causing invalid results with the `^' operator later on.  The
+	   visual artifact caused by this problem is the topic of the bug
+	   report.
+
+	3. Two flag values were inverted, causing incorrect assignment of
+	   reference and overshoot values.
+
+	* src/autofit/afblue.dat: Fix CJK bluestrings, introducing a new
+	syntax to have both reference and overshoot characters in a single
+	string.  This is error #1.
+	Add extensive comments.
+
+	* src/autofit/afblue.hin (AF_BLUE_PROPERTY_CJK_FILL): Removed, no
+	longer used.
+	(AF_BLUE_PROPERTY_CJK_TOP, AF_BLUE_PROPERTY_CJK_HORIZ): Fix values.
+	This is error #3.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_blues): Correct error #1.
+	Use character `|' to separate characters for reference and overshoot
+	values.
+	Improve tracing messages, synchronizing them with the latin
+	auto-hinter.
+	(af_cjk_hints_compute_blue_edges): Fix value of `is_top_right_blue'.
+	This is error #2.
+	(af_cjk_align_linked_edge): Add tracing message.
+
+	* src/autofit/afcjk.h (AF_CJK_IS_FILLED_BLUE): Removed, no longer
+	used.
+
 2014-04-17  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] More coverage fixes for complex scripts.
