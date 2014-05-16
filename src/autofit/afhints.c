@@ -651,6 +651,9 @@
 
         for ( point = points; point < point_limit; point++, vec++, tag++ )
         {
+          point->in_dir  = (FT_Char)AF_DIR_NONE;
+          point->out_dir = (FT_Char)AF_DIR_NONE;
+
           point->fx = (FT_Short)vec->x;
           point->fy = (FT_Short)vec->y;
           point->ox = point->x = FT_MulFix( vec->x, x_scale ) + x_delta;
@@ -713,6 +716,7 @@
         /* value 20 in `near_limit' is heuristic */
         FT_UInt  units_per_em = hints->metrics->scaler.face->units_per_EM;
         FT_Int   near_limit   = 20 * units_per_em / 2048;
+        FT_Int   near_limit2  = 2 * near_limit - 1;
 
         AF_Point*  contour;
         AF_Point*  contour_limit = hints->contours + hints->num_contours;
@@ -740,8 +744,15 @@
             out_x = point->fx - prev->fx;
             out_y = point->fy - prev->fy;
 
-            /* we use Taxicab metrics to measure the vector length */
-            if ( FT_ABS( out_x ) + FT_ABS( out_y ) >= near_limit )
+            /*
+             *  We use Taxicab metrics to measure the vector length.
+             *
+             *  Note that the accumulated distances so far could have the
+             *  opposite direction of the distance measured here.  For this
+             *  reason we use `near_limit2' for the comparison to get a
+             *  non-near point even in the worst case.
+             */
+            if ( FT_ABS( out_x ) + FT_ABS( out_y ) >= near_limit2 )
               break;
 
             point = prev;
@@ -755,6 +766,18 @@
           /* `in' and `out' vector directions               */
 
           curr  = first;
+
+          /*
+           *  We abuse the `u' and `v' fields to store index deltas to the
+           *  next and previous non-near point, respectively.
+           *
+           *  To avoid problems with not having non-near points, we point to
+           *  `first' by default as the next non-near point.
+           *
+           */
+          curr->u  = (FT_Pos)( first - curr );
+          first->v = -curr->u;
+
           out_x = 0;
           out_y = 0;
 
@@ -780,8 +803,6 @@
               continue;
             }
 
-            /* we abuse the `u' and `v' fields to store index deltas */
-            /* to the next and previous non-near point, respectively */
             curr->u = (FT_Pos)( next - curr );
             next->v = -curr->u;
 
@@ -796,6 +817,9 @@
               curr->out_dir = (FT_Char)out_dir;
             }
             next->in_dir = (FT_Char)out_dir;
+
+            curr->u  = (FT_Pos)( first - curr );
+            first->v = -curr->u;
 
             out_x = 0;
             out_y = 0;
