@@ -1,3 +1,25 @@
+2014-06-27  Werner Lemberg  <wl@gnu.org>
+
+	Fix Apple standard glyph names.
+
+	* src/sfnt/ttpost.c (tt_post_default_names): Synchronize with
+	`tools/glnames.py'
+
+	Problem reported by Adam Twardoch <adam@fontlab.com>.
+
+2014-06-17  Werner Lemberg  <wl@gnu.org>
+
+	Partially revert commit from 2014-06-13.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Move
+	declaration of `p_first' and `p_last' out of the loop.
+
+2014-06-17  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/freetype2.m4: s/AC_PATH_PROG/AC_PATH_TOOL/.
+
+	This simplifies cross-compiling.
+
 2014-06-13  Werner Lemberg  <wl@gnu.org>
 
 	Fix more compiler warnings.
