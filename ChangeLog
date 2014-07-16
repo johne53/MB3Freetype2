@@ -1,3 +1,65 @@
+2014-07-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftcalc.c (FT_MSB): Utilize gcc builtins. 
+
+2014-07-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Move assembler code back in the source file.
+
+	FT_MulFix assembler used to reside in ftcalc.c before f47d263f1b.
+
+	* include/config/ftconfig.h, builds/unix/ftconfig.in,
+	builds/vms/ftconfig.h [FT_MULFIX_ASSEMBLER]: Move code from here...
+
+	* src/base/ftcalc.c [FT_MULFIX_ASSEMBLER]: ... to here.
+
+2014-07-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Further clean up color bitmap conversion.
+
+	* src/base/ftbitmap.c (ft_gray_for_premultiplied_srgb_bgra): Stop
+	using FT_MulFix and FT_DivFix since all calculations fit into 32 bits.
+
+2014-07-13  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve handling of buggy `prep' tables.
+
+	In case of an error in the `prep' table, no longer try to execute it
+	again and again.  This makes FreeType handle endless loops in buggy
+	fonts much faster.
+
+	* src/truetype/ttobjs.h (TT_SizeRec): The fields `bytecode_ready'
+	and `cvt_ready' are now negative if not initialized yet, otherwise
+	they indicate the error code of the last run.
+
+	* src/truetype/ttobjs.c (tt_size_run_fpgm, tt_size_run_prep,
+	tt_size_done_bytecode, tt_size_init_bytecode,
+	tt_size_ready_bytecode, tt_size_init, tt_size_done, tt_size_reset):
+	Updated.
+
+	* src/truetype/ttgload.c (tt_loader_init): Updated.
+	* src/truetype/ttinterp.c (TT_RunIns): Force reexecution of `fpgm'
+	and `prep' only if we are in the `glyf' table.
+
+2014-07-12  Werner Lemberg  <wl@gnu.org>
+
+	* builds/vms/ftconfig.h: Synchronize.
+	Problem reported by Alexei.
+
+2014-07-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Clean up bitmap conversion.
+
+	* src/base/ftbitmap.c (ft_gray_for_premultiplied_srgb_bgra): Use
+	appropriate FT_DivFix and remove superfluous upscaling.
+
+2014-07-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Small optimization of the ancient code.
+
+	* src/base/ftcalc.c (FT_MulDiv, FT_MulDiv_No_Round): Loosen up the
+	condition for direct 32-bit calculations.
+
 2014-06-27  Werner Lemberg  <wl@gnu.org>
 
 	Fix Apple standard glyph names.
