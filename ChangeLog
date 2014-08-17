@@ -1,3 +1,45 @@
+2014-08-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Minor refactoring.
+
+	* src/base/ftcalc.c (FT_MulDiv, FT_MulDiv_No_Round): Updated.
+
+2014-08-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Turn FT_MSB into a macro when using gcc builtins.
+
+	* src/base/ftcalc.c, include/internal/ftcalc.h: Updated.
+
+2014-08-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Avoid undefined FT_MSB in `BBox_Cubic_Check'.
+
+	* src/base/ftbbox.c (BBox_Cubic_Check): Update.
+	(update_cubic_max): Repalce with...
+	(cubic_peak): ... this, which now handles upscaling.
+
+2014-08-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Handle collapsed outlines to avoid undefined FT_MSB.
+
+	* src/base/ftoutln.c (FT_Outline_Get_Orientation): Update.
+
+2014-08-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Restore FT_MulFix inlining.
+
+	* include/freetype.h (FT_MulFix): Unconditionally defined.
+
+	* src/base/ftcalc.c [FT_MULFIX_ASSEMBLER]: Move code from here...
+
+	* include/internal/ftcalc.h [FT_MULFIX_ASSEMBLER]: ... to here,
+	which conditionally replaces the function with an inline version
+	through the macro.
+
+2014-08-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftbitmap.c (ft_gray_for_premultiplied_srgb_bgra): Refactor.
+
 2014-07-26  Werner Lemberg  <wl@gnu.org>
 
 	[cff] Fix typo.
