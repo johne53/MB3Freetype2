@@ -247,11 +247,10 @@
   FT_DivFix( FT_Long  a,
              FT_Long  b )
   {
-    FT_Int32   s;
-    FT_UInt32  q;
+    FT_Int   s = 1;
+    FT_Long  q;
 
 
-    s = 1;
     if ( a < 0 )
     {
       a = -a;
@@ -268,9 +267,9 @@
       q = 0x7FFFFFFFL;
     else
       /* compute result directly */
-      q = (FT_UInt32)( ( ( (FT_UInt64)a << 16 ) + ( b >> 1 ) ) / b );
+      q = (FT_Long)( ( ( (FT_UInt64)a << 16 ) + ( b >> 1 ) ) / b );
 
-    return ( s < 0 ? -(FT_Long)q : (FT_Long)q );
+    return ( s < 0 ? -q : q );
   }
 
 
@@ -348,7 +347,7 @@
             FT_Int64*  y,
             FT_Int64  *z )
   {
-    register FT_UInt32  lo, hi;
+    FT_UInt32  lo, hi;
 
 
     lo = x->lo + y->lo;
@@ -359,30 +358,46 @@
   }
 
 
-  /* documentation is in freetype.h */
-
-  /* The FT_MulDiv function has been optimized thanks to ideas from      */
-  /* Graham Asher and Alexei Podtelezhnikov.  The trick is to optimize   */
-  /* a rather common case when everything fits within 32-bits.           */
+  /*  The FT_MulDiv function has been optimized thanks to ideas from     */
+  /*  Graham Asher and Alexei Podtelezhnikov.  The trick is to optimize  */
+  /*  a rather common case when everything fits within 32-bits.          */
   /*                                                                     */
-  /*  We compute 'a*b+c/2', then divide it by 'c'. (positive values)     */
+  /*  We compute 'a*b+c/2', then divide it by 'c' (all positive values). */
   /*                                                                     */
   /*  The product of two positive numbers never exceeds the square of    */
-  /*  their mean.  Therefore, we always avoid the overflow by imposing   */
+  /*  its mean values.  Therefore, we always avoid the overflow by       */
+  /*  imposing                                                           */
   /*                                                                     */
-  /*  ( a + b ) / 2 <= sqrt( X - c/2 )                                   */
+  /*    (a + b) / 2 <= sqrt(X - c/2)    ,                                */
   /*                                                                     */
-  /*  where X = 2^31 - 1.  Now we replace sqrt with a linear function    */
-  /*  that is smaller or equal in the entire range of c from 0 to X;     */
-  /*  it should be equal to sqrt(X) and sqrt(X/2) at the range termini.  */
-  /*  Substituting the linear solution and explicit numbers we get       */
+  /*  where X = 2^32 - 1, the maximum unsigned 32-bit value, and using   */
+  /*  unsigned arithmetic.  Now we replace `sqrt' with a linear function */
+  /*  that is smaller or equal for all values of c in the interval       */
+  /*  [0;X/2]; it should be equal to sqrt(X) and sqrt(3X/4) at the       */
+  /*  endpoints.  Substituting the linear solution and explicit numbers  */
+  /*  we get                                                             */
   /*                                                                     */
-  /*  a + b <= 92681.9 - c / 79108.95                                    */
+  /*    a + b <= 131071.99 - c / 122291.84    .                          */
   /*                                                                     */
-  /*  In practice we use a faster and even stronger inequality           */
+  /*  In practice, we should use a faster and even stronger inequality   */
   /*                                                                     */
-  /*  a + b <= 92681 - (c >> 16)                                         */
+  /*    a + b <= 131071 - (c >> 16)                                      */
   /*                                                                     */
+  /*  or, alternatively,                                                 */
+  /*                                                                     */
+  /*    a + b <= 129895 - (c >> 17)    .                                 */
+  /*                                                                     */
+  /*  FT_MulFix, on the other hand, is optimized for a small value of    */
+  /*  the first argument, when the second argument can be much larger.   */
+  /*  This can be achieved by scaling the second argument and the limit  */
+  /*  in the above inequalities.  For example,                           */
+  /*                                                                     */
+  /*    a + (b >> 8) <= (131071 >> 4)                                    */
+  /*                                                                     */
+  /*  should work well to avoid the overflow.                            */
+  /*                                                                     */
+
+  /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
   FT_MulDiv( FT_Long  a,
@@ -403,8 +418,8 @@
     if ( c == 0 )
       a = 0x7FFFFFFFL;
 
-    else if ( (FT_ULong)a + (FT_ULong)b <= 92681UL - ( c >> 16 ) )
-      a = ( a * b + ( c >> 1 ) ) / c;
+    else if ( (FT_ULong)a + b <= 129895UL - ( c >> 17 ) )
+      a = ( (FT_ULong)a * b + ( c >> 1 ) ) / c;
 
     else
     {
@@ -441,8 +456,8 @@
     if ( c == 0 )
       a = 0x7FFFFFFFL;
 
-    else if ( (FT_ULong)a + (FT_ULong)b <= 92681UL )
-      a = a * b / c;
+    else if ( (FT_ULong)a + b <= 131071UL )
+      a = (FT_ULong)a * b / c;
 
     else
     {
@@ -509,7 +524,7 @@
     ua = (FT_ULong)a;
     ub = (FT_ULong)b;
 
-    if ( ua <= 2048 && ub <= 1048576L )
+    if ( ua + ( ub >> 8 ) <= 8191UL )
       ua = ( ua * ub + 0x8000U ) >> 16;
     else
     {
@@ -540,7 +555,7 @@
     ua = (FT_ULong)a;
     ub = (FT_ULong)b;
 
-    if ( ua <= 2048 && ub <= 1048576L )
+    if ( ua + ( ub >> 8 ) <= 8191UL )
       ua = ( ua * ub + 0x8000UL ) >> 16;
     else
     {
@@ -564,23 +579,23 @@
   FT_DivFix( FT_Long  a,
              FT_Long  b )
   {
-    FT_Int32   s;
-    FT_UInt32  q;
+    FT_Long  s;
+    FT_Long  q;
 
 
     /* XXX: this function does not allow 64-bit arguments */
-    s  = (FT_Int32)a; a = FT_ABS( a );
-    s ^= (FT_Int32)b; b = FT_ABS( b );
+    s  = a; a = FT_ABS( a );
+    s ^= b; b = FT_ABS( b );
 
-    if ( (FT_UInt32)b == 0 )
+    if ( b == 0 )
     {
       /* check for division by 0 */
-      q = (FT_UInt32)0x7FFFFFFFL;
+      q = 0x7FFFFFFFL;
     }
     else if ( ( a >> 16 ) == 0 )
     {
       /* compute result directly */
-      q = (FT_UInt32)( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / (FT_UInt32)b;
+      q = (FT_Long)( ( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / b );
     }
     else
     {
@@ -593,10 +608,10 @@
       temp2.hi = 0;
       temp2.lo = (FT_UInt32)( b >> 1 );
       FT_Add64( &temp, &temp2, &temp );
-      q = ft_div64by32( temp.hi, temp.lo, (FT_Int32)b );
+      q = (FT_Long)ft_div64by32( temp.hi, temp.lo, (FT_Int32)b );
     }
 
-    return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
+    return ( s < 0 ? -q : q );
   }
 
 

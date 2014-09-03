@@ -1,3 +1,57 @@
+2014-09-02  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Shortcut ppem calculations for square pixels.
+
+	* src/truetype/ttinterp.h (TT_ExecContextRec): New field
+	`cur_ppem_func' with a function pointer.
+	* src/truetype/ttinterp.c (TT_RunIns): Initialize `cur_ppem_func'
+	depending on the pixel geometry to either...
+	(Current_Ppem_Stretched): ... this for stretched pixels.
+	(Current_Ppem): ... or this for square pixels.
+	(DO_MPPEM, DO_MPS, Ins_DELTAP, Ins_DELTAC): Use `cur_ppem_func'.
+
+2014-08-31  Behdad Esfahbod  <behdad@behdad.org>
+
+	Don't use `register' keyword.  Fixes compiler warnings.
+
+	* src/base/ftcalc.c (FT_Add64) [!FT_LONG64]: Do it.
+	* src/gzip/inftrees.c (huft_build): Ditto.
+	* src/truetype/ttinterp.c (TT_MulFix14_arm): Ditto.
+
+2014-08-24  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Optimize DELTAP and DELTAC.
+
+	* src/truetype/ttinterp.c (Ins_DELTAP, Ins_DELTAC): Move ppem
+	calculations outside of the loop.
+
+2014-08-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Fix Savannah bug #43033.
+
+	* include/config/ftconfig.h, builds/unix/ftconfig.in,
+	builds/vms/ftconfig.h [FT_LONG64]: Do not disable the macro when
+	64-bit type is `long'.
+
+2014-08-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Small optimization of `FT_MulFix'.
+
+	* src/base/ftcalc.c (FT_MulFix): Loosen up the condition for direct
+	32-bit calculations.
+
+2014-08-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Use unsigned calculation in `FT_MulDiv'.
+
+	* src/base/ftcalc.c (FT_MulDiv): Updated to expand 32-bit range.
+
+2014-08-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Remove truncation in `FT_DivFix'.
+
+	* src/base/ftcalc.c (FT_DivFix): Updated.
+
 2014-08-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	Minor refactoring.
