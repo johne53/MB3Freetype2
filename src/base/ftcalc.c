@@ -385,7 +385,7 @@
   /*                                                                     */
   /*  or, alternatively,                                                 */
   /*                                                                     */
-  /*    a + b <= 129895 - (c >> 17)    .                                 */
+  /*    a + b <= 129894 - (c >> 17)    .                                 */
   /*                                                                     */
   /*  FT_MulFix, on the other hand, is optimized for a small value of    */
   /*  the first argument, when the second argument can be much larger.   */
@@ -394,8 +394,16 @@
   /*                                                                     */
   /*    a + (b >> 8) <= (131071 >> 4)                                    */
   /*                                                                     */
-  /*  should work well to avoid the overflow.                            */
+  /*  covers the practical range of use. The actual test below is a bit  */
+  /*  tighter to avoid the border case overflows.                        */
   /*                                                                     */
+  /*  In the case of FT_DivFix, the direct overflow check                */
+  /*                                                                     */
+  /*    a << 16 <= X - c/2                                               */
+  /*                                                                     */
+  /*  is scaled down by 2^16 and we use                                  */
+  /*                                                                     */
+  /*    a <= 65535 - (c >> 17)    .                                      */
 
   /* documentation is in freetype.h */
 
@@ -418,7 +426,7 @@
     if ( c == 0 )
       a = 0x7FFFFFFFL;
 
-    else if ( (FT_ULong)a + b <= 129895UL - ( c >> 17 ) )
+    else if ( (FT_ULong)a + b <= 129894UL - ( c >> 17 ) )
       a = ( (FT_ULong)a * b + ( c >> 1 ) ) / c;
 
     else
@@ -524,7 +532,7 @@
     ua = (FT_ULong)a;
     ub = (FT_ULong)b;
 
-    if ( ua + ( ub >> 8 ) <= 8191UL )
+    if ( ua + ( ub >> 8 ) <= 8190UL )
       ua = ( ua * ub + 0x8000U ) >> 16;
     else
     {
@@ -555,7 +563,7 @@
     ua = (FT_ULong)a;
     ub = (FT_ULong)b;
 
-    if ( ua + ( ub >> 8 ) <= 8191UL )
+    if ( ua + ( ub >> 8 ) <= 8190UL )
       ua = ( ua * ub + 0x8000UL ) >> 16;
     else
     {
@@ -592,7 +600,7 @@
       /* check for division by 0 */
       q = 0x7FFFFFFFL;
     }
-    else if ( ( a >> 16 ) == 0 )
+    else if ( a <= 65535L - ( b >> 17 ) )
     {
       /* compute result directly */
       q = (FT_Long)( ( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / b );
