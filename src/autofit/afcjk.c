@@ -765,10 +765,6 @@
     /* now compare each segment to the others */
     for ( seg1 = segments; seg1 < segment_limit; seg1++ )
     {
-      /* the fake segments are for metrics hinting only */
-      if ( seg1->first == seg1->last )
-        continue;
-
       if ( seg1->dir != major_dir )
         continue;
 
@@ -1028,10 +1024,11 @@
 
         edge->first    = seg;
         edge->last     = seg;
-        edge->fpos     = seg->pos;
-        edge->opos     = edge->pos = FT_MulFix( seg->pos, scale );
-        seg->edge_next = seg;
         edge->dir      = seg->dir;
+        edge->fpos     = seg->pos;
+        edge->opos     = FT_MulFix( seg->pos, scale );
+        edge->pos      = edge->opos;
+        seg->edge_next = seg;
       }
       else
       {

@@ -1,4 +1,65 @@
-2014-09-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+2014-10-02  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Fix Savannah bug #43271.
+
+	* src/cff/cf2font.c (cf2_computeDarkening): Change overflow
+	detection to use logarithms and clamp `scaledStem'.
+
+2014-10-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftcalc.c: Remove miscellaneous type casts.
+
+2014-10-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Use more common `FT_MSB' implementation with masks.
+
+	* src/base/ftcalc.c (FT_MSB): Updated.
+
+2014-09-30  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Clean up.
+
+	* src/base/ftcalc.c (FT_MOVE_SIGN): New macro for frequently used
+	code.
+
+2014-09-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Avoid unnecessary long division.
+
+	This applies to `FT_MulDiv' but not to `FT_DivFix', where overflows or
+	lack thereof are predicted accurately.
+
+	* src/base/ftcalc.c (ft_div64by32): Improve readability.
+	(FT_MulDiv, FT_MulDiv_No_Round) [!FT_LONG64]: Use straight division
+	when multiplication stayed within 32 bits.
+
+2014-09-24  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Minor clean-ups.
+
+	* src/autofit/afhints.c (AF_FLAGS): Remove obsolete values.
+
+	* src/autofit/afhints.c (af_glyph_hints_dump_points,
+	af_glyph_hints_align_strong_points): Updated.
+
+	* src/autofit/aflatin.c (af_latin_hints_link_segments,
+	af_latin_hints_compute_segments), src/autofit/afcjk.c
+	(af_cjk_hints_link_segments), src/autofit/aflatin2.c
+	(af_latin2_hints_link_segments, af_latin2_hints_compute_segments):
+	There are no longer fake segments since more than 10 years...
+
+2014-09-22  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Minor code streamlining.
+
+	* src/autofit/afhints.c (af_axis_hints_new_edge): Remove redundant
+	initialization.
+
+2014-09-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftcalc.c: Harmonize code.
+
+2014-09-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[base] Tighten the overflow check in `FT_MulDiv'.
 
