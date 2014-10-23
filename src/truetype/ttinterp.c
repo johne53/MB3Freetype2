@@ -2051,7 +2051,7 @@
     if ( distance >= 0 )
     {
       val = distance + compensation;
-      if ( distance && val < 0 )
+      if ( val < 0 )
         val = 0;
     }
     else
@@ -2091,10 +2091,8 @@
 
     if ( distance >= 0 )
     {
-      val = distance + compensation + 32;
-      if ( distance && val > 0 )
-        val &= ~63;
-      else
+      val = FT_PIX_ROUND( distance + compensation );
+      if ( val < 0 )
         val = 0;
     }
     else
@@ -2136,14 +2134,14 @@
     if ( distance >= 0 )
     {
       val = FT_PIX_FLOOR( distance + compensation ) + 32;
-      if ( distance && val < 0 )
-        val = 0;
+      if ( val < 0 )
+        val = 32;
     }
     else
     {
       val = -( FT_PIX_FLOOR( compensation - distance ) + 32 );
       if ( val > 0 )
-        val = 0;
+        val = -32;
     }
 
     return val;
@@ -2177,15 +2175,13 @@
 
     if ( distance >= 0 )
     {
-      val = distance + compensation;
-      if ( distance && val > 0 )
-        val &= ~63;
-      else
+      val = FT_PIX_FLOOR( distance + compensation );
+      if ( val < 0 )
         val = 0;
     }
     else
     {
-      val = -( ( compensation - distance ) & -64 );
+      val = -FT_PIX_FLOOR( compensation - distance );
       if ( val > 0 )
         val = 0;
     }
@@ -2221,10 +2217,8 @@
 
     if ( distance >= 0 )
     {
-      val = distance + compensation + 63;
-      if ( distance && val > 0 )
-        val &= ~63;
-      else
+      val = FT_PIX_CEIL( distance + compensation );
+      if ( val < 0 )
         val = 0;
     }
     else
@@ -2265,10 +2259,8 @@
 
     if ( distance >= 0 )
     {
-      val = distance + compensation + 16;
-      if ( distance && val > 0 )
-        val &= ~31;
-      else
+      val = FT_PAD_ROUND( distance + compensation, 32 );
+      if ( val < 0 )
         val = 0;
     }
     else
@@ -2315,17 +2307,17 @@
     {
       val = ( distance - CUR.phase + CUR.threshold + compensation ) &
               -CUR.period;
-      if ( distance && val < 0 )
-        val = 0;
       val += CUR.phase;
+      if ( val < 0 )
+        val = CUR.phase;
     }
     else
     {
       val = -( ( CUR.threshold - CUR.phase - distance + compensation ) &
                -CUR.period );
-      if ( val > 0 )
-        val = 0;
       val -= CUR.phase;
+      if ( val > 0 )
+        val = -CUR.phase;
     }
 
     return val;
@@ -2363,17 +2355,17 @@
     {
       val = ( ( distance - CUR.phase + CUR.threshold + compensation ) /
                 CUR.period ) * CUR.period;
-      if ( distance && val < 0 )
-        val = 0;
       val += CUR.phase;
+      if ( val < 0 )
+        val = CUR.phase;
     }
     else
     {
       val = -( ( ( CUR.threshold - CUR.phase - distance + compensation ) /
                    CUR.period ) * CUR.period );
-      if ( val > 0 )
-        val = 0;
       val -= CUR.phase;
+      if ( val > 0 )
+        val = -CUR.phase;
     }
 
     return val;
@@ -3081,12 +3073,15 @@
     CUR.GS.auto_flip = FALSE;
 
 
-#define DO_SDB                             \
-    CUR.GS.delta_base = (FT_Short)args[0];
+#define DO_SDB                              \
+    CUR.GS.delta_base = (FT_UShort)args[0];
 
 
-#define DO_SDS                              \
-    CUR.GS.delta_shift = (FT_Short)args[0];
+#define DO_SDS                                 \
+    if ( (FT_ULong)args[0] > 6UL )             \
+      CUR.error = FT_THROW( Bad_Argument );    \
+    else                                       \
+      CUR.GS.delta_shift = (FT_UShort)args[0];
 
 
 #define DO_MD  /* nothing */
@@ -7577,7 +7572,7 @@
           B = ( (FT_ULong)B & 0xF ) - 8;
           if ( B >= 0 )
             B++;
-          B = B * 64 / ( 1L << CUR.GS.delta_shift );
+          B *= 1L << ( 6 - CUR.GS.delta_shift );
 
 #ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
 
@@ -7747,7 +7742,7 @@
           B = ( (FT_ULong)B & 0xF ) - 8;
           if ( B >= 0 )
             B++;
-          B = B * 64 / ( 1L << CUR.GS.delta_shift );
+          B *= 1L << ( 6 - CUR.GS.delta_shift );
 
           CUR_Func_move_cvt( A, B );
         }

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType bbox computation (body).                                    */
 /*                                                                         */
-/*  Copyright 1996-2002, 2004, 2006, 2010, 2013 by                         */
+/*  Copyright 1996-2002, 2004, 2006, 2010, 2013, 2014 by                   */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used        */
@@ -42,16 +42,35 @@
   } TBBox_Rec;
 
 
+#define FT_UPDATE_BBOX(p, bbox)       \
+  FT_BEGIN_STMNT                      \
+    if ( p->x < bbox.xMin )           \
+      bbox.xMin = p->x;               \
+    if ( p->x > bbox.xMax )           \
+      bbox.xMax = p->x;               \
+    if ( p->y < bbox.yMin )           \
+      bbox.yMin = p->y;               \
+    if ( p->y > bbox.yMax )           \
+      bbox.yMax = p->y;               \
+  FT_END_STMNT
+
+#define CHECK_X( p, bbox )  \
+          ( p->x < bbox.xMin || p->x > bbox.xMax )
+
+#define CHECK_Y( p, bbox )  \
+          ( p->y < bbox.yMin || p->y > bbox.yMax )
+
+
   /*************************************************************************/
   /*                                                                       */
   /* <Function>                                                            */
   /*    BBox_Move_To                                                       */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    This function is used as a `move_to' and `line_to' emitter during  */
+  /*    This function is used as a `move_to' emitter during                */
   /*    FT_Outline_Decompose().  It simply records the destination point   */
-  /*    in `user->last'; no further computations are necessary since we    */
-  /*    use the cbox as the starting bbox which must be refined.           */
+  /*    in `user->last'. We also update bbox in case contour starts with   */
+  /*    an implicit `on' point.                                            */
   /*                                                                       */
   /* <Input>                                                               */
   /*    to   :: A pointer to the destination vector.                       */
@@ -66,17 +85,42 @@
   BBox_Move_To( FT_Vector*  to,
                 TBBox_Rec*  user )
   {
+    FT_UPDATE_BBOX( to, user->bbox );
+ 
     user->last = *to;
 
     return 0;
   }
 
 
-#define CHECK_X( p, bbox )  \
-          ( p->x < bbox.xMin || p->x > bbox.xMax )
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Function>                                                            */
+  /*    BBox_Line_To                                                       */
+  /*                                                                       */
+  /* <Description>                                                         */
+  /*    This function is used as a `line_to' emitter during                */
+  /*    FT_Outline_Decompose().  It simply records the destination point   */
+  /*    in `user->last'; no further computations are necessary because     */
+  /*    bbox already contains both explicit ends of the line segment.      */
+  /*                                                                       */
+  /* <Input>                                                               */
+  /*    to   :: A pointer to the destination vector.                       */
+  /*                                                                       */
+  /* <InOut>                                                               */
+  /*    user :: A pointer to the current walk context.                     */
+  /*                                                                       */
+  /* <Return>                                                              */
+  /*    Always 0.  Needed for the interface only.                          */
+  /*                                                                       */
+  static int
+  BBox_Line_To( FT_Vector*  to,
+                TBBox_Rec*  user )
+  {
+    user->last = *to;
 
-#define CHECK_Y( p, bbox )  \
-          ( p->y < bbox.yMin || p->y > bbox.yMax )
+    return 0;
+  }
 
 
   /*************************************************************************/
@@ -155,8 +199,8 @@
                  FT_Vector*  to,
                  TBBox_Rec*  user )
   {
-    /* we don't need to check `to' since it is always an `on' point, thus */
-    /* within the bbox                                                    */
+    /* in case `to' is implicit and not included in bbox yet */
+    FT_UPDATE_BBOX( to, user->bbox );
 
     if ( CHECK_X( control, user->bbox ) )
       BBox_Conic_Check( user->last.x,
@@ -377,7 +421,7 @@
 
 FT_DEFINE_OUTLINE_FUNCS(bbox_interface,
     (FT_Outline_MoveTo_Func) BBox_Move_To,
-    (FT_Outline_LineTo_Func) BBox_Move_To,
+    (FT_Outline_LineTo_Func) BBox_Line_To,
     (FT_Outline_ConicTo_Func)BBox_Conic_To,
     (FT_Outline_CubicTo_Func)BBox_Cubic_To,
     0, 0
@@ -389,8 +433,8 @@ FT_DEFINE_OUTLINE_FUNCS(bbox_interface,
   FT_Outline_Get_BBox( FT_Outline*  outline,
                        FT_BBox     *abbox )
   {
-    FT_BBox     cbox;
-    FT_BBox     bbox;
+    FT_BBox     cbox = { 0x7FFFFFFF, 0x7FFFFFFF, -0x7FFFFFFF, -0x7FFFFFFF };
+    FT_BBox     bbox = { 0x7FFFFFFF, 0x7FFFFFFF, -0x7FFFFFFF, -0x7FFFFFFF };
     FT_Vector*  vec;
     FT_UShort   n;
 
@@ -414,32 +458,13 @@ FT_DEFINE_OUTLINE_FUNCS(bbox_interface,
     /* coincide, we exit immediately.                             */
 
     vec = outline->points;
-    bbox.xMin = bbox.xMax = cbox.xMin = cbox.xMax = vec->x;
-    bbox.yMin = bbox.yMax = cbox.yMin = cbox.yMax = vec->y;
-    vec++;
 
-    for ( n = 1; n < outline->n_points; n++ )
+    for ( n = 0; n < outline->n_points; n++ )
     {
-      FT_Pos  x = vec->x;
-      FT_Pos  y = vec->y;
-
-
-      /* update control box */
-      if ( x < cbox.xMin ) cbox.xMin = x;
-      if ( x > cbox.xMax ) cbox.xMax = x;
-
-      if ( y < cbox.yMin ) cbox.yMin = y;
-      if ( y > cbox.yMax ) cbox.yMax = y;
+      FT_UPDATE_BBOX( vec, cbox);
 
       if ( FT_CURVE_TAG( outline->tags[n] ) == FT_CURVE_TAG_ON )
-      {
-        /* update bbox for `on' points only */
-        if ( x < bbox.xMin ) bbox.xMin = x;
-        if ( x > bbox.xMax ) bbox.xMax = x;
-
-        if ( y < bbox.yMin ) bbox.yMin = y;
-        if ( y > bbox.yMax ) bbox.yMax = y;
-      }
+        FT_UPDATE_BBOX( vec, bbox);
 
       vec++;
     }

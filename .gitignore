@@ -163,4 +163,5 @@ pip-log.txt
 .DS_Store
 
 config.mk
+objs/vc2010/
 /builds/win32/msvc/freetype.vsprops

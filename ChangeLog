@@ -1,3 +1,176 @@
+2014-10-20  Werner Lemberg  <wl@gnu.org>
+
+	[sbit] Minor fixes.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit) [TT_SBIT_TABLE_TYPE_SBIX]:
+	Accept overlay format also, but emit warning message in that case.
+	(tt_sbit_decoder_load_metrics): Add missing newline to error
+	message.
+	(tt_sbit_load_sbix_image): Add `rgbl' graphic type (as used on iOS
+	7.1) to the list of unsupported formats.
+
+2014-10-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Clean up bytecode rounding.
+
+	Zero distance does not have to be treated specially if you follow
+	specifications and check the sign as the very last step of rounding.
+
+	* src/truetype/ttinterp.c (Round_None, Round_To_Grid,
+	Round_Down_To_Grid, Round_Up_To_Grid, Round_To_Double_Grid): Use
+	macros when available, do not check for non-zero distance.
+	(Round_To_Half_Grid, Round_Super, Round_Super_45): Ditto, return phase
+	if sign changed.
+
+2014-10-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Unwrap engine compensation settings.
+
+	* src/truetype/ttobjs.c (tt_size_init_bytecode): Updated.
+
+2014-10-18  David Weiß  <David.Weiss@ptvgroup.com>
+
+	[build] Add property file to vc2010 project.
+
+	This simplifies custom build configurations, especially for
+	automated build environments.
+
+	* builds/windows/vc2010/freetype.user.props: New configuration file.
+
+	* builds/windows/vc2010/freetype.vcxproj: Include
+	`freetype.user.props' and use its data fields.
+
+	* builds/windows/vc2010/index.html: Updated.
+
+2014-10-18  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add blue-zone support for Telugu.
+
+	This essentially moves the Telugu script from the `Indic' hinter to
+	the `Latin' hinter.
+
+	Note that this is a first shot and quite certainly needs
+	refinements.
+
+	* src/autofit/afblue.dat: Add blue zone data for Telugu.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Telugu standard characters and move
+	data out of AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afranges.c: Move Telugu data out of
+	AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afstyles.h: Update Telugu data; in particular, use
+	AF_WRITING_SYSTEM_LATIN.
+
+2014-10-18  David Wimsey  <david@wimsey.us>
+
+	[cmake] Add iOS build support.
+	From Savannah patch #8497.
+
+	* builds/cmake/iOS.cmake: New file.  Universal binaries are built
+	with both 32 and 64 bit arm architectures.
+
+	* CMakeLists.txt (IOS_PLATFORM): New variable for running the iOS
+	toolchain.  Possible values are `OS' to build on iOS, or
+	`SIMULATOR' to build on APPLE.
+
+2014-10-16  Behdad Esfahbod  <behdad@behdad.org>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[cff] Add `CFF_CONFIG_OPTION_DARKENING_PARAMETERS' config macro.
+
+	* devel/ftoption.h, include/config/ftoption.h
+	(CFF_CONFIG_OPTION_DARKENING_PARAMETERS): New macro.
+
+	* src/cff/cffobjs.c (SET_DARKENING_PARAMETERS,
+	SET_DARKENING_PARAMETERS_0): New macros.
+	(cff_driver_init): Use new macros.
+
+2014-10-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Limit delta shift range.
+
+	The valid range for delta shift is zero through six.  Negative values
+	are invalid according to
+
+	  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM04/Chap4.html#delta%20shift
+
+	* src/truetype/ttobjs.h (delta_shift, delta_base): Make unsigned.
+	* src/truetype/ttinterp.h (DO_SDS): Throw an error if `delta_shift'
+	is out of range.
+	(Ins_DELTAP, Ins_DELTAC): Optimize for valid `delta_shift'.
+
+2014-10-16  Werner Lemberg  <wl@gnu.org>
+
+	A better fix for Savannah bug #43392.
+	Suggested by Doug Felt <dougfelt@gmail.com>.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_metrics): Set
+	`vertAdvance' to zero...
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): ... and set here a default
+	value for `vertAdvance' based on `linearVertAdvance' in case
+	`vertAdvance' is zero.  Note that the previous computed ad-hoc value
+	for `linearVertAdvance' was apparently not tested in a real-life
+	situation.
+
+2014-10-14  David Weiß  <David.Weiss@ptvgroup.com>
+
+	[build] Better optimization settings for vc2010 solution file.
+
+	* builds/windows/vc2010/freetype.sln,
+	builds/windows/vc2010/freetype.vcxproj: Updated.
+
+2014-10-14  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Adjust Devenagari character range.
+
+	* src/autofit/afranges.c (af_deva_uniranges): Omit characters that
+	are common to all other Indic scripts.
+
+2014-10-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43392.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_metrics): Don't let
+	vertical metrics uninitialized.
+
+2014-10-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Small bbox correction.
+
+	* src/base/ftbbox.c (FT_Outline_Get_BBox): Start from nonsense bbox
+	instead of initial point that could be `off' in conic outlines.
+
+2014-10-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Fix Savannah bug #43356.
+
+	* src/base/ftbbox.c (BBox_Move_To, BBox_Conic_To): Update bbox in case
+	of implicit `to'.
+	(BBox_Line_To): New emitter that does not update bbox.
+
+2014-10-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Introduce and use new macro `FT_UPDATE_BBOX'
+
+	* src/base/ftbbox.c (FT_UPDATE_BBOX): New macro.
+	(FT_Outline_Get_BBox): Use it here.
+
+2014-10-02  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Significant optimization of `ft_div64by32'
+
+	We shift as many bits as we can into the high register, perform
+	32-bit division with modulo there, then work through the remaining
+	bits with long division. This optimization is especially noticeable
+	for smaller dividends that barely use the high register.
+
+	* src/base/ftcalc.c (ft_div64by32): Updated.
+
 2014-10-02  Dave Arnold  <darnold@adobe.com>
 
 	[cff] Fix Savannah bug #43271.
@@ -70,7 +243,7 @@
 	Fix Savannah bug #43153.
 
 	* src/psaux/psconv.c (PS_Conv_ToFixed): Add protection against
-	overflow in `divider'. 
+	overflow in `divider'.
 
 2014-09-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
