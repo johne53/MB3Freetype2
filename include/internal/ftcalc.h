@@ -311,10 +311,11 @@ FT_BEGIN_HEADER
                          FT_Pos  out_x,
                          FT_Pos  out_y );
 
+
   /*
    *  Return TRUE if a corner is flat or nearly flat.  This is equivalent to
-   *  saying that the angle difference between the `in' and `out' vectors is
-   *  very small.
+   *  saying that the corner point is close to its neighbors, or inside an
+   *  ellipse defined by the neighbor focal points to be more precise.
    */
   FT_BASE( FT_Int )
   ft_corner_is_flat( FT_Pos  in_x,

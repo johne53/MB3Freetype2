@@ -1,3 +1,83 @@
+2014-11-03  Infinality  <infinality@infinality.net>
+
+	* src/truetype/ttsubpix.c (COMPATIBILITY_MODE_Rules): Updated.
+
+	The previous commit deteriorates rendering of DejaVu and similar
+	fonts; this gets compensated with this rule.
+
+2014-11-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (Ins_DELTAP): Fix subpixel hinting.
+
+	Before this patch, it was impossible to ever call DELTAP[123] in
+	subpixel hinting mode as described in the ClearType whitepaper; it
+	only worked if in `compatibility mode'.  However, compatibility mode
+	essentially disables SHPIX, completely ruining hinting of
+	ttfautohint output, for example.
+
+	We now follow the whitepaper more closely so that DELTAP[123]
+	instructions for touched points in the non-subpixel direction are
+	executed.
+
+2014-10-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Improve code readability.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Rearrange code.
+
+2014-10-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Reduce outline translations during rendering.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Translate origin
+	virtually by modifying cbox, actually translate outline if cumulative
+	shift is not zero.
+
+2014-10-30  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Fix Savannah bug #35604 (cont'd).
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Remove checks and
+	casts that became unnecessary after the variable type upgrades.
+
+2014-10-29  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Improve code readability.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Rearrange code.
+
+2014-10-29  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Unify hypotenuse approximations.
+
+	* include/internal/ftcalc.h (FT_HYPOT): Move macro from here...
+	* include/internal/ftobjs.h: ... to here, next to required `FT_ABS'.
+	* src/smooth/ftgrays.c (gray_render_cubic): Use it here.
+
+2014-10-25  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Test valid darkening parameter macros in `ftoption.h'.
+
+	We no longer need an otherwise unused typedef that can cause a gcc
+	warning.
+	Problem reported by Alexei.
+
+	* src/cff/cffobjs.c (cff_driver_init): Use
+	`CFF_CONFIG_OPTION_DARKENING_PARAMETER_XXX' macros directly.
+	(SET_DARKENING_PARAMETERS): Removed.
+	Compile time tests are now ...
+
+	* devel/ftoption.h, include/config/ftoption.h: ... here.
+
+2014-10-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Improve flat corner definition.
+
+	* include/internal/ftcalc.h (FT_HYPOT): Macro to approximate Euclidean
+	distance with the alpha max plus beta min algorithm.
+	* src/base/ftcalc.c (ft_corner_is_flat): Use it instead of Taxicab
+	metric.
+
 2014-10-23  David Weiß  <David.Weiss@ptvgroup.com>
 
 	[build] Improve property file for vc2010.
