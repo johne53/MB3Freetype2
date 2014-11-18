@@ -1,3 +1,85 @@
+2014-11-15  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43597.
+
+	* src/sfnt/pngshim.c (Load_SBit_Png): Protect against too large
+	bitmaps.
+
+2014-11-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43591.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_init): Protect against addition
+	and multiplication overflow.
+
+2014-11-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43590.
+
+	* src/sfnt/ttload.c (check_table_dir, tt_face_load_font_dir):
+	Protect against addition overflow.
+
+2014-11-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43589.
+
+	* src/sfnt/sfobjs.c (woff_open_font): Protect against addition
+	overflow.
+
+2014-11-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43588.
+
+	* src/sfnt/ttcmap.c (tt_cmap8_validate, tt_cmap10_validate,
+	tt_cmap12_validate, tt_cmap13_validate, tt_cmap14_validate): Protect
+	against overflow in additions and multiplications.
+
+2014-11-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] CORDIC improvements.
+
+	The scaling between the hypotenuse and its CORDIC approximation is
+	based on regression analysis. The smaller padding for `theta' is
+	justifed by its maximum error of less than 6.
+
+	* src/base/fttrigon.c (ft_trig_downscale): Borrow code from
+	./ftcalc.c (ft_multo64), change linear intercept.
+	(ft_trig_pseudo_polarize): Decrease `theta' padding.
+
+2014-11-09  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftstroke.c (ft_stroker_inside): Fix border intersections.
+
+	One more place to check whether `radius' is zero.
+
+	Problem reported by Marco Wertz <marco.wertz@gmx.de>.
+
+2014-11-07  Werner Lemberg  <wl@gnu.org>
+
+	[bdf] Fix Savannah bug #43535.
+
+	* src/bdf/bdflib.c (_bdf_strncmp): New macro that checks one
+	character more than `strncmp'.
+	s/ft_strncmp/_bdf_strncmp/ everywhere.
+
+2014-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[pcf] Fix Savannah bug #43548.
+
+	* src/pcf/pcfread.c (pcf_get_encodings): Add sanity checks for row
+	and column values.
+
+2014-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[pcf] Fix Savannah bug #43547.
+
+	* src/pcf/pcfread.c (pcf_read_TOC): Check `size' and `offset'
+	values.
+
+2014-11-06  Werner Lemberg  <wl@gnu.org>
+
+	* src/pcf/pcfread.c (pcf_read_TOC): Avoid memory leak.
+
 2014-11-03  Infinality  <infinality@infinality.net>
 
 	* src/truetype/ttsubpix.c (COMPATIBILITY_MODE_Rules): Updated.

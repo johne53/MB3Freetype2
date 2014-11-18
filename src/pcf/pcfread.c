@@ -144,11 +144,29 @@ THE SOFTWARE.
 
         if ( ( tables[i].size   > tables[i + 1].offset )                  ||
              ( tables[i].offset > tables[i + 1].offset - tables[i].size ) )
-          return FT_THROW( Invalid_Offset );
+        {
+          error = FT_THROW( Invalid_Offset );
+          goto Exit;
+        }
       }
 
       if ( !have_change )
         break;
+    }
+
+    /* we now check whether the `size' and `offset' values are reasonable: */
+    /* `offset' + `size' must not exceed the stream size                   */
+    tables = face->toc.tables;
+    for ( n = 0; n < toc->count; n++ )
+    {
+      /* we need two checks to avoid overflow */
+      if ( ( tables->size   > stream->size                ) ||
+           ( tables->offset > stream->size - tables->size ) )
+      {
+        error = FT_THROW( Invalid_Table );
+        goto Exit;
+      }
+      tables++;
     }
 
 #ifdef FT_DEBUG_LEVEL_TRACE
@@ -811,6 +829,15 @@ THE SOFTWARE.
 
     if ( !PCF_FORMAT_MATCH( format, PCF_DEFAULT_FORMAT ) )
       return FT_THROW( Invalid_File_Format );
+
+    /* sanity checks */
+    if ( firstCol < 0       ||
+         firstCol > lastCol ||
+         lastCol  > 0xFF    ||
+         firstRow < 0       ||
+         firstRow > lastRow ||
+         lastRow  > 0xFF    )
+      return FT_THROW( Invalid_Table );
 
     FT_TRACE4(( "pdf_get_encodings:\n" ));
 
