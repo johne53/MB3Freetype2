@@ -205,11 +205,11 @@
       goto Exit;
     }
 
-    if ( !populate_map_and_metrics                   &&
-         ( x_offset + metrics->width  > map->width ||
-           y_offset + metrics->height > map->rows  ||
-           pix_bits != 32                          ||
-           map->pixel_mode != FT_PIXEL_MODE_BGRA   ) )
+    if ( !populate_map_and_metrics                            &&
+         ( (FT_UInt)x_offset + metrics->width  > map->width ||
+           (FT_UInt)y_offset + metrics->height > map->rows  ||
+           pix_bits != 32                                   ||
+           map->pixel_mode != FT_PIXEL_MODE_BGRA            ) )
     {
       error = FT_THROW( Invalid_Argument );
       goto Exit;
@@ -276,6 +276,7 @@
         goto DestroyExit;
       }
 
+      /* this doesn't overflow: 0x7FFF * 0x7FFF * 4 < 2^32 */
       size = map->rows * map->pitch;
 
       error = ft_glyphslot_alloc_bitmap( slot, size );

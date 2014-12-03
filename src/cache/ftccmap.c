@@ -263,6 +263,9 @@
       return 0;
     }
 
+    if ( !face_id )
+      return 0;
+
     query.face_id    = face_id;
     query.cmap_index = (FT_UInt)cmap_index;
     query.char_code  = char_code;
@@ -300,12 +303,6 @@
                                       &face );
       if ( error )
         goto Exit;
-
-#ifdef FT_MAX_CHARMAP_CACHEABLE
-      /* something rotten can happen with rogue clients */
-      if ( cmap_index > FT_MAX_CHARMAP_CACHEABLE )
-        return 0; /* XXX: should return appropriate error */
-#endif
 
       if ( (FT_UInt)cmap_index < (FT_UInt)face->num_charmaps )
       {

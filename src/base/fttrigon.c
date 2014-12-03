@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType trigonometric functions (body).                             */
 /*                                                                         */
-/*  Copyright 2001-2005, 2012-2013 by                                      */
+/*  Copyright 2001-2005, 2012-2014 by                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -45,7 +45,7 @@
   /* this table was generated for FT_PI = 180L << 16, i.e. degrees */
 #define FT_TRIG_MAX_ITERS  23
 
-  static const FT_Fixed
+  static const FT_Angle
   ft_trig_arctan_table[] =
   {
     1740967L, 919879L, 466945L, 234379L, 117304L, 58666L, 29335L,
@@ -165,7 +165,7 @@
   {
     FT_Int           i;
     FT_Fixed         x, y, xtemp, b;
-    const FT_Fixed  *arctanptr;
+    const FT_Angle  *arctanptr;
 
 
     x = vec->x;
@@ -220,7 +220,7 @@
     FT_Angle         theta;
     FT_Int           i;
     FT_Fixed         x, y, xtemp, b;
-    const FT_Fixed  *arctanptr;
+    const FT_Angle  *arctanptr;
 
 
     x = vec->x;
@@ -359,6 +359,9 @@
   FT_Vector_Unit( FT_Vector*  vec,
                   FT_Angle    angle )
   {
+    if ( !vec )
+      return;
+
     vec->x = FT_TRIG_SCALE >> 8;
     vec->y = 0;
     ft_trig_pseudo_rotate( vec, angle );
@@ -384,6 +387,9 @@
     FT_Int     shift;
     FT_Vector  v;
 
+
+    if ( !vec )
+      return;
 
     v.x   = vec->x;
     v.y   = vec->y;
@@ -422,6 +428,9 @@
     FT_Vector  v;
 
 
+    if ( !vec )
+      return 0;
+
     v = *vec;
 
     /* handle trivial cases */
@@ -458,6 +467,9 @@
     FT_Vector  v;
 
 
+    if ( !vec || !length || !angle )
+      return;
+
     v = *vec;
 
     if ( v.x == 0 && v.y == 0 )
@@ -481,6 +493,9 @@
                         FT_Fixed    length,
                         FT_Angle    angle )
   {
+    if ( !vec )
+      return;
+
     vec->x = length;
     vec->y = 0;
 

@@ -845,9 +845,6 @@
     p      = table + 2;           /* skip format */
     length = TT_NEXT_USHORT( p );
 
-    if ( length < 16 )
-      FT_INVALID_TOO_SHORT;
-
     /* in certain fonts, the `length' field is invalid and goes */
     /* out of bound.  We try to correct this here...            */
     if ( table + length > valid->limit )
@@ -857,6 +854,9 @@
 
       length = (FT_UInt)( valid->limit - table );
     }
+
+    if ( length < 16 )
+      FT_INVALID_TOO_SHORT;
 
     p        = table + 6;
     num_segs = TT_NEXT_USHORT( p );   /* read segCountX2 */
@@ -3501,14 +3501,6 @@
     }
 
     num_cmaps = TT_NEXT_USHORT( p );
-
-#ifdef FT_MAX_CHARMAP_CACHEABLE
-    if ( num_cmaps > FT_MAX_CHARMAP_CACHEABLE )
-      FT_ERROR(( "tt_face_build_cmaps: too many cmap subtables (%d)\n"
-                 "                     subtable #%d and higher are loaded"
-                 "                     but cannot be searched\n",
-                 num_cmaps, FT_MAX_CHARMAP_CACHEABLE + 1 ));
-#endif
 
     for ( ; num_cmaps > 0 && p + 8 <= limit; num_cmaps-- )
     {

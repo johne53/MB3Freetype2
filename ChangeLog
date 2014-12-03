@@ -1,3 +1,668 @@
+2014-12-03  Werner Lemberg  <wl@gnu.org>
+
+	FT_Sfnt_Tag: s/ft_sfnt_xxx/FT_SFNT_XXX/ for orthogonality.
+
+	All public FreeType enumeration and flag values are uppercase...
+
+	* include/tttables.h (FT_Sfnt_Tag): Implement it.  For backwards
+	compatilibity, retain the old values as macros.
+
+	* src/base/ftfstype.c (FT_Get_FSType_Flags), src/sfnt/sfdriver.c
+	(get_sfnt_table): Updated.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	* include/*: Improve structure of documentation.
+
+	. Add and update many `<Order>' tags.
+	. Apply various documentation fixes.
+	. Remove details to deprecated (or never implemented) data.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Always handle `<Order>' section elements.
+
+	Previously, those elements were handled only for sections present in
+	a `<Sections>' chapter element.
+
+	* src/tools/docmaker/content.py (ContentProcessor::finish):
+	Implement it.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Properly handle empty rows in Synopsis.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::section_enter): Emit
+	`&nbsp;' for empty fields.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Thinko.
+
+	* src/tools/docmaker/content.py (DocBlock::get_markup_words_all):
+	Emit `/empty/' string for first element also.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Honour empty lines in `<Order>' section element.
+
+	This greatly improves the readability of the `Synopsis' links.
+
+	* src/tools/docmaker/content.py (DocBlock::get_markup_words_all):
+	Insert string `/empty/' between items.
+
+	* src/tools/docmaker/formatter.py (Formatter::section_dump): Make it
+	robust against nonexistent keys.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::section_enter): Emit
+	empty <td> elements for `/empty/'.
+
+2014-12-02  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Ensure Python 3 compatibility.
+
+	* src/tools/docmaker/content.py (ContentProcessor::set_section,
+	ContentProcessor::finish): Replace `has_key' function with `in'
+	keyword.
+
+	* src/tools/docmaker/formatter.py (Formatter::__init__): Replace
+	sorting function with a key generator.
+	(Formatter::add_identifier): Replace `has_key' function with `in'
+	keyword.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::html_source_quote):
+	Replace `has_key' function with `in' keyword.
+	(HtmlFormatter::index_exit, HtmlFormatter::section_enter): Use
+	integer division.
+	s/<>/>/.
+
+	* src/tools/docmaker/utils.py: Import `itertools'.
+	(index_sort): Replaced by...
+	(index_key): ... this new key generator (doing exactly the same).
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Don't output a block multiple times.
+
+	This bug was hidden by not processing all lines of `<Order>' blocks.
+
+	* src/tools/docmaker/formatter.py (Formatter::section_dump): Filter
+	out field names.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Use field values as HTML link targets where possible.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::make_block_url):
+	Accept second, optional argument to specify a name.
+	(HtmlFormatter::html_source_quote): Link to field ID if possible.
+	(HtmlFormatter::print_html_field_list): Emit `id' attribute.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Allow empty lines in `<Order>' blocks.
+
+	Before this patch, the suggested order of entries stopped at the
+	first empty line.
+
+	Obviously, nobody noticed that this problem caused a much reduced
+	set of links in the `Synopsis' sections; in particular, the
+	`<Order>' blocks contain a lot of entries that wouldn't be listed
+	otherwise...
+
+	* src/tools/docmaker/content.py (DocBlock::get_markup_words_all):
+	New function to iterate over all items.
+	(DocSection::process): Use it.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/sources.py (column) [Format 2]: Fix regexp.
+
+	After the single asterisk there must be no other immediately following
+	asterisk.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Improve CSS for vertical spacing.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Improve HTML code for table of contents.
+
+	* src/tools/docmaker/tohtml.py: Introduce a new table class `toc',
+	together with proper CSS.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Provide higher-level markup and simplify HTML.
+
+	* src/tools/docmaker/tohtml.py: Instead of using extraneous `<div>'
+	elements, use CSS descendants (of class `section') to format the
+	data.
+
+	Also remove reduntant <p> and <br> elements, replacing them with
+	proper CSS.
+
+	Globally reduce page width to 75%.
+
+	(block_header): Rename <div> class to `section'.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Add `top' links after blocks.
+
+	* src/tools/docmaker/tohtml.py (block_footer_middle): Implement it.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Improve CSS for fields.
+
+	Make fields align horizontally relative to full line width.
+
+2014-11-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Fix index and TOC templates.
+
+	This thinko was introduced 2014-11-27.
+
+2014-11-28  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Format field lists with CSS.
+
+	This also simplifies the inserted HTML code.
+
+	* src/tools/docmaker/tohtml.py
+	(HtmlFormatter::print_html_field_list): Do it.
+
+2014-11-28  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix compiler warning to the comparison between signed and
+	unsigned variable.
+
+	* src/pfr/pfrsbit.c (pfr_slot_load_bitmap): Fix the comparison
+	between `ypos + ysize' and FT_INT_{MAX,MIN}.
+
+2014-11-28  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Replace empty `<td>' with CSS.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::section_enter): Do
+	it.
+
+2014-11-28  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Replace some `<table>' tags with `<h4>' and `<div>'.
+
+	* src/tools/docmaker/tohtml.py (marker_*): Use `<h4>'.
+	(source_*): Use `<div>'.
+	(HtmlFormatter::block_enter): s/<h4>/<h3>/.
+
+2014-11-28  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix compiler warning to conversion specifiers in debug messages.
+
+	* src/autofit/afhints.c (af_glyph_hints_dump_points): Add length
+	modifier to dump long integers.  (af_glyph_hints_dump_segments,
+	af_glyph_hints_dump_edges): Ditto.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Use more CSS for index.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Replace `name' attribute of `<a>' with `id'.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::block_enter): Do it.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Remove remaining `width' attributes.
+
+	For `Index' and `TOC' links, we now simply use the `text-align' CSS
+	property of `<td>' to enforce flush-left and flush-right,
+	eliminating the hack with an empty, full-width `<td>' element
+	inbetween.
+
+	The change also enforces the same (smaller) size for all index and
+	TOC links.
+
+2014-11-27  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/cff/cf2font.c: Include `ftcalc.h' to use FT_MSB(),
+	cf2font.c could not find it under `make multi' build.
+
+2014-11-27  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Remove
+	unrequired negative value check for `width' and `height'.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: More HTML table refactoring.
+
+	Replace some `<table>' tags with `<div>' to simplify structure.
+
+	Move `bgcolor' attribute to CSS.
+
+	Replace most `width' attributes with CSS.  The remaining instances
+	(providing a similar effect as LaTeX's `\hfill' command) are removed
+	in a later patch.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Replace <font> with CSS.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Center <table> with CSS.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Replace `<center>' with `<div>'.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/tohtml.py: Remove redundant `<center>' tags.
+
+	This starts a series of commits into the direction of generating
+	valid HTML 5 code, especially using much more CSS.
+
+2014-11-27  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Prevent too negative values (< FT_INT_MIN) in bitmap metrics,
+	suggested by Alexei.
+
+	* src/pfr/pfrsbit.c (pfr_slot_load_bitmap): Prevent too
+	negative values in `xpos' and `ypos + ysize'.
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Prevent
+	too negative values in `x_left' and `y_top'.  Either negative
+	values in `width' and `height' are checked.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Produce better HTML code.
+
+	* src/tools/docmaker/tohtml.py: Always use double quotes for
+	attribute values.
+	(source_footer): Close `td' and `tr' groups.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	Use better way to disable creation of .pyc files for `make refdoc'.
+
+	Python 2.6 was released in 2008...
+
+	* builds/freetype.mk (refdoc): Use python's `-B' option.
+
+	* builds/detect.mk (std_setup, dos_setup): Mention required python
+	version for `refdoc' target.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/sources.py (re_bold, re_italic): Use
+	non-grouping parentheses.
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::make_html_word):
+	Updated.
+
+2014-11-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (FT_Get_Glyph_Name): Fix compiler warning.
+
+	Introdruced in previous change.  Reported by Alexei.
+
+2014-11-26  Werner Lemberg  <wl@gnu.org>
+
+	* src/*: Add checks for parameters of API functions where missing.
+
+	`API functions' are functions tagged with `FT_EXPORT_DEF'.
+
+	Besides trivial fixes, the following changes are included, too.
+
+	* src/base/ftbdf.c (FT_Get_BDF_Charset_ID, FT_Get_BDF_Property): Set
+	error code if no service is available.
+
+	* src/base/ftinit.c (FT_Done_FreeType): Change return value for
+	invalid `library' parameter to `Invalid_Library_Handle'.
+
+	* src/base/ftobjs.c (FT_New_Size): Change return value for invalid
+	`asize' parameter to `Invalid_Argument'.
+
+	* src/base/ftoutln.c (FT_Outline_Copy): Change return value for
+	invalid `source' and `target' parameters to `Invalid_Outline'.
+	(FT_Outline_Done_Internal): Change return value for invalid
+	`outline' parameter to `Invalid_Outline'.
+
+2014-11-26  Werner Lemberg  <wl@gnu.org>
+
+	* src/cache/ftcbasic.c: Use single calls to `FT_TRACE'.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/base/ftobj.c (Mac_Read_POST_Resource): Additional
+	overflow check in the summation of POST fragment lengths,
+	suggested by Mateusz Jurczyk <mjurczyk@google.com>.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/base/ftobjs.c (Mac_Read_POST_Resource): Insert comments
+	and fold too long tracing messages.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix Savannah bug #43540.
+
+	* src/base/ftmac.c (parse_fond): Prevent a buffer overrun
+	caused by a font including too many (> 63) strings to store
+	names[] table.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/base/ftobjs.c (Mac_Read_POST_Resource): Use unsigned long
+	variables to read the lengths in POST fragments.  Suggested by
+	Mateusz Jurczyk <mjurczyk@google.com>.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix Savannah bug #43539.
+
+	* src/base/ftobjs.c (Mac_Read_POST_Resource): Fix integer overflow
+	by a broken POST table in resource-fork.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Fix Savannah bug #43538.
+
+	* src/base/ftobjs.c (Mac_Read_POST_Resource): Fix integer overflow
+	by a broken POST table in resource-fork.
+
+2014-11-26  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	* src/base/ftobjs.c (Mac_Read_POST_Resource): Avoid memory leak
+	by a broken POST table in resource-fork.  Return after freeing
+	the buffered POST table when it is found to be broken.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/Invalid_Argument/Invalid_Size_Handle/ where appropriate.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/Invalid_Argument/Invalid_Stream_Handle/ where appropriate.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/Invalid_Argument/Invalid_Library_Handle/ where appropriate.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/Invalid_Argument/Invalid_Outline/ where appropriate.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/Invalid_Argument/Invalid_Face_Handle/ where appropriate.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[Savannah bug #43682] Adjust some renderer callbacks.
+
+	* src/raster/ftraster.c (ft_black_set_mode): Change return type to
+	`int' to stay in sync with `FT_Renderer_SetModeFunc' prototype.
+
+	* src/smooth/ftgrays.c (gray_raster_set_mode): New dummy function
+	for orthogonality.
+	(ft_grays_raster): Use it.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	[Savannah bug #43682] Properly handle missing return errors.
+
+	The functions in this patch *do* return non-trivial errors that must
+	be taken care of.
+
+	* src/autofit/afloader.c (af_loader_load_g), src/base/ftobjs.c
+	(FT_Render_Glyph_Internal), src/base/ftoutln.c (FT_Outline_Render),
+	src/cff/cffgload.c (cff_decoder_parse_charstrings) <cff_op_endchar>,
+	src/psaux/psobjs.c (ps_parser_load_field_table), src/psaux/t1decode
+	(t1_decoder_parse_charstrings) <op_endchar>, src/truetype/ttgload.c
+	(load_truetype_glyph <subglyph loop>, tt_loader_init,
+	TT_Load_Glyph), src/truetype/ttgxvar.c (TT_Set_MM_Blend),
+	src/truetype/ttobjs.c (tt_size_run_fpgm, tt_size_run_prep): Do it.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	[Savannah bug #43682] Add/remove `void' casts to some functions.
+
+	We use a cast to indicate that we intentionally ignore a function's
+	return value.  However, this doesn't apply to API functions where
+	errors can only happen for trivially invalid input.
+
+	* src/base/ftstroke.c (FT_Glyph_Stroke, FT_Glyph_StrokeBorder),
+	src/base/ftsynth.c (FT_GlyphSlot_Embolden), src/cff/cffgload.c
+	(cff_slot_load), src/pfr/pfrdrivr.c (pfr_get_kerning),
+	src/type1/t1load.c (parse_encoding), src/type42/t42parse.c
+	(t42_parse_encoding): Do it.
+
+2014-11-25  Werner Lemberg  <wl@gnu.org>
+
+	[Savannah bug #43682] Change some signatures to `void' return type.
+
+	* include/internal/pshints.h (PSH_Globals_SetScaleFunc),
+	include/internal/sfnt.h (TT_Get_Metrics_Func),
+	src/pshinter/pshglob.c (psh_globals_set_scale),
+	src/pshinter/pshrec.c (ps_hints_init), src/sfnt/ttmtx.c
+	(tt_face_get_metrics), src/truetype/ttinterp.c (TT_Goto_CodeRange,
+	TT_Set_CodeRange, TT_Clear_CodeRange, TT_Done_Context,
+	TT_Save_Context): Do it.
+
+	* src/pshinter/pshglob.h, src/pshinter/pshrec.h, src/sfnt/ttmtx.h,
+	src/truetype/ttgload.c (TT_Hint_Glyph), src/truetype/ttinterp.c
+	(TT_Run_Context), src/truetype/ttinterp.h, src/truetype/ttobjs.c
+	(tt_size_run_fpgm, tt_size_run_prep): Updated.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	Remove all code related to FT_MAX_CHARMAP_CACHEABLE.
+
+	This is no longer used.
+
+	* src/base/ftobjs.c, src/cache/ftccmap.c, src/cff/cffobjs.c,
+	src/sfnt/ttcmap.c: Do it.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43680.
+
+	This adds an additional constraint to make the fix from 2013-01-25
+	really work.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_image) <index_format==4>:
+	Check `p' before `num_glyphs'.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix Savannah bug #43679.
+
+	* src/truetype/ttpload.c (tt_face_load_hdmx): Check minimum size of
+	`record_size'.
+
+2014-11-24  Jarkko Pöyry  <jarkko.poyry@gmail.com>
+
+	[cff, pfr, psaux, winfonts] Fix Savannah bug #43676.
+
+	Don't cast cmap init function pointers to an incompatible type. 
+
+	Without this patch, the number of parameters between declaration and
+	the real signature differs.  Calling such a function results in
+	undefined behavior.
+
+	  ISO/IEC 9899:TC3 (Committee Draft September 7, 2007)
+	    6.5.2.2 Function calls
+	      9 If the function is defined with a type that is not
+	        compatible with the type (of the expression) pointed to by
+	        the expression that denotes the called function, the
+	        behavior is undefined.
+
+	On certain platforms (c -> js with emscripten) this causes
+	termination of execution or invalid calls because in the emscripten
+	implementation, function pointers of different types are stored in
+	different pointer arrays.  Incorrect pointer type here results in
+	indexing of an incorrect array.
+
+	* src/cff/cffcmap.c (cff_cmap_encoding_init, cff_cmap_unicode_init),
+	src/pfr/pfrcmap.c (pfr_cmap_init), src/psaux/t1cmap.c
+	t1_cmap_standard_init, t1_cmap_expert_init, t1_cmap_custom_init,
+	t1_cmap_unicode_init), src/winfonts/winfnt.c (fnt_cmap_init): Fix
+	signature.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43672.
+
+	* src/sfnt/ttkern.c (tt_face_load_kern): Use correct value for
+	minimum table length test.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[type1, type42] Another fix for Savannah bug #43655.
+
+	* src/type1/t1load.c (parse_charstrings), src/type42/t42parse.c
+	(t42_parse_charstrings): Add another boundary testing.
+
+2014-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Formatting, copyright, improved documentation.
+
+	* src/tools/docmaker/*: No code changes besides trivial
+	modifications.
+
+2014-11-22  Werner Lemberg  <wl@gnu.org>
+
+	[bdf] Fix Savannah bug #43660.
+
+	* src/bdf/bdflib.c (_bdf_parse_glyphs) <"ENDFONT">: Check
+	`_BDF_GLYPH_BITS'.
+
+2014-11-22  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Allow only embedded TrueType fonts.
+
+	This is a follow-up to Savannah bug #43659.
+
+	* src/type42/t42objs.c (T42_Face_Init): Exclusively use the
+	`truetype' font driver for loading the font contained in the `sfnts'
+	array.
+
+2014-11-22  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Fix Savannah bug #43659.
+
+	* src/type42/t42objs.c (T42_Open_Face): Initialize `face->ttf_size'.
+
+	* src/type42/t42parse.c (t42_parse_sfnts): Always set
+	`face->ttf_size' directly.  This ensures a correct stream size in
+	the call to `FT_Open_Face', which follows after parsing, even for
+	buggy input data.
+	Fix error messages.
+
+2014-11-22  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix Savannah bug #43658.
+
+	* src/cff/cf2ft.c (cf2_builder_lineTo, cf2_builder_cubeTo): Handle
+	return values of point allocation routines.
+
+2014-11-22  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Savannah bug #43656.
+
+	* src/sfnt/ttcmap.c (tt_cmap4_validate): Fix order of validity
+	tests.
+
+2014-11-21  Werner Lemberg  <wl@gnu.org>
+
+	[type1, type42] Fix Savannah bug #43655.
+
+	* src/type1/t1load.c (parse_charstrings), src/type42/t42parse.c
+	(t42_parse_charstrings): Fix boundary testing.
+
+2014-11-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/pcf/pcfread.c (pcf_get_metrics): Sanitize invalid metrics.
+
+2014-11-21  Werner Lemberg  <wl@gnu.org>
+
+	[ftlcdfil] Obey flow direction.
+
+	* src/base/ftlcdfil.c (_ft_lcd_filter_fir, _ft_lcd_filter_legacy):
+	Handle `up' flow.
+
+2014-11-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftbitmap.c (FT_Bitmap_Convert): Improve.
+
+	This commit completes argument checks and adds support for different
+	flow directions.
+
+2014-11-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftbitmap.c (FT_Bitmap_Copy): Improve.
+
+	This commit adds argument checks and support for different flow
+	directions.
+
+2014-11-20  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftbitmap.c (FT_Bitmap_New): Check argument.
+
+2014-11-19  Werner Lemberg  <wl@gnu.org>
+
+	Change some fields in `FT_Bitmap' to unsigned type.
+
+	This doesn't break ABI.
+
+	* include/ftimage.h (FT_Bitmap): Make `rows', `width', `num_grays',
+	`pixel_mode', and `palette_mode' unsigned types.
+
+	* src/base/ftbitmap.c: Updated.
+	(FT_Bitmap_Copy): Fix casts.
+
+	* src/cache/ftcsbits.c, src/raster/ftraster.c, src/sfnt/pngshim.c:
+	Updated.
+
+2014-11-19  Werner Lemberg  <wl@gnu.org>
+
+	Make `FT_Bitmap_Convert' correctly handle negative `pitch' values.
+
+	* src/base/ftbitmap.c (FT_Bitmap_Convert): Always use positive value
+	for the pitch while copying data.
+	Correctly set pitch sign in target bitmap.
+
+2014-11-19  Werner Lemberg  <wl@gnu.org>
+
+	Minor code improvement in `FT_Bitmap_Embolden'.
+
+	* src/base/ftbitmap.c (FT_Bitmap_Embolden) <FT_PIXEL_MODE_GRAY[24]>:
+	Fix thinko.
+
+2014-11-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/fttrigon.c: Use dedicated `FT_Angle' for arctan table.
+
+2014-11-19  Behdad Esfahbod  <behdad@behdad.org>
+
+	Avoid compiler warnings on x86-64 for `FT_MulFix'.
+
+	`FT_MulFix' takes `FT_Long' parameters as defined in `freetype.h',
+	but several inline implementations of it in `ftcalc.h' take
+	`FT_Int32' arguments.  This is causing compiler warnings on x86-64:
+	If parameters of type `FT_Fixed' (= `FT_Long') are passed to the
+	inline implementation of this function, integer values are truncated
+	from 64bit to 32bit.
+
+	* include/internal/ftcalc.h (FT_MulFix) [FT_MULFIX_ASSEMBLER]: Add
+	casts.
+
 2014-11-15  Werner Lemberg  <wl@gnu.org>
 
 	[sfnt] Fix Savannah bug #43597.
