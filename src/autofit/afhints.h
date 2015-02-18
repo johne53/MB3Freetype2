@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines (specification).                        */
 /*                                                                         */
-/*  Copyright 2003-2008, 2010-2012, 2014 by                                */
+/*  Copyright 2003-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -305,6 +305,8 @@ FT_BEGIN_HEADER
 
   } AF_EdgeRec;
 
+#define AF_SEGMENTS_EMBEDDED  18   /* number of embedded segments   */
+#define AF_EDGES_EMBEDDED     12   /* number of embedded edges      */
 
   typedef struct  AF_AxisHintsRec_
   {
@@ -321,8 +323,19 @@ FT_BEGIN_HEADER
 
     AF_Direction  major_dir;    /* either vertical or horizontal */
 
+    /* two arrays to avoid allocation penalty */
+    struct
+    {
+      AF_SegmentRec  segments[AF_SEGMENTS_EMBEDDED];
+      AF_EdgeRec     edges[AF_EDGES_EMBEDDED];
+    } embedded;
+
+
   } AF_AxisHintsRec, *AF_AxisHints;
 
+
+#define AF_POINTS_EMBEDDED     96   /* number of embedded points   */
+#define AF_CONTOURS_EMBEDDED    8   /* number of embedded contours */
 
   typedef struct  AF_GlyphHintsRec_
   {
@@ -351,6 +364,14 @@ FT_BEGIN_HEADER
 
     FT_Pos           xmin_delta;    /* used for warping */
     FT_Pos           xmax_delta;
+
+    /* Two arrays to avoid allocation penalty.            */
+    /* The `embedded' structure must be the last element! */
+    struct
+    {
+      AF_Point       contours[AF_CONTOURS_EMBEDDED];
+      AF_PointRec    points[AF_POINTS_EMBEDDED];
+    } embedded;
 
   } AF_GlyphHintsRec;
 

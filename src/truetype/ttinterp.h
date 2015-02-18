@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType bytecode interpreter (specification).                       */
 /*                                                                         */
-/*  Copyright 1996-2007, 2010, 2012-2014 by                                */
+/*  Copyright 1996-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -24,23 +24,6 @@
 
 
 FT_BEGIN_HEADER
-
-
-#ifndef TT_CONFIG_OPTION_STATIC_INTERPRETER /* indirect implementation */
-
-#define EXEC_OP_   TT_ExecContext  exc,
-#define EXEC_OP    TT_ExecContext  exc
-#define EXEC_ARG_  exc,
-#define EXEC_ARG   exc
-
-#else                                       /* static implementation */
-
-#define EXEC_OP_   /* void */
-#define EXEC_OP    /* void */
-#define EXEC_ARG_  /* void */
-#define EXEC_ARG   /* void */
-
-#endif /* TT_CONFIG_OPTION_STATIC_INTERPRETER */
 
 
   /*************************************************************************/
@@ -67,33 +50,38 @@ FT_BEGIN_HEADER
 
   /* Rounding function */
   typedef FT_F26Dot6
-  (*TT_Round_Func)( EXEC_OP_ FT_F26Dot6  distance,
-                             FT_F26Dot6  compensation );
+  (*TT_Round_Func)( TT_ExecContext  exc,
+                    FT_F26Dot6      distance,
+                    FT_F26Dot6      compensation );
 
   /* Point displacement along the freedom vector routine */
   typedef void
-  (*TT_Move_Func)( EXEC_OP_ TT_GlyphZone  zone,
-                            FT_UShort     point,
-                            FT_F26Dot6    distance );
+  (*TT_Move_Func)( TT_ExecContext  exc,
+                   TT_GlyphZone    zone,
+                   FT_UShort       point,
+                   FT_F26Dot6      distance );
 
   /* Distance projection along one of the projection vectors */
   typedef FT_F26Dot6
-  (*TT_Project_Func)( EXEC_OP_ FT_Pos   dx,
-                               FT_Pos   dy );
+  (*TT_Project_Func)( TT_ExecContext  exc,
+                      FT_Pos          dx,
+                      FT_Pos          dy );
 
   /* getting current ppem.  Take care of non-square pixels if necessary */
   typedef FT_Long
-  (*TT_Cur_Ppem_Func)( EXEC_OP );
+  (*TT_Cur_Ppem_Func)( TT_ExecContext  exc );
 
   /* reading a cvt value.  Take care of non-square pixels if necessary */
   typedef FT_F26Dot6
-  (*TT_Get_CVT_Func)( EXEC_OP_ FT_ULong  idx );
+  (*TT_Get_CVT_Func)( TT_ExecContext  exc,
+                      FT_ULong        idx );
 
   /* setting or moving a cvt value.  Take care of non-square pixels  */
   /* if necessary                                                    */
   typedef void
-  (*TT_Set_CVT_Func)( EXEC_OP_ FT_ULong    idx,
-                               FT_F26Dot6  value );
+  (*TT_Set_CVT_Func)( TT_ExecContext  exc,
+                      FT_ULong        idx,
+                      FT_F26Dot6      value );
 
 
   /*************************************************************************/
@@ -170,11 +158,11 @@ FT_BEGIN_HEADER
 
     FT_Long            top;        /* top of exec. stack   */
 
-    FT_UInt            stackSize;  /* size of exec. stack  */
+    FT_Long            stackSize;  /* size of exec. stack  */
     FT_Long*           stack;      /* current exec. stack  */
 
     FT_Long            args;
-    FT_UInt            new_top;    /* new top after exec.  */
+    FT_Long            new_top;    /* new top after exec.  */
 
     TT_GlyphZoneRec    zp0,        /* zone records */
                        zp1,
@@ -315,7 +303,7 @@ FT_BEGIN_HEADER
   FT_LOCAL( FT_Error )
   Update_Max( FT_Memory  memory,
               FT_ULong*  size,
-              FT_Long    multiplier,
+              FT_ULong   multiplier,
               void*      _pbuff,
               FT_ULong   new_max );
 #endif /* TT_USE_BYTECODE_INTERPRETER */
@@ -339,6 +327,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Note>                                                                */
   /*    Only the glyph loader and debugger should call this function.      */
+  /*    (And right now only the glyph loader uses it.)                     */
   /*                                                                       */
   FT_EXPORT( TT_ExecContext )
   TT_New_Context( TT_Driver  driver );
@@ -358,8 +347,7 @@ FT_BEGIN_HEADER
                    TT_Size         ins );
 
   FT_LOCAL( FT_Error )
-  TT_Run_Context( TT_ExecContext  exec,
-                  FT_Bool         debug );
+  TT_Run_Context( TT_ExecContext  exec );
 #endif /* TT_USE_BYTECODE_INTERPRETER */
 
 

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter Unicode script ranges (body).                            */
 /*                                                                         */
-/*  Copyright 2013, 2014 by                                                */
+/*  Copyright 2013-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -95,6 +95,12 @@
   const AF_Script_UniRangeRec  af_telu_uniranges[] =
   {
     AF_UNIRANGE_REC(  0x0C00UL,  0x0C7FUL ),  /* Telugu */
+    AF_UNIRANGE_REC(       0UL,       0UL )
+  };
+
+  const AF_Script_UniRangeRec  af_thai_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x0E00UL,  0x0E7FUL ),  /* Thai */
     AF_UNIRANGE_REC(       0UL,       0UL )
   };
 

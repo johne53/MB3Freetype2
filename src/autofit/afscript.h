@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter scripts (specification only).                            */
 /*                                                                         */
-/*  Copyright 2013, 2014 by                                                */
+/*  Copyright 2013-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -61,6 +61,11 @@
           "Telugu",
           HB_SCRIPT_TELUGU,
           0xC66, 0xC67, 0x0 ) /* ౦ ౧ */
+
+  SCRIPT( thai, THAI,
+          "Thai",
+          HB_SCRIPT_THAI,
+          0xE32, 0xE45, 0xE50 ) /* า ๅ ๐ */
 
 #ifdef AF_CONFIG_OPTION_INDIC
 

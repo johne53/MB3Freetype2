@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter module implementation (body).                            */
 /*                                                                         */
-/*  Copyright 2003-2006, 2009, 2011-2014 by                                */
+/*  Copyright 2003-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -253,17 +253,14 @@
     module->fallback_style = AF_STYLE_FALLBACK;
     module->default_script = AF_SCRIPT_DEFAULT;
 
-    return af_loader_init( module );
+    return FT_Err_Ok;
   }
 
 
   FT_CALLBACK_DEF( void )
   af_autofitter_done( FT_Module  ft_module )      /* AF_Module */
   {
-    AF_Module  module = (AF_Module)ft_module;
-
-
-    af_loader_done( module );
+    FT_UNUSED( ft_module );
   }
 
 
@@ -274,10 +271,25 @@
                             FT_UInt       glyph_index,
                             FT_Int32      load_flags )
   {
+    FT_Error   error  = FT_Err_Ok;
+    FT_Memory  memory = module->root.library->memory;
+
+    AF_GlyphHintsRec  hints[1];
+    AF_LoaderRec      loader[1];
+
     FT_UNUSED( size );
 
-    return af_loader_load_glyph( module, slot->face,
-                                 glyph_index, load_flags );
+
+    af_glyph_hints_init( hints, memory );
+    af_loader_init( loader, hints );
+
+    error = af_loader_load_glyph( loader, module, slot->face,
+                                  glyph_index, load_flags );
+
+    af_loader_done( loader );
+    af_glyph_hints_done( hints );
+
+    return error;
   }
 
 

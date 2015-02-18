@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines (body).                                 */
 /*                                                                         */
-/*  Copyright 2003-2007, 2009-2014 by                                      */
+/*  Copyright 2003-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -43,7 +43,15 @@
     AF_Segment  segment = NULL;
 
 
-    if ( axis->num_segments >= axis->max_segments )
+    if ( axis->num_segments < AF_SEGMENTS_EMBEDDED )
+    {
+      if ( axis->segments == NULL )
+      {
+        axis->segments     = axis->embedded.segments;
+        axis->max_segments = AF_SEGMENTS_EMBEDDED;
+      }
+    }
+    else if ( axis->num_segments >= axis->max_segments )
     {
       FT_Int  old_max = axis->max_segments;
       FT_Int  new_max = old_max;
@@ -60,8 +68,18 @@
       if ( new_max < old_max || new_max > big_max )
         new_max = big_max;
 
-      if ( FT_RENEW_ARRAY( axis->segments, old_max, new_max ) )
-        goto Exit;
+      if ( axis->segments == axis->embedded.segments )
+      {
+        if ( FT_NEW_ARRAY( axis->segments, new_max ) )
+          goto Exit;
+        ft_memcpy( axis->segments, axis->embedded.segments,
+                   sizeof ( axis->embedded.segments ) );
+      }
+      else
+      {
+        if ( FT_RENEW_ARRAY( axis->segments, old_max, new_max ) )
+          goto Exit;
+      }
 
       axis->max_segments = new_max;
     }
@@ -89,7 +107,15 @@
     AF_Edge   edges;
 
 
-    if ( axis->num_edges >= axis->max_edges )
+    if ( axis->num_edges < AF_EDGES_EMBEDDED )
+    {
+      if ( axis->edges == NULL )
+      {
+        axis->edges     = axis->embedded.edges;
+        axis->max_edges = AF_EDGES_EMBEDDED;
+      }
+    }
+    else if ( axis->num_edges >= axis->max_edges )
     {
       FT_Int  old_max = axis->max_edges;
       FT_Int  new_max = old_max;
@@ -106,8 +132,18 @@
       if ( new_max < old_max || new_max > big_max )
         new_max = big_max;
 
-      if ( FT_RENEW_ARRAY( axis->edges, old_max, new_max ) )
-        goto Exit;
+      if ( axis->edges == axis->embedded.edges )
+      {
+        if ( FT_NEW_ARRAY( axis->edges, new_max ) )
+          goto Exit;
+        ft_memcpy( axis->edges, axis->embedded.edges,
+                   sizeof ( axis->embedded.edges ) );
+      }
+      else
+      {
+        if ( FT_RENEW_ARRAY( axis->edges, old_max, new_max ) )
+          goto Exit;
+      }
 
       axis->max_edges = new_max;
     }
@@ -488,7 +524,8 @@
   af_glyph_hints_init( AF_GlyphHints  hints,
                        FT_Memory      memory )
   {
-    FT_ZERO( hints );
+    /* no need to initialize the embedded items */
+    FT_MEM_ZERO( hints, sizeof ( *hints ) - sizeof ( hints->embedded ) );
     hints->memory = memory;
   }
 
@@ -514,20 +551,24 @@
 
       axis->num_segments = 0;
       axis->max_segments = 0;
-      FT_FREE( axis->segments );
+      if ( axis->segments != axis->embedded.segments )
+        FT_FREE( axis->segments );
 
       axis->num_edges = 0;
       axis->max_edges = 0;
-      FT_FREE( axis->edges );
+      if ( axis->edges != axis->embedded.edges )
+        FT_FREE( axis->edges );
     }
 
-    FT_FREE( hints->contours );
+    if ( hints->contours != hints->embedded.contours )
+      FT_FREE( hints->contours );
     hints->max_contours = 0;
     hints->num_contours = 0;
 
-    FT_FREE( hints->points );
-    hints->num_points = 0;
+    if ( hints->points != hints->embedded.points )
+      FT_FREE( hints->points );
     hints->max_points = 0;
+    hints->num_points = 0;
 
     hints->memory = NULL;
   }
@@ -572,8 +613,20 @@
     /* first of all, reallocate the contours array if necessary */
     new_max = (FT_UInt)outline->n_contours;
     old_max = hints->max_contours;
-    if ( new_max > old_max )
+
+    if ( new_max <= AF_CONTOURS_EMBEDDED )
     {
+      if ( hints->contours == NULL )
+      {
+        hints->contours     = hints->embedded.contours;
+        hints->max_contours = AF_CONTOURS_EMBEDDED;
+      }
+    }
+    else if ( new_max > old_max )
+    {
+      if ( hints->contours == hints->embedded.contours )
+        hints->contours = NULL;
+
       new_max = ( new_max + 3 ) & ~3; /* round up to a multiple of 4 */
 
       if ( FT_RENEW_ARRAY( hints->contours, old_max, new_max ) )
@@ -589,8 +642,20 @@
      */
     new_max = (FT_UInt)( outline->n_points + 2 );
     old_max = hints->max_points;
-    if ( new_max > old_max )
+
+    if ( new_max <= AF_POINTS_EMBEDDED )
     {
+      if ( hints->points == NULL )
+      {
+        hints->points     = hints->embedded.points;
+        hints->max_points = AF_POINTS_EMBEDDED;
+      }
+    }
+    else if ( new_max > old_max )
+    {
+      if ( hints->points == hints->embedded.points )
+        hints->points = NULL;
+
       new_max = ( new_max + 2 + 7 ) & ~7; /* round up to a multiple of 8 */
 
       if ( FT_RENEW_ARRAY( hints->points, old_max, new_max ) )
