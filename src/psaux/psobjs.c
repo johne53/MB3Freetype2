@@ -165,20 +165,14 @@
   /*    reallocation fails.                                                */
   /*                                                                       */
   FT_LOCAL_DEF( FT_Error )
-  ps_table_add( PS_Table    table,
-                FT_Int      idx,
-                void*       object,
-                FT_PtrDist  length )
+  ps_table_add( PS_Table  table,
+                FT_Int    idx,
+                void*     object,
+                FT_UInt   length )
   {
     if ( idx < 0 || idx >= table->max_elems )
     {
       FT_ERROR(( "ps_table_add: invalid index\n" ));
-      return FT_THROW( Invalid_Argument );
-    }
-
-    if ( length < 0 )
-    {
-      FT_ERROR(( "ps_table_add: invalid length\n" ));
       return FT_THROW( Invalid_Argument );
     }
 
@@ -932,7 +926,7 @@
                FT_Memory  memory )
   {
     FT_Byte*    cur = *cursor;
-    FT_PtrDist  len = 0;
+    FT_UInt     len = 0;
     FT_Int      count;
     FT_String*  result;
     FT_Error    error;
@@ -972,7 +966,7 @@
       }
     }
 
-    len = cur - *cursor;
+    len = (FT_UInt)( cur - *cursor );
     if ( cur >= limit || FT_ALLOC( result, len + 1 ) )
       return 0;
 
@@ -1230,7 +1224,7 @@
 
           for ( i = 0; i < 4; i++ )
           {
-            result = ps_tofixedarray( &cur, limit, max_objects,
+            result = ps_tofixedarray( &cur, limit, (FT_Int)max_objects,
                                       temp + i * max_objects, 0 );
             if ( result < 0 || (FT_UInt)result < max_objects )
             {
@@ -1321,7 +1315,7 @@
       goto Exit;
     }
     if ( (FT_UInt)num_elements > field->array_max )
-      num_elements = field->array_max;
+      num_elements = (FT_Int)field->array_max;
 
     old_cursor = parser->cursor;
     old_limit  = parser->limit;
@@ -1379,7 +1373,7 @@
   ps_parser_to_bytes( PS_Parser  parser,
                       FT_Byte*   bytes,
                       FT_Offset  max_bytes,
-                      FT_Long*   pnum_bytes,
+                      FT_ULong*  pnum_bytes,
                       FT_Bool    delimiters )
   {
     FT_Error  error = FT_Err_Ok;

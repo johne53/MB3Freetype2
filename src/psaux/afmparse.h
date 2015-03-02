@@ -61,6 +61,7 @@ FT_BEGIN_HEADER
       char*     s;
       FT_Fixed  f;
       FT_Int    i;
+      FT_UInt   u;
       FT_Bool   b;
 
     } u;
@@ -72,7 +73,7 @@ FT_BEGIN_HEADER
   FT_LOCAL( FT_Int )
   afm_parser_read_vals( AFM_Parser  parser,
                         AFM_Value   vals,
-                        FT_UInt     n );
+                        FT_Int      n );
 
   /* read the next key from the next line or column */
   FT_LOCAL( char* )

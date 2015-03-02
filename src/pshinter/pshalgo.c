@@ -38,8 +38,6 @@
 
 #define  COMPUTE_INFLEXS  /* compute inflection points to optimize `S' */
                           /* and similar glyphs                        */
-#define  STRONGER         /* slightly increase the contrast of smooth  */
-                          /* hinting                                   */
 
 
   /*************************************************************************/
@@ -890,9 +888,6 @@
   /*************************************************************************/
   /*************************************************************************/
 
-#define PSH_ZONE_MIN  -3200000L
-#define PSH_ZONE_MAX  +3200000L
-
 #define xxDEBUG_ZONES
 
 
@@ -909,10 +904,6 @@
              zone->min,
              zone->max );
   }
-
-#else
-
-#define psh_print_zone( x )  do { } while ( 0 )
 
 #endif /* DEBUG_ZONES */
 
@@ -1274,8 +1265,8 @@
          FT_NEW_ARRAY( glyph->contours, outline->n_contours ) )
       goto Exit;
 
-    glyph->num_points   = outline->n_points;
-    glyph->num_contours = outline->n_contours;
+    glyph->num_points   = (FT_UInt)outline->n_points;
+    glyph->num_contours = (FT_UInt)outline->n_contours;
 
     {
       FT_UInt      first = 0, next, n;
@@ -1285,15 +1276,15 @@
 
       for ( n = 0; n < glyph->num_contours; n++ )
       {
-        FT_Int     count;
+        FT_UInt    count;
         PSH_Point  point;
 
 
-        next  = outline->contours[n] + 1;
+        next  = (FT_UInt)outline->contours[n] + 1;
         count = next - first;
 
         contour->start = points + first;
-        contour->count = (FT_UInt)count;
+        contour->count = count;
 
         if ( count > 0 )
         {
@@ -1696,16 +1687,12 @@
       mask++;
       for ( ; num_masks > 1; num_masks--, mask++ )
       {
-        FT_UInt  next;
-        FT_Int   count;
+        FT_UInt  next = FT_MIN( mask->end_point, glyph->num_points );
 
 
-        next  = mask->end_point > glyph->num_points
-                  ? glyph->num_points
-                  : mask->end_point;
-        count = next - first;
-        if ( count > 0 )
+        if ( next > first )
         {
+          FT_UInt    count = next - first;
           PSH_Point  point = glyph->points + first;
 
 

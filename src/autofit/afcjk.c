@@ -260,8 +260,8 @@
     FT_Pos      fills[AF_BLUE_STRING_MAX_LEN];
     FT_Pos      flats[AF_BLUE_STRING_MAX_LEN];
 
-    FT_Int      num_fills;
-    FT_Int      num_flats;
+    FT_UInt     num_fills;
+    FT_UInt     num_flats;
 
     FT_Bool     fill;
 
@@ -720,8 +720,8 @@
     {
       AF_Point  pt   = seg->first;
       AF_Point  last = seg->last;
-      AF_Flags  f0   = (AF_Flags)( pt->flags & AF_FLAG_CONTROL );
-      AF_Flags  f1;
+      FT_UInt   f0   = pt->flags & AF_FLAG_CONTROL;
+      FT_UInt   f1;
 
 
       seg->flags &= ~AF_EDGE_ROUND;
@@ -729,7 +729,7 @@
       for ( ; pt != last; f0 = f1 )
       {
         pt = pt->next;
-        f1 = (AF_Flags)( pt->flags & AF_FLAG_CONTROL );
+        f1 = pt->flags & AF_FLAG_CONTROL;
 
         if ( !f0 && !f1 )
           break;
@@ -1190,7 +1190,7 @@
 
   /* Compute all edges which lie within blue zones. */
 
-  FT_LOCAL_DEF( void )
+  static void
   af_cjk_hints_compute_blue_edges( AF_GlyphHints  hints,
                                    AF_CJKMetrics  metrics,
                                    AF_Dimension   dim )
@@ -1354,13 +1354,13 @@
 
   static FT_Pos
   af_cjk_snap_width( AF_Width  widths,
-                     FT_Int    count,
+                     FT_UInt   count,
                      FT_Pos    width )
   {
-    int     n;
-    FT_Pos  best      = 64 + 32 + 2;
-    FT_Pos  reference = width;
-    FT_Pos  scaled;
+    FT_UInt  n;
+    FT_Pos   best      = 64 + 32 + 2;
+    FT_Pos   reference = width;
+    FT_Pos   scaled;
 
 
     for ( n = 0; n < count; n++ )
@@ -1405,8 +1405,8 @@
   af_cjk_compute_stem_width( AF_GlyphHints  hints,
                              AF_Dimension   dim,
                              FT_Pos         width,
-                             AF_Edge_Flags  base_flags,
-                             AF_Edge_Flags  stem_flags )
+                             FT_UInt        base_flags,
+                             FT_UInt        stem_flags )
   {
     AF_CJKMetrics  metrics  = (AF_CJKMetrics)hints->metrics;
     AF_CJKAxis     axis     = &metrics->axis[dim];
@@ -1530,10 +1530,9 @@
   {
     FT_Pos  dist = stem_edge->opos - base_edge->opos;
 
-    FT_Pos  fitted_width = af_cjk_compute_stem_width(
-                             hints, dim, dist,
-                             (AF_Edge_Flags)base_edge->flags,
-                             (AF_Edge_Flags)stem_edge->flags );
+    FT_Pos  fitted_width = af_cjk_compute_stem_width( hints, dim, dist,
+                                                      base_edge->flags,
+                                                      stem_edge->flags );
 
 
     stem_edge->pos = base_edge->pos + fitted_width;
@@ -1611,8 +1610,8 @@
 
     org_len    = edge2->opos - edge->opos;
     cur_len    = af_cjk_compute_stem_width( hints, dim, org_len,
-                                            (AF_Edge_Flags)edge->flags,
-                                            (AF_Edge_Flags)edge2->flags );
+                                            edge->flags,
+                                            edge2->flags );
 
     org_center = ( edge->opos + edge2->opos ) / 2 + anchor;
     cur_pos1   = org_center - cur_len / 2;

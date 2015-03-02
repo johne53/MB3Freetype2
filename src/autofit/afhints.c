@@ -254,7 +254,7 @@
 
 
   static const char*
-  af_edge_flags_to_string( AF_Edge_Flags  flags )
+  af_edge_flags_to_string( FT_UInt  flags )
   {
     static char  temp[32];
     int          pos = 0;
@@ -329,7 +329,7 @@
                   AF_INDEX_NUM( seg->edge, edges ),
                   seg->height,
                   seg->height - ( seg->max_coord - seg->min_coord ),
-                  af_edge_flags_to_string( (AF_Edge_Flags)seg->flags ) ));
+                  af_edge_flags_to_string( seg->flags ) ));
       AF_DUMP(( "\n" ));
     }
   }
@@ -456,7 +456,7 @@
                   edge->blue_edge ? 'y' : 'n',
                   edge->opos / 64.0,
                   edge->pos / 64.0,
-                  af_edge_flags_to_string( (AF_Edge_Flags)edge->flags ) ));
+                  af_edge_flags_to_string( edge->flags ) ));
       AF_DUMP(( "\n" ));
     }
   }
@@ -612,7 +612,7 @@
 
     /* first of all, reallocate the contours array if necessary */
     new_max = (FT_UInt)outline->n_contours;
-    old_max = hints->max_contours;
+    old_max = (FT_UInt)hints->max_contours;
 
     if ( new_max <= AF_CONTOURS_EMBEDDED )
     {
@@ -627,12 +627,12 @@
       if ( hints->contours == hints->embedded.contours )
         hints->contours = NULL;
 
-      new_max = ( new_max + 3 ) & ~3; /* round up to a multiple of 4 */
+      new_max = ( new_max + 3 ) & ~3U; /* round up to a multiple of 4 */
 
       if ( FT_RENEW_ARRAY( hints->contours, old_max, new_max ) )
         goto Exit;
 
-      hints->max_contours = new_max;
+      hints->max_contours = (FT_Int)new_max;
     }
 
     /*
@@ -641,7 +641,7 @@
      *  hint metrics appropriately
      */
     new_max = (FT_UInt)( outline->n_points + 2 );
-    old_max = hints->max_points;
+    old_max = (FT_UInt)hints->max_points;
 
     if ( new_max <= AF_POINTS_EMBEDDED )
     {
@@ -656,12 +656,12 @@
       if ( hints->points == hints->embedded.points )
         hints->points = NULL;
 
-      new_max = ( new_max + 2 + 7 ) & ~7; /* round up to a multiple of 8 */
+      new_max = ( new_max + 2 + 7 ) & ~7U; /* round up to a multiple of 8 */
 
       if ( FT_RENEW_ARRAY( hints->points, old_max, new_max ) )
         goto Exit;
 
-      hints->max_points = new_max;
+      hints->max_points = (FT_Int)new_max;
     }
 
     hints->num_points   = outline->n_points;
@@ -1110,7 +1110,7 @@
     AF_AxisHints  axis        = &hints->axis[dim];
     AF_Edge       edges       = axis->edges;
     AF_Edge       edge_limit  = edges + axis->num_edges;
-    AF_Flags      touch_flag;
+    FT_UInt       touch_flag;
 
 
     if ( dim == AF_DIMENSION_HORZ )
@@ -1363,7 +1363,7 @@
     AF_Point   point_limit   = points + hints->num_points;
     AF_Point*  contour       = hints->contours;
     AF_Point*  contour_limit = contour + hints->num_contours;
-    AF_Flags   touch_flag;
+    FT_UInt    touch_flag;
     AF_Point   point;
     AF_Point   end_point;
     AF_Point   first_point;

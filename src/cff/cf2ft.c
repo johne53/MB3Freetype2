@@ -551,7 +551,7 @@
 
     FT_ZERO( buf );
 
-    idx += decoder->globals_bias;
+    idx += (CF2_UInt)decoder->globals_bias;
     if ( idx >= decoder->num_globals )
       return TRUE;     /* error */
 
@@ -569,7 +569,7 @@
   /* used for seac component                           */
   FT_LOCAL_DEF( FT_Error )
   cf2_getSeacComponent( CFF_Decoder*  decoder,
-                        CF2_UInt      code,
+                        CF2_Int       code,
                         CF2_Buffer    buf )
   {
     CF2_Int   gid;
@@ -587,7 +587,7 @@
       return FT_THROW( Invalid_Glyph_Format );
 
     error = cff_get_glyph_data( decoder->builder.face,
-                                gid,
+                                (CF2_UInt)gid,
                                 &charstring,
                                 &len );
     /* TODO: for now, just pass the FreeType error through */
@@ -626,7 +626,7 @@
 
     FT_ZERO( buf );
 
-    idx += decoder->locals_bias;
+    idx += (CF2_UInt)decoder->locals_bias;
     if ( idx >= decoder->num_locals )
       return TRUE;     /* error */
 

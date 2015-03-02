@@ -49,6 +49,10 @@
 
 #ifdef _STANDALONE_
 
+  /* The size in bytes of the render pool used by the scan-line converter  */
+  /* to do all of its work.                                                */
+#define FT_RENDER_POOL_SIZE  16384L
+
 #define FT_CONFIG_STANDARD_LIBRARY_H  <stdlib.h>
 
 #include <string.h>           /* for memset */
@@ -174,6 +178,8 @@
   /* Auxiliary macros for token concatenation. */
 #define FT_ERR_XCAT( x, y )  x ## y
 #define FT_ERR_CAT( x, y )   FT_ERR_XCAT( x, y )
+
+#define FT_MAX( a, b )  ( (a) > (b) ? (a) : (b) )
 
   /* This macro is used to indicate that a function parameter is unused. */
   /* Its purpose is simply to reduce compiler warnings.  Note also that  */
@@ -310,7 +316,7 @@
 
   typedef union  Alignment_
   {
-    long    l;
+    Long    l;
     void*   p;
     void  (*f)(void);
 
@@ -326,9 +332,9 @@
 
 
   /* values for the `flags' bit field */
-#define Flow_Up           0x8
-#define Overshoot_Top     0x10
-#define Overshoot_Bottom  0x20
+#define Flow_Up           0x08U
+#define Overshoot_Top     0x10U
+#define Overshoot_Bottom  0x20U
 
 
   /* States of each line, arc, and profile */
@@ -350,14 +356,14 @@
     FT_F26Dot6  X;           /* current coordinate during sweep          */
     PProfile    link;        /* link to next profile (various purposes)  */
     PLong       offset;      /* start of profile's data in render pool   */
-    unsigned    flags;       /* Bit 0-2: drop-out mode                   */
+    UShort      flags;       /* Bit 0-2: drop-out mode                   */
                              /* Bit 3: profile orientation (up/down)     */
                              /* Bit 4: is top profile?                   */
                              /* Bit 5: is bottom profile?                */
-    long        height;      /* profile's height in scanlines            */
-    long        start;       /* profile's starting scanline              */
+    Long        height;      /* profile's height in scanlines            */
+    Long        start;       /* profile's starting scanline              */
 
-    unsigned    countL;      /* number of lines to step before this      */
+    Int         countL;      /* number of lines to step before this      */
                              /* profile becomes drawable                 */
 
     PProfile    next;        /* next profile in same contour, used       */
@@ -379,7 +385,7 @@
 
 
 #define AlignProfileSize \
-  ( ( sizeof ( TProfile ) + sizeof ( Alignment ) - 1 ) / sizeof ( long ) )
+  ( ( sizeof ( TProfile ) + sizeof ( Alignment ) - 1 ) / sizeof ( Long ) )
 
 
 #undef RAS_ARG
@@ -443,7 +449,7 @@
 #define CEILING( x )  ( ( (x) + ras.precision - 1 ) & -ras.precision )
 #define TRUNC( x )    ( (Long)(x) >> ras.precision_bits )
 #define FRAC( x )     ( (x) & ( ras.precision - 1 ) )
-#define SCALED( x )   ( ( (ULong)(x) << ras.scale_shift ) - ras.precision_half )
+#define SCALED( x )   ( ( (Long)(x) << ras.scale_shift ) - ras.precision_half )
 
 #define IS_BOTTOM_OVERSHOOT( x ) \
           (Bool)( CEILING( x ) - x >= ras.precision_half )
@@ -1712,7 +1718,7 @@
   static Bool
   Decompose_Curve( RAS_ARGS UShort  first,
                             UShort  last,
-                            int     flipped )
+                            Int     flipped )
   {
     FT_Vector   v_last;
     FT_Vector   v_control;
@@ -1723,7 +1729,7 @@
     FT_Vector*  limit;
     char*       tags;
 
-    unsigned    tag;       /* current point's state           */
+    UInt        tag;       /* current point's state           */
 
 
     points = ras.outline.points;
@@ -1934,10 +1940,10 @@
   /*    rendering.                                                         */
   /*                                                                       */
   static Bool
-  Convert_Glyph( RAS_ARGS int  flipped )
+  Convert_Glyph( RAS_ARGS Int  flipped )
   {
-    int       i;
-    unsigned  start;
+    Int   i;
+    UInt  start;
 
 
     ras.fProfile = NULL;
@@ -1963,12 +1969,12 @@
       ras.state    = Unknown_State;
       ras.gProfile = NULL;
 
-      if ( Decompose_Curve( RAS_VARS (unsigned short)start,
-                                     ras.outline.contours[i],
+      if ( Decompose_Curve( RAS_VARS (UShort)start,
+                                     (UShort)ras.outline.contours[i],
                                      flipped ) )
         return FAILURE;
 
-      start = ras.outline.contours[i] + 1;
+      start = (UShort)ras.outline.contours[i] + 1;
 
       /* we must now check whether the extreme arcs join or not */
       if ( FRAC( ras.lastY ) == 0 &&
@@ -2167,7 +2173,7 @@
     ras.traceIncr = (Short)-pitch;
     ras.traceOfs  = -*min * pitch;
     if ( pitch > 0 )
-      ras.traceOfs += ( ras.target.rows - 1 ) * pitch;
+      ras.traceOfs += (Long)( ras.target.rows - 1 ) * pitch;
   }
 
 
@@ -2200,7 +2206,7 @@
 
     if ( e2 >= 0 && e1 < ras.bWidth )
     {
-      int   c1, c2;
+      Int   c1, c2;
       Byte  f1, f2;
 
 
@@ -2447,7 +2453,7 @@
 
           p = bits - e1 * ras.target.pitch;
           if ( ras.target.pitch > 0 )
-            p += ( ras.target.rows - 1 ) * ras.target.pitch;
+            p += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
           p[0] |= f1;
         }
@@ -2547,7 +2553,7 @@
 
         bits -= e1 * ras.target.pitch;
         if ( ras.target.pitch > 0 )
-          bits += ( ras.target.rows - 1 ) * ras.target.pitch;
+          bits += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
         if ( e1 >= 0                     &&
              (ULong)e1 < ras.target.rows &&
@@ -2567,7 +2573,7 @@
     {
       bits -= e1 * ras.target.pitch;
       if ( ras.target.pitch > 0 )
-        bits += ( ras.target.rows - 1 ) * ras.target.pitch;
+        bits += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
       bits[0] |= f1;
     }
@@ -2651,7 +2657,7 @@
 
     while ( P )
     {
-      P->countL = (UShort)( P->start - min_Y );
+      P->countL = P->start - min_Y;
       P = P->link;
     }
 
@@ -2914,7 +2920,7 @@
   /* <Return>                                                              */
   /*    FreeType error code.  0 means success.                             */
   /*                                                                       */
-  FT_LOCAL_DEF( FT_Error )
+  static FT_Error
   Render_Glyph( RAS_ARG )
   {
     FT_Error  error;
@@ -2937,8 +2943,8 @@
         ras.dropOutControl += 1;
     }
 
-    ras.second_pass = (FT_Byte)( !( ras.outline.flags &
-                                    FT_OUTLINE_SINGLE_PASS ) );
+    ras.second_pass = (Bool)( !( ras.outline.flags      &
+                                 FT_OUTLINE_SINGLE_PASS ) );
 
     /* Vertical Sweep */
     ras.Proc_Sweep_Init = Vertical_Sweep_Init;
@@ -2948,9 +2954,9 @@
 
     ras.band_top            = 0;
     ras.band_stack[0].y_min = 0;
-    ras.band_stack[0].y_max = (short)( ras.target.rows - 1 );
+    ras.band_stack[0].y_max = (Short)( ras.target.rows - 1 );
 
-    ras.bWidth  = (unsigned short)ras.target.width;
+    ras.bWidth  = (UShort)ras.target.width;
     ras.bTarget = (Byte*)ras.target.buffer;
 
     if ( ( error = Render_Single_Pass( RAS_VARS 0 ) ) != 0 )
@@ -2966,7 +2972,7 @@
 
       ras.band_top            = 0;
       ras.band_stack[0].y_min = 0;
-      ras.band_stack[0].y_max = (short)( ras.target.width - 1 );
+      ras.band_stack[0].y_max = (Short)( ras.target.width - 1 );
 
       if ( ( error = Render_Single_Pass( RAS_VARS 1 ) ) != 0 )
         return error;
@@ -3054,7 +3060,7 @@
   static void
   ft_black_reset( black_PRaster  raster,
                   char*          pool_base,
-                  long           pool_size )
+                  Long           pool_size )
   {
     FT_UNUSED( raster );
     FT_UNUSED( pool_base );
@@ -3064,7 +3070,7 @@
 
   static int
   ft_black_set_mode( black_PRaster  raster,
-                     unsigned long  mode,
+                     ULong          mode,
                      const char*    palette )
   {
     FT_UNUSED( raster );
@@ -3131,14 +3137,16 @@
   }
 
 
-  FT_DEFINE_RASTER_FUNCS( ft_standard_raster,
+  FT_DEFINE_RASTER_FUNCS(
+    ft_standard_raster,
+
     FT_GLYPH_FORMAT_OUTLINE,
+
     (FT_Raster_New_Func)     ft_black_new,
     (FT_Raster_Reset_Func)   ft_black_reset,
     (FT_Raster_Set_Mode_Func)ft_black_set_mode,
     (FT_Raster_Render_Func)  ft_black_render,
-    (FT_Raster_Done_Func)    ft_black_done
-  )
+    (FT_Raster_Done_Func)    ft_black_done )
 
 
 /* END */

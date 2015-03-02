@@ -64,11 +64,6 @@
   /*************************************************************************/
 
 
-#undef  PAIR_TAG
-#define PAIR_TAG( left, right )  ( ( (FT_ULong)left << 16 ) | \
-                                     (FT_ULong)right        )
-
-
   /*************************************************************************/
   /*                                                                       */
   /* <Function>                                                            */
@@ -119,9 +114,6 @@
 
     return FT_Err_Ok;
   }
-
-
-#undef PAIR_TAG
 
 
   /*************************************************************************/
@@ -352,7 +344,7 @@
       font_info->italic_angle        = dict->italic_angle;
       font_info->is_fixed_pitch      = dict->is_fixed_pitch;
       font_info->underline_position  = (FT_Short)dict->underline_position;
-      font_info->underline_thickness = (FT_Short)dict->underline_thickness;
+      font_info->underline_thickness = (FT_UShort)dict->underline_thickness;
 
       cff->font_info = font_info;
     }

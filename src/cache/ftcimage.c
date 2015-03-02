@@ -20,6 +20,7 @@
 #include FT_CACHE_H
 #include "ftcimage.h"
 #include FT_INTERNAL_MEMORY_H
+#include FT_INTERNAL_OBJECTS_H
 
 #include "ftccback.h"
 #include "ftcerror.h"
@@ -122,7 +123,7 @@
 
 
         bitg = (FT_BitmapGlyph)glyph;
-        size = bitg->bitmap.rows * ft_labs( bitg->bitmap.pitch ) +
+        size = bitg->bitmap.rows * (FT_Offset)FT_ABS( bitg->bitmap.pitch ) +
                sizeof ( *bitg );
       }
       break;
@@ -133,9 +134,9 @@
 
 
         outg = (FT_OutlineGlyph)glyph;
-        size = outg->outline.n_points *
+        size = (FT_Offset)outg->outline.n_points *
                  ( sizeof ( FT_Vector ) + sizeof ( FT_Byte ) ) +
-               outg->outline.n_contours * sizeof ( FT_Short ) +
+               (FT_Offset)outg->outline.n_contours * sizeof ( FT_Short ) +
                sizeof ( *outg );
       }
       break;
