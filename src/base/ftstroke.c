@@ -999,7 +999,9 @@
 
     /* Only intersect borders if between two lineto's and both */
     /* lines are long enough (line_length is zero for curves). */
-    if ( !border->movable || line_length == 0 )
+    /* Also avoid U-turns of nearly 180 degree.                */
+    if ( !border->movable || line_length == 0  ||
+         theta > 0x59C000 || theta < -0x59C000 )
       intersect = FALSE;
     else
     {
@@ -1220,11 +1222,8 @@
       goto Exit;
 
     /* when we turn to the right, the inside side is 0 */
-    inside_side = 0;
-
     /* otherwise, the inside side is 1 */
-    if ( turn < 0 )
-      inside_side = 1;
+    inside_side = ( turn < 0 );
 
     /* process the inside side */
     error = ft_stroker_inside( stroker, inside_side, line_length );
@@ -1232,7 +1231,7 @@
       goto Exit;
 
     /* process the outside side */
-    error = ft_stroker_outside( stroker, 1 - inside_side, line_length );
+    error = ft_stroker_outside( stroker, !inside_side, line_length );
 
   Exit:
     return error;
@@ -1941,11 +1940,8 @@
       if ( turn != 0 )
       {
         /* when we turn to the right, the inside side is 0 */
-        inside_side = 0;
-
         /* otherwise, the inside side is 1 */
-        if ( turn < 0 )
-          inside_side = 1;
+        inside_side = ( turn < 0 );
 
         error = ft_stroker_inside( stroker,
                                    inside_side,
@@ -1955,7 +1951,7 @@
 
         /* process the outside side */
         error = ft_stroker_outside( stroker,
-                                    1 - inside_side,
+                                    !inside_side,
                                     stroker->subpath_line_length );
         if ( error )
           goto Exit;

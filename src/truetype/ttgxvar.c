@@ -20,7 +20,7 @@
   /*                                                                       */
   /* Apple documents the `fvar', `gvar', `cvar', and `avar' tables at      */
   /*                                                                       */
-  /*   http://developer.apple.com/fonts/TTRefMan/RM06/Chap6[fgca]var.html  */
+  /*   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6[fgca]var.html */
   /*                                                                       */
   /* The documentation for `fvar' is inconsistent.  At one point it says   */
   /* that `countSizePairs' should be 3, at another point 2.  It should     */
@@ -60,9 +60,9 @@
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
 
-#define FT_Stream_FTell( stream )  \
+#define FT_Stream_FTell( stream )                         \
           (FT_ULong)( (stream)->cursor - (stream)->base )
-#define FT_Stream_SeekSet( stream, off ) \
+#define FT_Stream_SeekSet( stream, off )                  \
           ( (stream)->cursor = (stream)->base + (off) )
 
 
@@ -96,8 +96,8 @@
 #define ALL_POINTS  (FT_UShort*)~(FT_PtrDist)0
 
 
-#define GX_PT_POINTS_ARE_WORDS      0x80
-#define GX_PT_POINT_RUN_COUNT_MASK  0x7F
+#define GX_PT_POINTS_ARE_WORDS      0x80U
+#define GX_PT_POINT_RUN_COUNT_MASK  0x7FU
 
 
   /*************************************************************************/
@@ -126,26 +126,33 @@
                            FT_UInt   *point_cnt )
   {
     FT_UShort *points = NULL;
-    FT_Int     n;
-    FT_Int     runcnt;
-    FT_Int     i;
-    FT_Int     j;
-    FT_Int     first;
+    FT_UInt    n;
+    FT_UInt    runcnt;
+    FT_UInt    i, j;
+    FT_UShort  first;
     FT_Memory  memory = stream->memory;
     FT_Error   error  = FT_Err_Ok;
 
     FT_UNUSED( error );
 
 
-    *point_cnt = n = FT_GET_BYTE();
+    *point_cnt = 0;
+
+    n = FT_GET_BYTE();
     if ( n == 0 )
       return ALL_POINTS;
 
     if ( n & GX_PT_POINTS_ARE_WORDS )
-      n = FT_GET_BYTE() | ( ( n & GX_PT_POINT_RUN_COUNT_MASK ) << 8 );
+    {
+      n  &= GX_PT_POINT_RUN_COUNT_MASK;
+      n <<= 8;
+      n  |= FT_GET_BYTE();
+    }
 
     if ( FT_NEW_ARRAY( points, n ) )
       return NULL;
+
+    *point_cnt = n;
 
     i = 0;
     while ( i < n )
@@ -153,25 +160,33 @@
       runcnt = FT_GET_BYTE();
       if ( runcnt & GX_PT_POINTS_ARE_WORDS )
       {
-        runcnt = runcnt & GX_PT_POINT_RUN_COUNT_MASK;
-        first  = points[i++] = FT_GET_USHORT();
+        runcnt     &= GX_PT_POINT_RUN_COUNT_MASK;
+        first       = FT_GET_USHORT();
+        points[i++] = first;
 
         if ( runcnt < 1 || i + runcnt >= n )
           goto Exit;
 
-        /* first point not included in runcount */
-        for ( j = 0; j < runcnt; ++j )
-          points[i++] = (FT_UShort)( first += FT_GET_USHORT() );
+        /* first point not included in run count */
+        for ( j = 0; j < runcnt; j++ )
+        {
+          first      += FT_GET_USHORT();
+          points[i++] = first;
+        }
       }
       else
       {
-        first = points[i++] = FT_GET_BYTE();
+        first       = FT_GET_BYTE();
+        points[i++] = first;
 
         if ( runcnt < 1 || i + runcnt >= n )
           goto Exit;
 
-        for ( j = 0; j < runcnt; ++j )
-          points[i++] = (FT_UShort)( first += FT_GET_BYTE() );
+        for ( j = 0; j < runcnt; j++ )
+        {
+          first      += FT_GET_BYTE();
+          points[i++] = first;
+        }
       }
     }
 
@@ -180,12 +195,9 @@
   }
 
 
-  enum
-  {
-    GX_DT_DELTAS_ARE_ZERO      = 0x80,
-    GX_DT_DELTAS_ARE_WORDS     = 0x40,
-    GX_DT_DELTA_RUN_COUNT_MASK = 0x3F
-  };
+#define GX_DT_DELTAS_ARE_ZERO       0x80U
+#define GX_DT_DELTAS_ARE_WORDS      0x40U
+#define GX_DT_DELTA_RUN_COUNT_MASK  0x3FU
 
 
   /*************************************************************************/
@@ -200,7 +212,7 @@
   /* <Input>                                                               */
   /*    stream    :: The data stream.                                      */
   /*                                                                       */
-  /*    delta_cnt :: The number of to be read.                             */
+  /*    delta_cnt :: The number of deltas to be read.                      */
   /*                                                                       */
   /* <Return>                                                              */
   /*    An array of FT_Short containing the deltas for the affected        */
@@ -210,12 +222,11 @@
   /*                                                                       */
   static FT_Short*
   ft_var_readpackeddeltas( FT_Stream  stream,
-                           FT_Offset  delta_cnt )
+                           FT_UInt    delta_cnt )
   {
     FT_Short  *deltas = NULL;
-    FT_UInt    runcnt;
-    FT_Offset  i;
-    FT_UInt    j;
+    FT_UInt    runcnt, cnt;
+    FT_UInt    i, j;
     FT_Memory  memory = stream->memory;
     FT_Error   error  = FT_Err_Ok;
 
@@ -229,34 +240,30 @@
     while ( i < delta_cnt )
     {
       runcnt = FT_GET_BYTE();
+      cnt    = runcnt & GX_DT_DELTA_RUN_COUNT_MASK;
+
       if ( runcnt & GX_DT_DELTAS_ARE_ZERO )
       {
-        /* runcnt zeroes get added */
-        for ( j = 0;
-              j <= ( runcnt & GX_DT_DELTA_RUN_COUNT_MASK ) && i < delta_cnt;
-              ++j )
+        /* `runcnt' zeroes get added */
+        for ( j = 0; j <= cnt && i < delta_cnt; j++ )
           deltas[i++] = 0;
       }
       else if ( runcnt & GX_DT_DELTAS_ARE_WORDS )
       {
-        /* runcnt shorts from the stack */
-        for ( j = 0;
-              j <= ( runcnt & GX_DT_DELTA_RUN_COUNT_MASK ) && i < delta_cnt;
-              ++j )
+        /* `runcnt' shorts from the stack */
+        for ( j = 0; j <= cnt && i < delta_cnt; j++ )
           deltas[i++] = FT_GET_SHORT();
       }
       else
       {
-        /* runcnt signed bytes from the stack */
-        for ( j = 0;
-              j <= ( runcnt & GX_DT_DELTA_RUN_COUNT_MASK ) && i < delta_cnt;
-              ++j )
+        /* `runcnt' signed bytes from the stack */
+        for ( j = 0; j <= cnt && i < delta_cnt; j++ )
           deltas[i++] = FT_GET_CHAR();
       }
 
-      if ( j <= ( runcnt & GX_DT_DELTA_RUN_COUNT_MASK ) )
+      if ( j <= cnt )
       {
-        /* Bad format */
+        /* bad format */
         FT_FREE( deltas );
         return NULL;
       }
@@ -281,7 +288,7 @@
   static void
   ft_var_load_avar( TT_Face  face )
   {
-    FT_Stream       stream = FT_FACE_STREAM(face);
+    FT_Stream       stream = FT_FACE_STREAM( face );
     FT_Memory       memory = stream->memory;
     GX_Blend        blend  = face->blend;
     GX_AVarSegment  segment;
@@ -295,7 +302,10 @@
 
 
     blend->avar_checked = TRUE;
-    if ( (error = face->goto_table( face, TTAG_avar, stream, &table_len )) != 0 )
+    if ( ( error = face->goto_table( face,
+                                     TTAG_avar,
+                                     stream,
+                                     &table_len ) ) != 0 )
       return;
 
     if ( FT_FRAME_ENTER( table_len ) )
@@ -312,7 +322,7 @@
       goto Exit;
 
     segment = &blend->avar_segment[0];
-    for ( i = 0; i < axisCount; ++i, ++segment )
+    for ( i = 0; i < axisCount; i++, segment++ )
     {
       segment->pairCount = FT_GET_USHORT();
       if ( FT_NEW_ARRAY( segment->correspondence, segment->pairCount ) )
@@ -320,7 +330,7 @@
         /* Failure.  Free everything we have done so far.  We must do */
         /* it right now since loading the `avar' table is optional.   */
 
-        for ( j = i - 1; j >= 0; --j )
+        for ( j = i - 1; j >= 0; j-- )
           FT_FREE( blend->avar_segment[j].correspondence );
 
         FT_FREE( blend->avar_segment );
@@ -328,12 +338,11 @@
         goto Exit;
       }
 
-      for ( j = 0; j < segment->pairCount; ++j )
+      for ( j = 0; j < segment->pairCount; j++ )
       {
-        segment->correspondence[j].fromCoord =
-          FT_GET_SHORT() << 2;    /* convert to Fixed */
-        segment->correspondence[j].toCoord =
-          FT_GET_SHORT()<<2;    /* convert to Fixed */
+        /* convert to Fixed */
+        segment->correspondence[j].fromCoord = FT_GET_SHORT() << 2;
+        segment->correspondence[j].toCoord   = FT_GET_SHORT() << 2;
       }
     }
 
@@ -361,8 +370,8 @@
   /*    ft_var_load_gvar                                                   */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Parses the `gvar' table if present.  If `fvar' is there, `gvar'    */
-  /*    had better be there too.                                           */
+  /*    Parse the `gvar' table if present.  If `fvar' is there, `gvar' had */
+  /*    better be there too.                                               */
   /*                                                                       */
   /* <InOut>                                                               */
   /*    face :: The font face.                                             */
@@ -373,7 +382,7 @@
   static FT_Error
   ft_var_load_gvar( TT_Face  face )
   {
-    FT_Stream     stream = FT_FACE_STREAM(face);
+    FT_Stream     stream = FT_FACE_STREAM( face );
     FT_Memory     memory = stream->memory;
     GX_Blend      blend  = face->blend;
     FT_Error      error;
@@ -400,7 +409,10 @@
       FT_FRAME_END
     };
 
-    if ( (error = face->goto_table( face, TTAG_gvar, stream, &table_len )) != 0 )
+    if ( ( error = face->goto_table( face,
+                                     TTAG_gvar,
+                                     stream,
+                                     &table_len ) ) != 0 )
       goto Exit;
 
     gvar_start = FT_STREAM_POS( );
@@ -427,7 +439,7 @@
       if ( FT_FRAME_ENTER( ( blend->gv_glyphcnt + 1 ) * 4L ) )
         goto Exit;
 
-      for ( i = 0; i <= blend->gv_glyphcnt; ++i )
+      for ( i = 0; i <= blend->gv_glyphcnt; i++ )
         blend->glyphoffsets[i] = offsetToData + FT_GET_ULONG();
 
       FT_FRAME_EXIT();
@@ -438,9 +450,9 @@
       if ( FT_FRAME_ENTER( ( blend->gv_glyphcnt + 1 ) * 2L ) )
         goto Exit;
 
-      for ( i = 0; i <= blend->gv_glyphcnt; ++i )
+      for ( i = 0; i <= blend->gv_glyphcnt; i++ )
         blend->glyphoffsets[i] = offsetToData + FT_GET_USHORT() * 2;
-                                              /* XXX: Undocumented: `*2'! */
+                                               /* XXX: Undocumented: `*2'! */
 
       FT_FRAME_EXIT();
     }
@@ -451,12 +463,12 @@
                          gvar_head.axisCount * blend->tuplecount ) )
         goto Exit;
 
-      if ( FT_STREAM_SEEK( gvar_start + gvar_head.offsetToCoord )       ||
-           FT_FRAME_ENTER( blend->tuplecount * gvar_head.axisCount * 2L )                   )
+      if ( FT_STREAM_SEEK( gvar_start + gvar_head.offsetToCoord )         ||
+           FT_FRAME_ENTER( blend->tuplecount * gvar_head.axisCount * 2L ) )
         goto Exit;
 
-      for ( i = 0; i < blend->tuplecount; ++i )
-        for ( j = 0 ; j < (FT_UInt)gvar_head.axisCount; ++j )
+      for ( i = 0; i < blend->tuplecount; i++ )
+        for ( j = 0 ; j < (FT_UInt)gvar_head.axisCount; j++ )
           blend->tuplecoords[i * gvar_head.axisCount + j] =
             FT_GET_SHORT() << 2;                /* convert to FT_Fixed */
 
@@ -506,7 +518,7 @@
     FT_Fixed  apply = 0x10000L;
 
 
-    for ( i = 0; i < blend->num_axis; ++i )
+    for ( i = 0; i < blend->num_axis; i++ )
     {
       if ( tuple_coords[i] == 0 )
         /* It's not clear why (for intermediate tuples) we don't need     */
@@ -656,15 +668,18 @@
     };
 
 
+    /* read the font data and set up the internal representation */
+    /* if not already done                                       */
+
     if ( face->blend == NULL )
     {
       /* both `fvar' and `gvar' must be present */
-      if ( (error = face->goto_table( face, TTAG_gvar,
-                                      stream, &table_len )) != 0 )
+      if ( ( error = face->goto_table( face, TTAG_gvar,
+                                       stream, &table_len ) ) != 0 )
         goto Exit;
 
-      if ( (error = face->goto_table( face, TTAG_fvar,
-                                      stream, &table_len )) != 0 )
+      if ( ( error = face->goto_table( face, TTAG_fvar,
+                                       stream, &table_len ) ) != 0 )
         goto Exit;
 
       fvar_start = FT_STREAM_POS( );
@@ -707,6 +722,9 @@
         goto Exit;
       face->blend->mmvar = mmvar;
 
+      /* set up pointers and offsets into the `mmvar' array; */
+      /* the data gets filled in later on                    */
+
       mmvar->num_axis =
         fvar_head.axisCount;
       mmvar->num_designs =
@@ -716,30 +734,32 @@
       mmvar->num_namedstyles =
         fvar_head.instanceCount;
       mmvar->axis =
-        (FT_Var_Axis*)&(mmvar[1]);
+        (FT_Var_Axis*)&( mmvar[1] );
       mmvar->namedstyle =
-        (FT_Var_Named_Style*)&(mmvar->axis[fvar_head.axisCount]);
+        (FT_Var_Named_Style*)&( mmvar->axis[fvar_head.axisCount] );
 
       next_coords =
-        (FT_Fixed*)&(mmvar->namedstyle[fvar_head.instanceCount]);
-      for ( i = 0; i < fvar_head.instanceCount; ++i )
+        (FT_Fixed*)&( mmvar->namedstyle[fvar_head.instanceCount] );
+      for ( i = 0; i < fvar_head.instanceCount; i++ )
       {
         mmvar->namedstyle[i].coords  = next_coords;
         next_coords                 += fvar_head.axisCount;
       }
 
       next_name = (FT_String*)next_coords;
-      for ( i = 0; i < fvar_head.axisCount; ++i )
+      for ( i = 0; i < fvar_head.axisCount; i++ )
       {
         mmvar->axis[i].name  = next_name;
         next_name           += 5;
       }
 
+      /* now fill in the data */
+
       if ( FT_STREAM_SEEK( fvar_start + fvar_head.offsetToData ) )
         goto Exit;
 
       a = mmvar->axis;
-      for ( i = 0; i < fvar_head.axisCount; ++i )
+      for ( i = 0; i < fvar_head.axisCount; i++ )
       {
         GX_FVar_Axis  axis_rec;
 
@@ -756,13 +776,13 @@
         a->name[1] = (FT_String)( ( a->tag >> 16 ) & 0xFF );
         a->name[2] = (FT_String)( ( a->tag >>  8 ) & 0xFF );
         a->name[3] = (FT_String)( ( a->tag       ) & 0xFF );
-        a->name[4] = 0;
+        a->name[4] = '\0';
 
-        ++a;
+        a++;
       }
 
       ns = mmvar->namedstyle;
-      for ( i = 0; i < fvar_head.instanceCount; ++i, ++ns )
+      for ( i = 0; i < fvar_head.instanceCount; i++, ns++ )
       {
         if ( FT_FRAME_ENTER( 4L + 4L * fvar_head.axisCount ) )
           goto Exit;
@@ -770,12 +790,14 @@
         ns->strid       =    FT_GET_USHORT();
         (void) /* flags = */ FT_GET_USHORT();
 
-        for ( j = 0; j < fvar_head.axisCount; ++j )
+        for ( j = 0; j < fvar_head.axisCount; j++ )
           ns->coords[j] = FT_GET_LONG();
 
         FT_FRAME_EXIT();
       }
     }
+
+    /* fill the output array if requested */
 
     if ( master != NULL )
     {
@@ -787,36 +809,36 @@
       FT_MEM_COPY( mmvar, face->blend->mmvar, face->blend->mmvar_len );
 
       mmvar->axis =
-        (FT_Var_Axis*)&(mmvar[1]);
+        (FT_Var_Axis*)&( mmvar[1] );
       mmvar->namedstyle =
-        (FT_Var_Named_Style*)&(mmvar->axis[mmvar->num_axis]);
+        (FT_Var_Named_Style*)&( mmvar->axis[mmvar->num_axis] );
       next_coords =
-        (FT_Fixed*)&(mmvar->namedstyle[mmvar->num_namedstyles]);
+        (FT_Fixed*)&( mmvar->namedstyle[mmvar->num_namedstyles] );
 
-      for ( n = 0; n < mmvar->num_namedstyles; ++n )
+      for ( n = 0; n < mmvar->num_namedstyles; n++ )
       {
         mmvar->namedstyle[n].coords  = next_coords;
         next_coords                 += mmvar->num_axis;
       }
 
-      a = mmvar->axis;
+      a         = mmvar->axis;
       next_name = (FT_String*)next_coords;
-      for ( n = 0; n < mmvar->num_axis; ++n )
+      for ( n = 0; n < mmvar->num_axis; n++ )
       {
         a->name = next_name;
 
         /* standard PostScript names for some standard apple tags */
         if ( a->tag == TTAG_wght )
-          a->name = (char *)"Weight";
+          a->name = (char*)"Weight";
         else if ( a->tag == TTAG_wdth )
-          a->name = (char *)"Width";
+          a->name = (char*)"Width";
         else if ( a->tag == TTAG_opsz )
-          a->name = (char *)"OpticalSize";
+          a->name = (char*)"OpticalSize";
         else if ( a->tag == TTAG_slnt )
-          a->name = (char *)"Slant";
+          a->name = (char*)"Slant";
 
         next_name += 5;
-        ++a;
+        a++;
       }
 
       *master = mmvar;
@@ -844,7 +866,7 @@
   /* <Input>                                                               */
   /*    num_coords :: Must be the axis count of the font.                  */
   /*                                                                       */
-  /*    coords     :: An array of num_coords, each between [-1,1].         */
+  /*    coords     :: An array of `num_coords', each between [-1,1].       */
   /*                                                                       */
   /* <Return>                                                              */
   /*    FreeType error code.  0 means success.                             */
@@ -873,7 +895,7 @@
 
     if ( face->blend == NULL )
     {
-      if ( (error = TT_Get_MM_Var( face, NULL)) != 0 )
+      if ( ( error = TT_Get_MM_Var( face, NULL ) ) != 0 )
         goto Exit;
     }
 
@@ -886,7 +908,7 @@
       goto Exit;
     }
 
-    for ( i = 0; i < num_coords; ++i )
+    for ( i = 0; i < num_coords; i++ )
       if ( coords[i] < -0x00010000L || coords[i] > 0x00010000L )
       {
         error = FT_THROW( Invalid_Argument );
@@ -894,7 +916,7 @@
       }
 
     if ( blend->glyphoffsets == NULL )
-      if ( (error = ft_var_load_gvar( face )) != 0 )
+      if ( ( error = ft_var_load_gvar( face ) ) != 0 )
         goto Exit;
 
     if ( blend->normalizedcoords == NULL )
@@ -911,7 +933,8 @@
     else
     {
       manageCvt = mcvt_retain;
-      for ( i = 0; i < num_coords; ++i )
+
+      for ( i = 0; i < num_coords; i++ )
       {
         if ( blend->normalizedcoords[i] != coords[i] )
         {
@@ -1002,7 +1025,7 @@
 
     if ( face->blend == NULL )
     {
-      if ( (error = TT_Get_MM_Var( face, NULL )) != 0 )
+      if ( ( error = TT_Get_MM_Var( face, NULL ) ) != 0 )
         goto Exit;
     }
 
@@ -1023,7 +1046,7 @@
       goto Exit;
 
     a = mmvar->axis;
-    for ( i = 0; i < mmvar->num_axis; ++i, ++a )
+    for ( i = 0; i < mmvar->num_axis; i++, a++ )
     {
       if ( coords[i] > a->maximum || coords[i] < a->minimum )
       {
@@ -1032,11 +1055,13 @@
       }
 
       if ( coords[i] < a->def )
-        normalized[i] = -FT_DivFix( coords[i] - a->def, a->minimum - a->def );
+        normalized[i] = -FT_DivFix( coords[i] - a->def,
+                                    a->minimum - a->def );
       else if ( a->maximum == a->def )
         normalized[i] = 0;
       else
-        normalized[i] = FT_DivFix( coords[i] - a->def, a->maximum - a->def );
+        normalized[i] = FT_DivFix( coords[i] - a->def,
+                                   a->maximum - a->def );
     }
 
     if ( !blend->avar_checked )
@@ -1045,9 +1070,9 @@
     if ( blend->avar_segment != NULL )
     {
       av = blend->avar_segment;
-      for ( i = 0; i < mmvar->num_axis; ++i, ++av )
+      for ( i = 0; i < mmvar->num_axis; i++, av++ )
       {
-        for ( j = 1; j < (FT_UInt)av->pairCount; ++j )
+        for ( j = 1; j < (FT_UInt)av->pairCount; j++ )
           if ( normalized[i] < av->correspondence[j].fromCoord )
           {
             normalized[i] =
@@ -1175,7 +1200,7 @@
     /* tuplecount, but John Jenkins says that shared points don't apply */
     /* to `cvar', and no other flags are defined.                       */
 
-    for ( i = 0; i < ( tupleCount & 0xFFF ); ++i )
+    for ( i = 0; i < ( tupleCount & 0xFFF ); i++ )
     {
       FT_UInt   tupleDataSize;
       FT_UInt   tupleIndex;
@@ -1190,7 +1215,7 @@
 
       if ( tupleIndex & GX_TI_EMBEDDED_TUPLE_COORD )
       {
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           tuple_coords[j] = FT_GET_SHORT() << 2; /* convert from        */
                                                  /* short frac to fixed */
       }
@@ -1199,7 +1224,7 @@
         /* skip this tuple; it makes no sense */
 
         if ( tupleIndex & GX_TI_INTERMEDIATE_TUPLE )
-          for ( j = 0; j < 2 * blend->num_axis; ++j )
+          for ( j = 0; j < 2 * blend->num_axis; j++ )
             (void)FT_GET_SHORT();
 
         offsetToData += tupleDataSize;
@@ -1208,9 +1233,9 @@
 
       if ( tupleIndex & GX_TI_INTERMEDIATE_TUPLE )
       {
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           im_start_coords[j] = FT_GET_SHORT() << 2;
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           im_end_coords[j] = FT_GET_SHORT() << 2;
       }
 
@@ -1238,21 +1263,22 @@
                                              point_count == 0 ? face->cvt_size
                                                               : point_count );
       if ( localpoints == NULL || deltas == NULL )
-        /* failure, ignore it */;
+        ; /* failure, ignore it */
 
       else if ( localpoints == ALL_POINTS )
       {
         /* this means that there are deltas for every entry in cvt */
-        for ( j = 0; j < face->cvt_size; ++j )
+        for ( j = 0; j < face->cvt_size; j++ )
           face->cvt[j] = (FT_Short)( face->cvt[j] +
                                      FT_MulFix( deltas[j], apply ) );
       }
 
       else
       {
-        for ( j = 0; j < point_count; ++j )
+        for ( j = 0; j < point_count; j++ )
         {
           int  pindex = localpoints[j];
+
 
           face->cvt[pindex] = (FT_Short)( face->cvt[pindex] +
                                           FT_MulFix( deltas[j], apply ) );
@@ -1372,7 +1398,7 @@
       FT_Stream_SeekSet( stream, here );
     }
 
-    for ( i = 0; i < ( tupleCount & GX_TC_TUPLE_COUNT_MASK ); ++i )
+    for ( i = 0; i < ( tupleCount & GX_TC_TUPLE_COUNT_MASK ); i++ )
     {
       FT_UInt   tupleDataSize;
       FT_UInt   tupleIndex;
@@ -1384,7 +1410,7 @@
 
       if ( tupleIndex & GX_TI_EMBEDDED_TUPLE_COORD )
       {
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           tuple_coords[j] = FT_GET_SHORT() << 2;  /* convert from        */
                                                   /* short frac to fixed */
       }
@@ -1394,18 +1420,16 @@
         goto Fail3;
       }
       else
-      {
         FT_MEM_COPY(
           tuple_coords,
-          &blend->tuplecoords[(tupleIndex & 0xFFF) * blend->num_axis],
+          &blend->tuplecoords[( tupleIndex & 0xFFF ) * blend->num_axis],
           blend->num_axis * sizeof ( FT_Fixed ) );
-      }
 
       if ( tupleIndex & GX_TI_INTERMEDIATE_TUPLE )
       {
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           im_start_coords[j] = FT_GET_SHORT() << 2;
-        for ( j = 0; j < blend->num_axis; ++j )
+        for ( j = 0; j < blend->num_axis; j++ )
           im_end_coords[j] = FT_GET_SHORT() << 2;
       }
 
@@ -1449,7 +1473,7 @@
       else if ( points == ALL_POINTS )
       {
         /* this means that there are deltas for every point in the glyph */
-        for ( j = 0; j < n_points; ++j )
+        for ( j = 0; j < n_points; j++ )
         {
           delta_xy[j].x += FT_MulFix( deltas_x[j], apply );
           delta_xy[j].y += FT_MulFix( deltas_y[j], apply );
@@ -1458,7 +1482,7 @@
 
       else
       {
-        for ( j = 0; j < point_count; ++j )
+        for ( j = 0; j < point_count; j++ )
         {
           if ( localpoints[j] >= n_points )
             continue;
@@ -1504,7 +1528,7 @@
   /*    tt_done_blend                                                      */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Frees the blend internal data structure.                           */
+  /*    Free the blend internal data structure.                            */
   /*                                                                       */
   FT_LOCAL_DEF( void )
   tt_done_blend( FT_Memory  memory,
@@ -1520,7 +1544,7 @@
 
       if ( blend->avar_segment != NULL )
       {
-        for ( i = 0; i < blend->num_axis; ++i )
+        for ( i = 0; i < blend->num_axis; i++ )
           FT_FREE( blend->avar_segment[i].correspondence );
         FT_FREE( blend->avar_segment );
       }

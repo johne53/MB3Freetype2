@@ -1,3 +1,132 @@
+2015-03-17  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	Fix Savannah bug #44412 (part 2).
+
+	* src/base/fttrigon.c (FT_Sin, FT_Cos, FT_Tan): Call `FT_Vector_Unit'.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Arabic script.
+
+	Thanks to Titus Nemeth <tn@tntypography.eu> for guidance!
+
+	* src/autofit/afblue.dat: Add blue zone data for Arabic.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Arabic standard characters.
+
+	* src/autofit/afranges.c: Add Arabic data.
+
+	* src/autofit/afstyles.h: Add Arabic data.
+
+	* docs/CHANGES: Document it.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	Rename `svxf86nm.h' to `svfntfmt.h'; update related symbols.
+
+	* include/internal/ftserv.h (FT_SERVICE_XFREE86_NAME_H): Renamed
+	to...
+	(FT_SERVICE_FONT_FORMAT_H): This.
+
+	* include/internal/services/svfntfmt.h (FT_XF86_FORMAT_*): Renamed
+	to ...
+	(FT_FONT_FORMAT_*): This.
+
+	src/base/ftfntfmt.c, src/bdf/bdfdrivr.c, src/cff/cffdrivr.c,
+	src/cid/cidriver.c, src/pcf/pcfdrivr.c, src/pfr/pfrdrivr.c,
+	src/truetype/ttdriver.c, src/type1/t1driver.c,
+	src/type42/t42drivr.c, src/winfonts/winfnt.c: Updated.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	[base] Rename `FT_XFREE86_H' to `FT_FONT_FORMATS_H'.
+
+	* include/config/ftheader.h: Implement it.
+	* src/base/ftfntfmt.c, docs/CHANGES: Updated.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	[base] Rename `FT_Get_X11_Font_Format' to `FT_Get_Font_Format'.
+
+	* include/ftfntfmt.h, src/base/ftfntfmt.c: Implement it.
+
+	* docs/CHANGES: Updated.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	Fix automatic copyright updating.
+
+	* src/tools/update-copyright: Make scanning of `no-copyright'
+	actually work.
+
+	* src/tools/no-copyright: Don't include README in general.
+
+2015-03-11  Werner Lemberg  <wl@gnu.org>
+
+	Rename `ftxf86.[ch]' to `ftfntfmt.[ch]'.
+
+	CMakeLists.txt, builds/amiga/makefile, builds/amiga/makefile.os4,
+	builds/amiga/smakefile, builds/mac/FreeType.m68k_cfm.make.txt,
+	builds/mac/FreeType.m68k_far.make.txt,
+	builds/mac/FreeType.ppc_carbon.make.txt,
+	builds/mac/FreeType.ppc_classic.make.txt, builds/symbian/bld.inf,
+	builds/symbian/freetype.mmp, builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/freetype.vcxproj.filters,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj, docs/INSTALL.ANY,
+	include/config/ftheader.h, include/ftfntfmt.h, modules.cfg,
+	src/base/ftfntfmt.c, vms_make.com: Updated.
+
+2015-03-10  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	Fix Savannah bug #44412 (part 1).
+
+	* src/base/ftstroke.c (ft_stroker_inside): Handle near U-turns.
+
+2015-03-10  Werner Lemberg  <wl@gnu.org>
+
+	[base] Rename `FT_Bitmap_New' to `FT_Bitmap_Init'.
+
+	* include/ftbitmap.h, src/base/ftbitmap.c: Implement it.
+	Update all callers.
+
+	* docs/CHANGES: Updated.
+
+2015-03-06  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttload.c (tt_face_load_font_dir): Fix compiler warning.
+
+	Found by Alexei.
+
+2015-03-05  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	* src/base/ftstroke.c: Simplify.
+
+2015-03-04  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Some fixes and code refactoring in `ttgxvar.c'.
+
+	* src/truetype/ttgxvar.c (ft_var_readpackedpoints): Fix return value
+	of `point_cnt' if two bytes are read.
+	Use a more vertical coding style.
+	(ft_var_readpackeddeltas): Use FT_UInt for `delta_cnt' parameter.
+	Use a more vertical coding style.
+
+2015-03-03  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix Savannah bug #44241.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Reject glyphs
+	with less than 3 points.
+
 2015-03-02  Werner Lemberg  <wl@gnu.org>
 
 	Simplify `TYPEOF' macro.
