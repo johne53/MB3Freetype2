@@ -1,3 +1,102 @@
+2015-03-21  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[autofit] Finish the thought.
+
+	* src/autofit/afhints.c (af_direction_compute): make sure the long arm
+	is never negative so that its `FT_ABS' is not necessary.
+
+2015-04-01  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Call dumper functions for tracing.
+
+	* src/autofit/afcjk.c (af_cjk_hints_apply): Remove dead code.
+	* src/autofit/afhints.c (af_glyph_hints_dump_points): Minor
+	improvement.
+	* src/autofit/afmodule.c (af_autofitter_load_glyph): Implement it.
+
+2015-04-01  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make debugging stuff work again.
+
+	The interface to ftgrid was broken in the series of commits starting
+	with
+
+	  [autofit] Allocate AF_Loader on the stack instead of AF_Module.
+
+	from 2015-01-14.
+
+	* src/autofit/afmodule.c (_af_debug_hints_rec) [FT_DEBUG_AUTOFIT]:
+	Use a global AF_GlyphHintsRec object for debugging.
+	(af_autofitter_done, af_autofitter_load_glyph): Updated.
+
+	* src/autofit/afloader.c (af_loader_init, af_loader_done): Updated.
+
+2015-04-01  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afhints.c (af_glyph_hints_done): Fix minor thinko.
+
+2015-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix Savannah bug #44629.
+
+	* src/cff/cf2font.h (CF2_MAX_SUBR), src/cff/cffgload.h
+	(CFF_MAX_SUBRS_CALLS): Set to 16.
+
+2015-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[type1, truetype] Make the MM API more flexible w.r.t. `num_coords'.
+
+	This commit allows `num_coords' to be larger or smaller than the
+	number of available axes while selecting a design instance, either
+	ignoring excess data or using defaults if data is missing.
+
+	* src/truetype/ttgxvar.c (TT_Set_MM_Blend, TT_Set_Var_Design):
+	Implement it.
+
+	* src/type1/t1load.c (T1_Set_MM_Blend, T1_Set_MM_Design,
+	T1_Set_Var_Design): Ditto.
+
+2015-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Minor.
+
+	* src/type1/t1load.c (T1_Set_MM_Blend, T1_Set_MM_Design): Use
+	FT_THROW.
+	(T1_Set_Var_Design): Use T1_MAX_MM_AXIS and FT_THROW.
+
+2015-03-27  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Trace charstring nesting levels.
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString) <cf2_cmdCALLGSUBR,
+	cf2_cmdCALLSUBR, cf2_cmdRETURN>: Implement it.
+
+	* src/cff/cffgload.c (cff_decoder_parse_charstrings)
+	<cff_op_callsubr, cff_op_callgsubr, cff_op_return>: Ditto.
+
+2015-03-21  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[base] Optimize `FT_Angle_Diff'.
+
+	Under normal circumstances we are usually close to the desired range
+	of angle values, so that the remainder is not really necessary.
+
+	* src/base/fttrigon.c (FT_Angle_Diff): Use loops instead of remainder.
+
+	* src/autofit/aftypes.h (AF_ANGLE_DIFF): Ditto in the unused macro.
+
+2015-03-21  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve `gvar' handling.
+
+	* src/truetype/ttgxvar.c (ft_var_readpackedpoints): Correctly handle
+	single-element runs.  Cf. glyph `Q' in Skia.ttf with weights larger
+	than the default.
+
+2015-03-20  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	* src/base/fttrigon.c (FT_Vector_Rotate): Minor refactoring.
+
 2015-03-17  Alexei Podtelezhnikov <apodtele@gmail.com>
 
 	Fix Savannah bug #44412 (part 2).

@@ -231,9 +231,13 @@
     AF_Point  point;
 
 
-    AF_DUMP(( "Table of points:\n"
-              "  [ index |  xorg |  yorg | xscale | yscale"
-              " |  xfit |  yfit |  flags ]\n" ));
+    AF_DUMP(( "Table of points:\n" ));
+
+    if ( hints->num_points )
+      AF_DUMP(( "  [ index |  xorg |  yorg | xscale | yscale"
+                " |  xfit |  yfit |  flags ]\n" ));
+    else
+      AF_DUMP(( "  (none)\n" ));
 
     for ( point = points; point < limit; point++ )
       AF_DUMP(( "  [ %5d | %5d | %5d | %6.2f | %6.2f"
@@ -505,15 +509,15 @@
       else
       {
         dir = AF_DIR_DOWN;
-        ll  = dy;
+        ll  = -dy;
         ss  = dx;
       }
     }
 
-    /* return no direction if arm lengths differ too much            */
+    /* return no direction if arm lengths do not differ enough       */
     /* (value 14 is heuristic, corresponding to approx. 4.1 degrees) */
-    ss *= 14;
-    if ( FT_ABS( ll ) <= FT_ABS( ss ) )
+    /* the long arm is never negative                                */
+    if ( ll <= 14 * FT_ABS( ss ) )
       dir = AF_DIR_NONE;
 
     return dir;
@@ -533,12 +537,14 @@
   FT_LOCAL_DEF( void )
   af_glyph_hints_done( AF_GlyphHints  hints )
   {
-    FT_Memory  memory = hints->memory;
+    FT_Memory  memory;
     int        dim;
 
 
     if ( !( hints && hints->memory ) )
       return;
+
+    memory = hints->memory;
 
     /*
      *  note that we don't need to free the segment and edge
