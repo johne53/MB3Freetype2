@@ -273,8 +273,8 @@
       builder->current = &loader->current.outline;
       FT_GlyphLoader_Rewind( loader );
 
-      builder->hints_globals = 0;
-      builder->hints_funcs   = 0;
+      builder->hints_globals = NULL;
+      builder->hints_funcs   = NULL;
 
       if ( hinting && size )
       {
@@ -2725,7 +2725,7 @@
                                 face->vertical_info                   &&
                                 face->vertical.number_Of_VMetrics > 0 );
 
-          /* get the vertical metrics from the vtmx table if we have one */
+          /* get the vertical metrics from the vmtx table if we have one */
           if ( has_vertical_info )
           {
             (void)( (SFNT_Service)face->sfnt )->get_metrics( face, 1,
@@ -2872,7 +2872,7 @@
       /* fonts.                                                       */
       if ( face->root.internal->incremental_interface )
       {
-        glyph->root.control_data = 0;
+        glyph->root.control_data = NULL;
         glyph->root.control_len = 0;
       }
       else
@@ -2953,25 +2953,43 @@
         FT_Bool            has_vertical_info;
 
 
-        /* copy the _unscaled_ advance width */
-        metrics->horiAdvance                    = decoder.glyph_width;
-        glyph->root.linearHoriAdvance           = decoder.glyph_width;
+        if ( face->horizontal.number_Of_HMetrics )
+        {
+          FT_Short   horiBearingX = 0;
+          FT_UShort  horiAdvance  = 0;
+
+
+          ( (SFNT_Service)face->sfnt )->get_metrics( face, 0,
+                                                     glyph_index,
+                                                     &horiBearingX,
+                                                     &horiAdvance );
+          metrics->horiAdvance          = horiAdvance;
+          metrics->horiBearingX         = horiBearingX;
+          glyph->root.linearHoriAdvance = horiAdvance;
+        }
+        else
+        {
+          /* copy the _unscaled_ advance width */
+          metrics->horiAdvance          = decoder.glyph_width;
+          glyph->root.linearHoriAdvance = decoder.glyph_width;
+        }
+
         glyph->root.internal->glyph_transformed = 0;
 
         has_vertical_info = FT_BOOL( face->vertical_info                   &&
                                      face->vertical.number_Of_VMetrics > 0 );
 
-        /* get the vertical metrics from the vtmx table if we have one */
+        /* get the vertical metrics from the vmtx table if we have one */
         if ( has_vertical_info )
         {
           FT_Short   vertBearingY = 0;
           FT_UShort  vertAdvance  = 0;
 
 
-          (void)( (SFNT_Service)face->sfnt )->get_metrics( face, 1,
-                                                           glyph_index,
-                                                           &vertBearingY,
-                                                           &vertAdvance );
+          ( (SFNT_Service)face->sfnt )->get_metrics( face, 1,
+                                                     glyph_index,
+                                                     &vertBearingY,
+                                                     &vertAdvance );
           metrics->vertBearingY = vertBearingY;
           metrics->vertAdvance  = vertAdvance;
         }
@@ -3046,7 +3064,9 @@
         metrics->width  = cbox.xMax - cbox.xMin;
         metrics->height = cbox.yMax - cbox.yMin;
 
-        metrics->horiBearingX = cbox.xMin;
+        if ( !face->horizontal.number_Of_HMetrics )
+          metrics->horiBearingX = cbox.xMin;
+
         metrics->horiBearingY = cbox.yMax;
 
         if ( has_vertical_info )
