@@ -1513,9 +1513,7 @@
 
 #if 0 /* #ifdef AF_CONFIG_OPTION_USE_WARPER */
     if ( mode == FT_RENDER_MODE_LCD || mode == FT_RENDER_MODE_LCD_V )
-    {
       metrics->root.scaler.render_mode = mode = FT_RENDER_MODE_NORMAL;
-    }
 #endif
 
     scaler_flags = hints->scaler_flags;
@@ -1551,6 +1549,12 @@
     if ( mode == FT_RENDER_MODE_LIGHT                      ||
          ( face->style_flags & FT_STYLE_FLAG_ITALIC ) != 0 )
       scaler_flags |= AF_SCALER_FLAG_NO_HORIZONTAL;
+
+#ifdef AF_CONFIG_OPTION_USE_WARPER
+    /* get (global) warper flag */
+    if ( !metrics->root.globals->module->warping )
+      scaler_flags |= AF_SCALER_FLAG_NO_WARPER;
+#endif
 
     hints->scaler_flags = scaler_flags;
     hints->other_flags  = other_flags;
@@ -2310,8 +2314,9 @@
 
     /* analyze glyph outline */
 #ifdef AF_CONFIG_OPTION_USE_WARPER
-    if ( metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT ||
-         AF_HINTS_DO_HORIZONTAL( hints ) )
+    if ( ( metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+           AF_HINTS_DO_WARP( hints )                                ) ||
+         AF_HINTS_DO_HORIZONTAL( hints )                              )
 #else
     if ( AF_HINTS_DO_HORIZONTAL( hints ) )
 #endif
@@ -2334,8 +2339,9 @@
     for ( dim = 0; dim < AF_DIMENSION_MAX; dim++ )
     {
 #ifdef AF_CONFIG_OPTION_USE_WARPER
-      if ( ( dim == AF_DIMENSION_HORZ &&
-             metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT ) )
+      if ( dim == AF_DIMENSION_HORZ                                 &&
+           metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+           AF_HINTS_DO_WARP( hints )                                )
       {
         AF_WarperRec  warper;
         FT_Fixed      scale;
@@ -2346,7 +2352,7 @@
         af_glyph_hints_scale_dim( hints, dim, scale, delta );
         continue;
       }
-#endif
+#endif /* AF_CONFIG_OPTION_USE_WARPER */
 
       if ( ( dim == AF_DIMENSION_HORZ && AF_HINTS_DO_HORIZONTAL( hints ) ) ||
            ( dim == AF_DIMENSION_VERT && AF_HINTS_DO_VERTICAL( hints ) )   )

@@ -1301,7 +1301,7 @@
     /* compute flags depending on render mode, etc. */
     mode = metrics->root.scaler.render_mode;
 
-#ifdef AF_CONFIG_OPTION_USE_WARPER
+#if 0 /* AF_CONFIG_OPTION_USE_WARPER */
     if ( mode == FT_RENDER_MODE_LCD || mode == FT_RENDER_MODE_LCD_V )
       metrics->root.scaler.render_mode = mode = FT_RENDER_MODE_NORMAL;
 #endif
@@ -1333,6 +1333,12 @@
       other_flags |= AF_LATIN_HINTS_MONO;
 
     scaler_flags |= AF_SCALER_FLAG_NO_ADVANCE;
+
+#ifdef AF_CONFIG_OPTION_USE_WARPER
+    /* get (global) warper flag */
+    if ( !metrics->root.globals->module->warping )
+      scaler_flags |= AF_SCALER_FLAG_NO_WARPER;
+#endif
 
     hints->scaler_flags = scaler_flags;
     hints->other_flags  = other_flags;
@@ -2190,7 +2196,13 @@
       goto Exit;
 
     /* analyze glyph outline */
+#ifdef AF_CONFIG_OPTION_USE_WARPER
+    if ( ( metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+           AF_HINTS_DO_WARP( hints )                                ) ||
+         AF_HINTS_DO_HORIZONTAL( hints )                              )
+#else
     if ( AF_HINTS_DO_HORIZONTAL( hints ) )
+#endif
     {
       error = af_cjk_hints_detect_features( hints, AF_DIMENSION_HORZ );
       if ( error )
@@ -2216,8 +2228,9 @@
       {
 
 #ifdef AF_CONFIG_OPTION_USE_WARPER
-        if ( dim == AF_DIMENSION_HORZ                                  &&
-             metrics->root.scaler.render_mode == FT_RENDER_MODE_NORMAL )
+        if ( dim == AF_DIMENSION_HORZ                                 &&
+             metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+             AF_HINTS_DO_WARP( hints )                                )
         {
           AF_WarperRec  warper;
           FT_Fixed      scale;

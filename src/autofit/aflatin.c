@@ -1996,10 +1996,19 @@
     /*
      *  In `light' hinting mode we disable horizontal hinting completely.
      *  We also do it if the face is italic.
+     *
+     *  However, if warping is enabled (which only works in `light' hinting
+     *  mode), advance widths get adjusted, too.
      */
     if ( mode == FT_RENDER_MODE_LIGHT                      ||
          ( face->style_flags & FT_STYLE_FLAG_ITALIC ) != 0 )
       scaler_flags |= AF_SCALER_FLAG_NO_HORIZONTAL;
+
+#ifdef AF_CONFIG_OPTION_USE_WARPER
+    /* get (global) warper flag */
+    if ( !metrics->root.globals->module->warping )
+      scaler_flags |= AF_SCALER_FLAG_NO_WARPER;
+#endif
 
     hints->scaler_flags = scaler_flags;
     hints->other_flags  = other_flags;
@@ -2812,8 +2821,9 @@
 
     /* analyze glyph outline */
 #ifdef AF_CONFIG_OPTION_USE_WARPER
-    if ( metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT ||
-         AF_HINTS_DO_HORIZONTAL( hints )                          )
+    if ( ( metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+           AF_HINTS_DO_WARP( hints )                                ) ||
+         AF_HINTS_DO_HORIZONTAL( hints )                              )
 #else
     if ( AF_HINTS_DO_HORIZONTAL( hints ) )
 #endif
@@ -2845,7 +2855,8 @@
     {
 #ifdef AF_CONFIG_OPTION_USE_WARPER
       if ( dim == AF_DIMENSION_HORZ                                 &&
-           metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT )
+           metrics->root.scaler.render_mode == FT_RENDER_MODE_LIGHT &&
+           AF_HINTS_DO_WARP( hints )                                )
       {
         AF_WarperRec  warper;
         FT_Fixed      scale;
@@ -2858,7 +2869,7 @@
                                   scale, delta );
         continue;
       }
-#endif
+#endif /* AF_CONFIG_OPTION_USE_WARPER */
 
       if ( ( dim == AF_DIMENSION_HORZ && AF_HINTS_DO_HORIZONTAL( hints ) ) ||
            ( dim == AF_DIMENSION_VERT && AF_HINTS_DO_VERTICAL( hints ) )   )
