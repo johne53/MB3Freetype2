@@ -1,3 +1,125 @@
+2015-06-01  Werner Lemberg  <wl@gnu.org>
+
+	[raster] Add more tracing.
+
+	* src/raster/ftraster.c (FT_TRACE7) [_STANDALONE_]: Define.
+	(Vertical_Sweep_Span, Vertical_Sweep_Drop, Horizontal_Sweep_Span,
+	Horizontal_Sweep_Drop, Render_Glyph): Add tracing calls.
+
+2015-06-01  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] While tracing opcodes, show code position and stack.
+
+	* src/truetype/ttinterp.c: Change all existing TRACE7 calls to
+	TRACE6.
+	(opcode_name): Add string lengths.
+	(TT_RunIns): Implement display of code position and stack.
+
+2015-05-31  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] In GX, make private point numbers work correctly.
+
+	This is completely missing in Apple's documentation: If a `gvar'
+	tuple uses private point numbers (this is, deltas are specified for
+	some points only), the uncovered points must be interpolated for
+	this tuple similar to the IUP bytecode instruction.  Examples that
+	need this functionality are glyphs `Oslash' and `Q' in Skia.ttf.
+
+	* src/truetype/ttgxvar.c (tt_delta_shift, tt_delta_interpolate,
+	tt_handle_deltas): New functions.
+	(TT_Vary_Get_Glyph_Deltas): Renamed to...
+	(TT_Vary_Apply_Glyph_Deltas): ... this; it directly processes the
+	points and does no longer return an array of deltas.
+	Add tracing information.
+	Call `tt_handle_deltas' to interpolate missing deltas.
+	Also fix a minor memory leak in case of error.
+
+	* src/truetype/ttgxvar.h: Updated.
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph,
+	load_truetype_glyph): Updated.
+
+2015-05-31  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] In GX, make intermediate tuplets work at extrema.
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Fix range condition.
+
+2015-05-31  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Add tracing information to GX code.
+
+	* src/truetype/ttgxvar.c (ft_var_load_avar, ft_var_load_gvar,
+	ft_var_apply_tuple, TT_Get_MM_Var, TT_Set_MM_Blend,
+	TT_Set_Var_Design, tt_face_vary_cvt): Do it.
+
+2015-05-28  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/apinames.c (names_dump): Fix invalid reference.
+
+	Problem reported by Guzman Mosqueda, Jose R
+	<jose.r.guzman.mosqueda@intel.com>.
+
+2015-05-24  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix commit from 2015-05-22.
+
+	* src/truetype/ttgload.c, src/truetype/ttinterp.c: Guard new code
+	with `TT_CONFIG_OPTION_SUBPIXEL_HINTING'.
+
+	Problem reported by Nikolaus Waxweiler <madigens@gmail.com>.
+
+2015-05-23  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix return values of GETINFO bytecode instruction.
+
+	* src/truetype/ttinterp.h (TT_ExecContextRec): New fields
+	`vertical_lcd' and `gray_cleartype'.
+
+	* src/truetype/ttgload.c (tt_loader_init): Initialize new fields.
+	Change `symmetrical smoothing' to TRUE, since FreeType produces
+	exactly this.
+
+	* src/truetype/ttinterp.c (Ins_GETINFO): Fix selector/return bit
+	values for symmetrical smoothing, namely 11/18.
+	Handle bits for vertical LCD subpixels (8/15) and Gray ClearType
+	(12/19).
+
+2015-05-23  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Minor.
+
+	* src/truetype/ttinterp.h (TT_ExecContext):
+	 s/subpixel/subpixel_hinting.
+
+	* src/truetype/ttgload.c, src/truetype/ttgload.h: Updated.
+
+2015-05-22  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Support selector index 3 of the INSTCTRL instruction.
+
+	This flag activates `native ClearType hinting', disabling backwards
+	compatibility mode as described in Greg Hitchcocks whitepaper.  In
+	other words, it enables unrestricted functionality of all TrueType
+	instructions in ClearType.
+
+	* src/truetype/ttgload.c (tt_get_metrics): Call `sph_set_tweaks'
+	unconditionally.
+	(tt_loader_init): Unset `ignore_x_mode' flag if bit 2 of
+	`GS.instruct_control' is active.
+
+	* src/truetype/ttinterp.c (Ins_INSTCTRL): Handle selector index 3.
+	(Ins_GETINFO): Updated.
+
+	* docs/CHANGES: Document it.
+
+2015-05-20  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Minor.
+
+	* src/truetype/ttinterp.h (SetSuperRound): Fix type of `GridPeriod'
+	argument.
+
 2015-05-17  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Fix loading of composite glyphs.

@@ -252,18 +252,22 @@ FT_BEGIN_HEADER
 #ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
     TT_Round_Func      func_round_sphn;   /* subpixel rounding function */
 
-    FT_Bool            subpixel;          /* Using subpixel hinting?       */
+    FT_Bool            subpixel_hinting;  /* Using subpixel hinting?       */
     FT_Bool            ignore_x_mode;     /* Standard rendering mode for   */
                                           /* subpixel hinting.  On if gray */
                                           /* or subpixel hinting is on.    */
 
-    /* The following 4 aren't fully implemented but here for MS rasterizer */
+    /* The following 6 aren't fully implemented but here for MS rasterizer */
     /* compatibility.                                                      */
     FT_Bool            compatible_widths;     /* compatible widths?        */
     FT_Bool            symmetrical_smoothing; /* symmetrical_smoothing?    */
     FT_Bool            bgr;                   /* bgr instead of rgb?       */
+    FT_Bool            vertical_lcd;          /* long side of LCD subpixel */
+                                              /* rectangles is horizontal  */
     FT_Bool            subpixel_positioned;   /* subpixel positioned       */
                                               /* (DirectWrite ClearType)?  */
+    FT_Bool            gray_cleartype;        /* ClearType hinting but     */
+                                              /* grayscale rendering       */
 
     FT_Int             rasterizer_version;    /* MS rasterizer version     */
 
