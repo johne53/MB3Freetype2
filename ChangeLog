@@ -1,4 +1,76 @@
-2015-06-01  Werner Lemberg  <wl@gnu.org>
+2015-06-16  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #45326.
+
+	* src/sfnt/sfntpic.h (SFNT_SERVICES_GET): Remove duplicate
+	definitions.
+
+2015-06-07  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.6 released.
+	=======================
+
+
+	Tag sources with `VER-2-6'.
+
+	* docs/VERSION.DLL: Update documentation and bump version number to
+	2.6.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.5.5/2.6/, s/255/26/.
+
+	* include/freetype/freetype.h (FREETYPE_MINOR): Set to 6.
+	(FREETYPE_PATCH): Set to 0.
+
+	* builds/unix/configure.raw (version_info): Set to 18:0:12.
+	* CMakeLists.txt (VERSION_MINOR): Set to 0.
+	(VERSION_PATCH): Set to 6.
+
+	* src/autofit/afmodule.c [!FT_MAKE_OPTION_SINGLE_OBJECT]: Add
+	declarations for dumping functions.
+
+	* src/truetype/ttinterp.c (TT_New_Context): Pacify compiler.
+
+	* builds/toplevel.mk: Use `freetype.mk's code to compute the version
+	string.
+	Don't include a zero patch level in version string.
+	* builds/freetype.mk: Remove code for computing the version string.
+
+2015-06-06  Ashish Azad  <ashish.azad@samsung.com>
+
+	Fix Savannah bug #45260.
+
+	* src/pfr/pfrdrivr.c (pfr_get_kerning): Fix typo.
+
+2015-06-03  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix memory leak.
+
+	Problem reported by Grissiom <chaos.proton@gmail.com>; in
+
+	  http://lists.nongnu.org/archive/html/freetype/2015-05/msg00013.html
+
+	there is an example code to trigger the bug.
+
+	* src/truetype/ttobjs.c (tt_size_init_bytecode): Free old `size'
+	data before allocating again.  Bug most probably introduced four
+	years ago in version 2.4.3.
+
+2015-06-02  Werner Lemberg  <wl@gnu.org>
 
 	[raster] Add more tracing.
 
