@@ -1,3 +1,211 @@
+2015-06-30  Werner Lemberg  <wl@gnu.org>
+
+	Fix some clang compiler warnings.
+
+	* src/base/ftoutln.c (FT_Outline_EmboldenXY), src/cff/cf2intrp.c
+	(cf2_interpT2CharString), src/truetype/ttgload.c
+	(load_truetype_glyph), src/truetype/ttgxvar.c (tt_handle_deltas),
+	src/truetype/ttinterp.c (Ins_INSTCTRL): Fix signedness issues.
+
+2015-06-29  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[truetype] Speed up bytecode interpreter.
+
+	* src/truetype/ttinterp.c (Normalize): Use `FT_Vector_NormLen'.
+
+2015-06-29  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[base] Speed up emboldening.
+
+	* src/base/ftoutln.c (FT_Outline_EmboldenXY): Use
+	`FT_Vector_NormLen'.
+
+2015-06-29  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[base] Implement fast vector normalization.
+
+	The function uses Newton's iterations instead of dividing vector
+	components by its length, which needs a square root. This is,
+	literally, a bit less accurate but a lot faster.
+
+	* src/base/ftcalc.c (FT_Vector_NormLen): New function.
+
+2015-06-28  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Always create `ftconfig.h'.
+
+	For non-UNIX builds, the file stays unmodified.  However, it's
+	better to have the main configuration files at the same place
+	regardless of the OS.
+
+2015-06-28  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Improve MSVC support (#43737).
+
+2015-06-28  Werner Lemberg  <wl@gnu.org>
+
+	[cmake] Check for libraries and create `ftoption.h'.
+
+	* builds/FindHarfBuzz.cmake: New file, taken from
+
+	  https://trac.webkit.org/browser/trunk/Source/cmake/FindHarfBuzz.cmake
+
+	* CMakeLists.Txt: Add path to local cmake modules.
+	Find dependencies for zlib, bzip2, libpng, and harfbuzz.
+	Create `ftoption.h' file.
+	Set up include and linker stuff for libraries.
+
+2015-06-28  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Fix creation of `ftconfig.h'.
+	Check for UNIX header files using `check_include_file'.
+	Set up correct header include directories.
+
+2015-06-28  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Disallow in-source builds.
+
+2015-06-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/docmaker/utils.py (check_output): Add missing `\n'.
+
+2015-06-26  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Select platform-dependent `ftdebug.c'.
+
+2015-06-25  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Use cmake functions for generating `ftconfig.h'.
+	Additionally, do this for UNIX only.
+
+2015-06-25  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt (BASE_SRCS): Use `ftbase.c' and `psnames.c'.
+
+2015-06-25  Werner Lemberg  <wl@gnu.org>
+
+	Another adjustment to header locations.
+
+	This change is a result of a discussion thread on freetype-devel
+
+	  http://lists.nongnu.org/archive/html/freetype-devel/2015-06/msg00041.html
+
+	Re-introduce the `freetype2' subdirectory for all FreeType header
+	files after installation, and rename the `freetype2' subdirectory in
+	the git repository to `freetype'.
+
+	* include/freetype2: Renamed to...
+	* include/freetype: This.
+
+	* CMakeLists.txt (PUBLIC_HEADERS, PUBLIC_CONFIG_HEADERS,
+	PRIVATE_HEADERS): Updated.
+	Update creation of `ftconfig.h'.
+	Install generated `ftconfig.h'.
+
+	* Jamfile (HDRMACRO, RefDoc), autogen.sh: Updated.
+
+	* builds/amiga/include/config/ftconfig.h, builds/freetype.mk
+	(PUBLIC_DIR), builds/symbian/bld.inf, builds/toplevel.mk (work),
+	builds/unix/freetype2.in: Updated.
+
+	* builds/unix/freetype-config.in: Updated.
+	* builds/unix/configure.raw: Don't check for `rmdir'.
+	* builds/unix/unix-def.in (DELDIR): Use `rm -rf', which is portable
+	according to the autoconf info manual.
+	* builds/unix/install.mk (install, uninstall,
+	distclean_project_unix): Update and simplify.
+
+	* builds/wince/*, builds/windows/*: Updated.
+
+	* devel/ft2build.h, include/ft2build.h: Updated.
+
+	* include/freetype2/config/ftheader.h,
+	include/freetype2/internal/ftserv.h,
+	include/freetype2/internal/internal.h: Update all header file
+	macros.
+
+	* src/tools/chktrcmp.py (TRACE_DEF_FILES): Updated.
+
+	* docs/*: Updated.
+
+2015-06-24  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	* src/bdf/bdflib.c (_bdf_parse_start): Disallow 0 bpp.
+
+2015-06-24  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	* src/bdf/bdflib.c (_bdf_parse_start): Simplify bpp parsing.
+
+2015-06-23  Werner Lemberg  <wl@gnu.org>
+
+	s/TYPEOF/FT_TYPEOF/ (#45376).
+
+	* builds/unix/ftconfig.in, builds/vms/ftconfig.in,
+	include/freetype2/config/ftconfig.h,
+	include/freetype2/internal/ftobjs.h, src/autofit/afwarp.h: Do it.
+
+2015-06-22  Werner Lemberg  <wl@gnu.org>
+
+	Fix Savannah bug #45097.
+
+	We no longer `pollute' the namespace of possible header file names;
+	instead we move `ft2build.h' up by one level so that it gets
+	installed in the default include directory (e.g.,
+	/usr/local/include).  After this commit, only `ft2build.h' stays in
+	the compiler's include path.
+
+	No visible changes for the user who follows the standard FreeType
+	header inclusion rules.
+
+	* include/*: Move to ...
+	* include/freetype2/*: This directory, except `ft2build.h'.
+
+	* CMakeLists.txt (PUBLIC_HEADERS, PUBLIC_CONFIG_HEADERS,
+	PRIVATE_HEADERS), Jamfile (HDRMACRO, RefDoc), autogen.sh: Updated.
+
+	* builds/amiga/include/config/ftconfig.h, builds/freetype.mk
+	(PUBLIC_DIR), builds/symbian/bld.inf, builds/toplevel.mk (work),
+	builds/unix/install.mk (install, uninstall),
+	builds/unix/freetype2.in: Updated.
+
+	* builds/unix/freetype-config.in: Updated.
+	Emit -I directory only if it is not `/usr/include'.
+
+	* builds/wince/*, builds/windows/*: Updated.
+
+	* devel/ft2build.h, include/ft2build.h: Updated.
+
+	* include/freetype2/config/ftheader.h,
+	include/freetype2/internal/ftserv.h,
+	include/freetype2/internal/internal.h: Update all header file
+	macros.
+
+	* src/tools/chktrcmp.py (TRACE_DEF_FILES): Updated.
+
+2015-06-21  Werner Lemberg  <wl@gnu.org>
+
+	Make Jam support work again.
+
+	This is just very basic stuff and just a little bit tested on
+	GNU/Linux only.  I won't delve into this since I'm not a Jam user.
+
+	* Jamfile: Call `HDRMACRO' for `ftserv.h' also.
+	(DEFINES): Replace with...
+	(CCFLAGS): ... this.
+
+	* src/Jamfile: Don't call `HDRMACRO' for `internal.h'; this is
+	already handled in the top-level Jamfile.
+
+	* src/autofit/Jamfile (DEFINES): Replace with...
+	(CCFLAGS): ... this.
+	(_sources): Add missing files.
+
+	* src/cache/Jamfile: Don't call `HDRMACRO' for `ftcache.h'; it no
+	longer contains macro header definitions.
+
+	* src/base/Jamfile, src/cff/Jamfile, src/sfnt/Jamfile,
+	src/truetype/Jamfile (_sources): Add missing files.
+
 2015-06-16  Werner Lemberg  <wl@gnu.org>
 
 	Fix Savannah bug #45326.
