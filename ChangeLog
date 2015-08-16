@@ -1,8 +1,252 @@
-2015-07-28  Alexei Podtelezhnikov <apodtele@gmail.com>
+2015-08-15  pazer  <ibemad@gmail.com>
+
+	Fix C++ compilation (#45762).
+
+	* src/base/ftstroke.c (ft_outline_glyph_class): Use
+	FT_CALLBACK_TABLE.
+
+2015-08-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Clean up.
+
+	* src/truetype/ttgload.c (TT_Process_Composite_Component): Use
+	`FT_Outline_Transform' and `FT_Outline_Translate'.
+	(translate_array): Dropped.
+
+2015-08-14  Andreas Enge  <andreas.enge@inria.fr>
+
+	* builds/unix/detect.mk (CONFIG_SHELL): Don't handle it (#44261).
+
+2015-08-13  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Introduce named instance access to GX fonts.
+
+	For functions querying a face, bits 16-30 of the face index can hold
+	the named instance index if we have a GX font.  The indices start
+	with value 1; value 0 indicates font access without GX variation
+	data.
+
+	* include/freetype/freetype.h (FT_FaceRec): Update documentation.
+	* include/freetype/internal/sfnt.h: Ditto.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face)
+	[TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Get number of named instances and
+	do argument checks.
+	(sfnt_load_face): Updated.
+
+	* src/truetype/ttobjs.c (tt_face_init)
+	[TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Use named instance, overwriting
+	the style name.
+
+	* src/base/ftobjs.c (open_face_from_buffer,
+	open_face_PS_from_sfnt_stream): Updated.
+	* src/bdf/bdfdrivr.c (BDF_Face_Init): Updated.
+	* src/cff/cffload.c (cff_font_load): Updated.
+
+	* src/cff/cffobjs.c (cff_face_init): Make function exit early for
+	pure CFF fonts if `font_index < 0'.
+	Updated.
+
+	* src/cid/cidobjs.c (cid_face_init): Updated.
+	* src/pcf/pcfdrivr.c (PCF_Face_Init): Updated.
+	* src/pfr/pfrobjs.c (pfr_face_init): Updated.
+	* src/type1/t1objs.c (T1_Face_Init): Updated.
+	* src/type42/t42objs.c (T42_Face_Init): Updated.
+	* src/winfonts/winfnt.c (fnt_face_get_dll_font, FNT_Face_Init):
+	Updated.
+
+	* docs/CHANGES: Updated.
+
+2015-08-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type1,cff,cid] Streamline font matrix application.
+
+	* src/type1/t1gload.c (T1_Load_Glyph): Directly modify advances only
+	if font matrix is not trivial.
+	* src/cff/cffgload.c (cff_slot_load): Ditto.
+	* sff/cid/cidgload.c (cid_slot_load_glyph): Ditto for advances and the
+	entire outline.
+
+2015-08-11  Werner Lemberg  <wl@gnu.org>
+
+	[builds/unix] Minor.
+
+	* builds/unix/configure.raw:
+	s/lib{priv,staticconf}/libs{priv,staticconf}/ for orthogonality with
+	similarly named uppercase variables.
+
+2015-08-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type1,cid,type42] Minor improvements.
+
+	* src/type1/t1load.c (t1_parse_font_matrix): Scale units per EM only
+	when necessary. Refresh comments.
+	* src/cid/cidload.c (cid_parse_font_matrix): Ditto.
+	* src/type42/t42parse.c (t42_parse_font_matrix): Refresh comments.
+
+2015-08-08  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Fix glyph access.
+
+	This is a severe bug: We've missed one level of indirection, as
+	described in the Type 42 specification.  As a result, ftview
+	sometimes showed incorrect glyphs for given glyph names, and even
+	displayed `error 0x0006' (invalid argument!) in case the number of
+	glyph indices differed between the Type 42 font and the embedded
+	TTF.
+
+	Apparently, noone ever noticed it; this shows how much Type 42 fonts
+	are in use...
+
+	* src/type42/t42objs.c (T42_GlyphSlot_Load): Map Type 42 glyph index
+	to embedded TTF's glyph index.
+
+2015-08-08  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Minor clean-up.
+
+	* src/type42/t42parse.c (t42_parse_font_matrix): Remove unused
+	variable.
+
+2015-08-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type42] Parse FontMatrix according to specifications.
+
+	* src/type42/t42parse.c (t42_parse_font_matrix): Type 42 FontMatrix
+	does not need scaling by 1000. Units_per_EM are taken from the
+	embedded TrueType.
+
+2015-08-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve Arabic hinting.
+
+	Problem reported by Titus Nemeth <tn@tntypography.eu> (by using
+	ttfautohint).
+
+	* src/autofit/afblue.dat: Add neutral blue zone for the tatweel
+	character.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+2015-08-05  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Clean up types.
+
+	* src/truetype/ttobjs.c (TT_Size): Move declaration from here.
+	* include/freetype/internal/tttypes.h (TT_Size): ... to here.
+	(TT_LoaderRec): Switch to appropriate types for `face' and `size'.
+	* src/truetype/ttgload.c: Remove corresponding type casts.
+	* src/truetype/ttsubpix.c: Ditto.
+
+2015-08-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve recognition of flat vs. rounded segments.
+
+	Lower the flatness threshold from upem/8 to upem/14, making the
+	auto-hinter accept shorter elements.
+
+	Synchronize flat/round stem selection algorithm with blue zone code.
+
+	* src/autofit/aflatin.c (FLAT_THRESHOLD): New macro.
+	(af_latin_metrics_init_blues): Use it.
+	(af_latin_hints_compute_segments): Collect information on maximum
+	and minimum coordinates of `on' points; use this to add a constraint
+	for the flat/round decision similar to
+	`af_latin_metrics_init_blues'.
+
+2015-08-04  Werner Lemberg  <wl@gnu.org>
+
+	Another left-shift bug (#45681).
+
+	* src/base/ftobjs.c (IsMacBinary): Only accept positive values for
+	`dlen'.
+
+2015-08-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Fix `ft_corner_orientation'.
+
+	Remove casting from `FT_Long' to `FT_Int' that might change the sign
+	of the return value and make it faster too.
+
+	* src/base/ftcalc.c (ft_corner_orientation): On 32-bit systems, stay
+	with 32-bit arithmetic when safe. Use plain math on 64-bit systems.
+	* src/pshinter/pshalgo.c: Remove old unused code.
+
+2015-08-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgload.c (load_truetype_glyph)
+	[TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Fix crash for composite glyphs
+	having a depth greater than 1.
+
+2015-08-03  Werner Lemberg  <wl@gnu.org>
+
+	Fix typo in clang bug from 2015-07-31 (#45678).
+
+	* src/base/ftrfork.c (FT_Raccess_Get_HeaderInfo): Fix inequality.
+
+2015-08-02  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Improve shared library support.
+
+	Based on a patch from John Cary <cary@txcorp.com>.
+
+2015-08-02  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/freetype-config.in (enable_shared): Remove.  Unused.
+
+2015-08-02  Werner Lemberg  <wl@gnu.org>
+
+	Fix more invalid left-shifts.
+
+	* src/pfr/pfrgload.c (pfr_glyph_load_compound): Use multiplication,
+	not left-shift.
+
+	* src/truetype/ttgxvar.c (ft_var_load_avar, ft_var_load_gvar,
+	tt_face_vary_cvt, TT_Vary_Apply_Glyph_Deltas): Use multiplication,
+	not left-shift.
+
+2015-07-31  Werner Lemberg  <wl@gnu.org>
+
+	Fix some bugs found by clang's `-fsanitize=undefined' (#45661).
+
+	* src/base/ftrfork.c (FT_Raccess_Get_HeaderInfo): Only accept
+	positive values from header.
+	Check overflow.
+
+	* src/base/ftoutln.c (SCALED): Correctly handle left-shift of
+	negative values.
+
+	* src/bdf/bdf.h (_bdf_glyph_modified, _bdf_set_glyph_modified,
+	_bdf_clear_glyph_modified): Use unsigned long constant.
+
+	* src/bdf/bdfdrivr.c (BDF_Size_Select, BDF_Glyph_Load): Don't
+	left-shift values that can be negative.
+
+	* src/pcf/pcfdrivr.c (PCF_Size_Select, PCF_Glyph_Load): Don't
+	left-shift values that can be negative.
+
+	* src/raster/ftraster.c (SCALED): Correctly handle left-shift of
+	negative values.
+
+	* src/sfnt/ttsbit.c (tt_face_load_strike_metrics): Don't left-shift
+	values that can be negative.
+
+	* src/truetype/ttgload.c (TT_Load_Composite_Glyph,
+	compute_glyph_metrics, load_sbit_image): Don't left-shift values
+	that can be negative.
+
+2015-07-31  Werner Lemberg  <wl@gnu.org>
+
+	Define FT_LONG_MAX.
+
+	* include/freetype/config/ftstdlib.h (FT_LONG_MAX): New macro.
+	* src/cff/cf2arrst.c (cf2_arrstack_setNumElements): Use it.
+
+2015-07-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* src/base/ftcalc.c (FT_Vector_NormLen): Clarify.
 
-2015-07-27  Alexei Podtelezhnikov <apodtele@gmail.com>
+2015-07-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* src/base/ftcalc.c (FT_Vector_NormLen): Explicate type conversions.
 
