@@ -4,10 +4,10 @@
 require "../local-paths.lib";
 
 $major = 2;
-$minor = 5;
-$micro = 4;
-$binary_age = 504;
-$interface_age = 4;
+$minor = 6;
+$micro = 0;
+$binary_age = 600;
+$interface_age = 0;
 $current_minus_age = 2;
 
 sub process_file
