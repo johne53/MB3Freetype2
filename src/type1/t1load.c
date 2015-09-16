@@ -615,6 +615,15 @@
         goto Exit;
       }
 
+      name = (FT_Byte*)blend->axis_names[n];
+      if ( name )
+      {
+        FT_TRACE0(( "parse_blend_axis_types:"
+                    " overwriting axis name `%s' with `%*.s'\n",
+                    name, len, token->start ));
+        FT_FREE( name );
+      }
+
       if ( FT_ALLOC( blend->axis_names[n], len + 1 ) )
         goto Exit;
 
@@ -783,6 +792,13 @@
       if ( num_points <= 0 || num_points > T1_MAX_MM_MAP_POINTS )
       {
         FT_ERROR(( "parse_blend_design_map: incorrect table\n" ));
+        error = FT_THROW( Invalid_File_Format );
+        goto Exit;
+      }
+
+      if ( map->design_points )
+      {
+        FT_ERROR(( "parse_blend_design_map: duplicate table\n" ));
         error = FT_THROW( Invalid_File_Format );
         goto Exit;
       }
@@ -1192,9 +1208,26 @@
       else
         count = (FT_Int)T1_ToInt( parser );
 
+      /* only composite fonts (which we don't support) */
+      /* can have larger values                        */
+      if ( count > 256 )
+      {
+        FT_ERROR(( "parse_encoding: invalid encoding array size\n" ));
+        parser->root.error = FT_THROW( Invalid_File_Format );
+        return;
+      }
+
       T1_Skip_Spaces( parser );
       if ( parser->root.cursor >= limit )
         return;
+
+      /* PostScript happily allows overwriting of encoding arrays */
+      if ( encode->char_index )
+      {
+        FT_FREE( encode->char_index );
+        FT_FREE( encode->char_name );
+        T1_Release_Table( char_table );
+      }
 
       /* we use a T1_Table to store our charnames */
       loader->num_chars = encode->num_chars = count;

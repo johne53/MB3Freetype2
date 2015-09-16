@@ -86,8 +86,7 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_RoundFix( FT_Fixed  a )
   {
-    return a >= 0 ?   ( a + 0x8000L ) & ~0xFFFFL
-                  : -((-a + 0x8000L ) & ~0xFFFFL );
+    return ( a + 0x8000L - ( a < 0 ) ) & ~0xFFFFL;
   }
 
 
@@ -96,8 +95,7 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_CeilFix( FT_Fixed  a )
   {
-    return a >= 0 ?   ( a + 0xFFFFL ) & ~0xFFFFL
-                  : -((-a + 0xFFFFL ) & ~0xFFFFL );
+    return ( a + 0xFFFFL ) & ~0xFFFFL;
   }
 
 
@@ -106,8 +104,7 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_FloorFix( FT_Fixed  a )
   {
-    return a >= 0 ?   a & ~0xFFFFL
-                  : -((-a) & ~0xFFFFL );
+    return a & ~0xFFFFL;
   }
 
 #ifndef FT_MSB
@@ -240,22 +237,10 @@
 
 #else
 
-    FT_Int     s = 1;
-    FT_UInt64  a, b, c;
-    FT_Long    c_;
+    FT_Int64  ab = (FT_Int64)a_ * (FT_Int64)b_;
 
-
-    FT_MOVE_SIGN( a_, s );
-    FT_MOVE_SIGN( b_, s );
-
-    a = (FT_UInt64)a_;
-    b = (FT_UInt64)b_;
-
-    c = ( a * b + 0x8000UL ) >> 16;
-
-    c_ = (FT_Long)c;
-
-    return s < 0 ? -c_ : c_;
+    /* this requires arithmetic right shift of signed numbers */
+    return (FT_Long)( ( ab + 0x8000L - ( ab < 0 ) ) >> 16 );
 
 #endif /* FT_MULFIX_ASSEMBLER */
   }

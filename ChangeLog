@@ -1,3 +1,237 @@
+2015-09-15  Werner Lemberg  <wl@gnu.org>
+
+	[type1, type42] Fix memory leaks (#45966).
+
+	* src/type1/t1load.c (parse_blend_axis_types): Handle multiple axis
+	names.
+	(parse_blend_design_map): Allow only a single design map.
+	(parse_encoding): Handle multiple encoding vectors.
+
+	* src/type42/t42parse.c (t42_parse_encoding): Handle multiple
+	encoding vectors.
+
+2015-09-15  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix integer type (#45965).
+
+	* src/truetype/ttobjs.c (tt_synth_sfnt_checksum): Implement it.
+
+2015-09-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/pcf/pcfread.c (pcf_load_font): Fix integer overflow (#45964).
+
+2015-09-15  Werner Lemberg  <wl@gnu.org>
+
+	[type1, type42] Check encoding array size (#45961).
+
+	* src/type1/t1load.c (parse_encoding), src/type42/t42parse.c
+	(t42_parse_encoding): Do it.
+
+2015-09-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftcalc.c (FT_MulFix) [FT_LONG64]: Improve.
+
+2015-09-14  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Fix another potential buffer overflow (#45955).
+
+	* src/type1/t1parse (T1_Get_Private_Dict): Assure that check for
+	`eexec' doesn't exceed `limit'.
+
+2015-09-13  Werner Lemberg  <wl@gnu.org>
+
+	Replace `mkinstalldirs' with AC_PROG_MKDIR_P.
+
+	* builds/unix/mkinstalldirs: Removed, no longer needed.
+
+	* builds/unix/configure.raw: Call `AC_PROG_MKDIR_P'.
+	Update pwd call for `$INSTALL'.
+
+	* builds/unix/unix-def.in (MKINSTALLDIRS): Use `@MKDIR_P@'.
+
+	* autogen.sh: Updated.
+
+2015-09-13  Werner Lemberg  <wl@gnu.org>
+
+	[winfonts] Check alignment shift count for resource data (#45938).
+
+	* src/winfonts/winfnt.c (fnt_face_get_dll_font): Implement it.
+
+2015-09-13  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Fix potential buffer overflow (#45923).
+
+	* src/type1/t1parse.c (T1_Get_Private_Dict): Assure `cur' doesn't
+	point to end of file buffer.
+
+2015-09-13  Werner Lemberg  <wl@gnu.org>
+
+	[gzip] Fix access of small compressed files (#45937).
+
+	* src/gzip/ftgzip.c (ft_gzip_stream_close): Avoid memory leak.
+
+	(ft_gzip_get_uncompressed_file): Correct byte order while reading
+	unsigned long value.  Without this change, the whole optimization of
+	accessing small files in `FT_Stream_OpenGzip' is never executed!  As
+	a consequence, access to PCF files in general (which are normally
+	small files) should be much improved now as originally intended.
+
+2015-09-11  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix potential buffer overflow (#45922).
+
+	* src/psaux/psobjs.c (ps_parser_skip_PS_token): If a token is
+	enclosed in balanced expressions, ensure that the cursor position
+	doesn't get larger than the current limit.
+
+2015-09-11  Werner Lemberg  <wl@gnu.org>
+
+	[base] Avoid crash while tracing `load_mac_face'.
+
+	Reported in Savannah bug #45919.
+
+	* src/base/ftobjs.c (load_mac_face): Honour FT_OPEN_MEMORY while
+	tracing.
+
+2015-09-11  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Fix endless loop (#45920).
+
+	* src/type42/t42parse.c (t42_parse_encoding): Synchronize with
+	type1's `parse_encoding'.
+
+2015-09-10  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Allow `-' in bold and italic markup.
+
+	* src/tools/docmaker/sources.py (re_italic, re_bold): Adjust
+	accordingly.
+
+2015-09-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftcalc.c (FT_RoundFix): Improve.
+
+2015-09-09  Wojciech Mamrak  <wmamrak@gmail.com>
+
+	* src/base/ftcalc.c (FT_CeilFix, FT_FloorFix): Normalize.
+
+	This commit makes the functions behave as expected, this is,
+	rounding towards plus or minus infinity.
+
+2015-09-07  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_render_line): Simplify clipping.
+
+2015-09-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster,smooth] Microoptimizations.
+
+	* src/raster/ftraster.c (Insert_Y_Turn, Finalize_Profile_Table,
+	Beziier_Up, ): Use do-while loops.
+
+	* src/smooth/ftgrays.c (gray_render_scanline, gray_render_line,
+	gray_convert_glyph): Ditto.
+
+2015-09-04  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Redesign code ranges (2/2).
+
+	This commit adds two fallback scripts (`latb', `latp') and
+	implements support for the no-base character ranges introduced in
+	the previous commit.
+
+	* src/autofit/aftypes.h (AF_ScriptClassRec): Add
+	`script_uni_nobase_ranges' field.
+	(AF_DEFINE_SCRIPT_CLASS): Updated.
+
+	* src/autofit/afscript.h, src/autofit/afstyles.h: Add `latb' and
+	`latp' fallback scripts.
+
+	* src/autofit/afblue.dat: Add blue zones for Latin subscript and
+	superscript fallback scripts.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afglobal.h (AF_NOBASE): New style flag for no-base
+	characters.
+	(AF_STYLE_MASK): Updated.
+
+	* src/autofit/afglobal.c (SCRIPT): Updated.
+	(af_face_globals_compute_style_coverage): Handle new style flag.
+
+	* src/autofit/aflatin.c (af_latin_hints_apply): Handle new style
+	flag.
+
+	* src/autofit/afranges.h (SCRIPT): Use it to export no-base ranges.
+
+2015-09-04  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Redesign code ranges (1/2).
+
+	This patch introduces auxiliary code ranges that identify no-base
+	characters; they refer to glyphs of a script that should be hinted
+	without alignments to blue zones (mostly diacritics).
+
+	It also splits off ranges for fallback scripts that handle subscript
+	and superscript characters not covered by OpenType features.  For
+	example, this greatly helps improve the hinting of various phonetic
+	alphabets, which contain a large amount characters that look like
+	superscript glyphs.
+
+	Finally, code ranges are updated to Unicode 8.0, and enclosed
+	characters are removed in general since they normally look better if
+	they stay unhinted.
+
+	* src/autofit/afranges.c (af_latn_uniranges): Updated to Unicode
+	8.0.
+	Split off superscript-like and subscript-like glyphs into...
+
+	(af_latb_uniranges, af_latp_uniranges): ... these two new arrays.
+
+	(af_xxxx_nobase_uniranges): New arrays that hold no-base characters
+	of the corresponding character ranges.
+
+2015-09-03  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Pass glyph index to hinting function.
+
+	No functionality change yet.
+
+	* src/autofit/aftypes.h (AF_WritingSystem_ApplyHintsFunc): Pass
+	glyph index.
+
+	* src/autofit/afcjk.c, src/autofit/afcjk.h (af_cjk_hints_apply),
+	src/autofit/afdummy.c (af_dummy_hints_apply), src/autofit/afindic.c
+	(af_indic_hints_apply), src/autofit/aflatin.c
+	(af_latin_hints_apply), src/autofit/aflatin2.c
+	(af_latin2_hints_apply), src/autofit/afloader.c (af_loader_load_g):
+	Updated.
+
+2015-08-30  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Code clean-up.
+
+	* src/autofit/afglobal.h (AF_STYLE_MASK): New macro.
+	(AF_STYLE_UNASSIGNED): Use AF_STYLE_MASK for definition.
+
+	* src/autofit/afglobal.c (af_face_globals_compute_style_coverage):
+	Updated.
+
+2015-08-30  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make glyph style array use 16bit values.
+
+	* include/freetype/ftautoh.h (FT_Prop_GlyphToScriptMap): Use
+	`FT_UShort' for `map' field.
+
+	* src/autofit/afglobal.c (af_face_globals_compute_style_coverage,
+	af_face_globals_new), src/autofit/hbshim.c, src/autofit/hbshim.h
+	(af_get_coverage): Use FT_UShort for `glyph_styles' array.
+
+	* src/autofit/afglobal.h (AF_STYLE_UNASSIGNED, AF_DIGIT): Extend to
+	16 bits.
+	(AF_FaceGlobalsRec): Use `FT_UShort' for `glyph_styles' field.
+
 2015-08-26  Werner Lemberg  <wl@gnu.org>
 
 	* builds/unix/configure.raw: Need harfbuzz >= 0.9.21 (#45828).

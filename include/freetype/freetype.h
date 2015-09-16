@@ -3032,11 +3032,13 @@ FT_BEGIN_HEADER
   /*    @FT_Get_Kerning.                                                   */
   /*                                                                       */
   /* <Values>                                                              */
-  /*    FT_KERNING_DEFAULT  :: Return scaled and grid-fitted kerning       */
-  /*                           distances (value is~0).                     */
+  /*    FT_KERNING_DEFAULT  :: Return grid-fitted kerning distances in     */
+  /*                           pixels (value is~0).  Whether they are      */
+  /*                           scaled depends on @FT_LOAD_NO_SCALE.        */
   /*                                                                       */
-  /*    FT_KERNING_UNFITTED :: Return scaled but un-grid-fitted kerning    */
-  /*                           distances.                                  */
+  /*    FT_KERNING_UNFITTED :: Return un-grid-fitted kerning distances in  */
+  /*                           26.6 fractional pixels.  Whether they are   */
+  /*                           scaled depends on @FT_LOAD_NO_SCALE.        */
   /*                                                                       */
   /*    FT_KERNING_UNSCALED :: Return the kerning vector in original font  */
   /*                           units.                                      */
@@ -3082,9 +3084,10 @@ FT_BEGIN_HEADER
   /*                   kerning vector.                                     */
   /*                                                                       */
   /* <Output>                                                              */
-  /*    akerning    :: The kerning vector.  This is either in font units   */
-  /*                   or in pixels (26.6 format) for scalable formats,    */
-  /*                   and in pixels for fixed-sizes formats.              */
+  /*    akerning    :: The kerning vector.  This is either in font units,  */
+  /*                   fractional pixels (26.6 format), or pixels for      */
+  /*                   scalable formats, and in pixels for fixed-sizes     */
+  /*                   formats.                                            */
   /*                                                                       */
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
@@ -3952,7 +3955,8 @@ FT_BEGIN_HEADER
   /*    a :: The number to be rounded.                                     */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    The result of `(a + 0x8000) & -0x10000'.                           */
+  /*    `a' rounded to nearest 16.16 fixed integer, halfway cases away     */
+  /*    from zero.                                                         */
   /*                                                                       */
   FT_EXPORT( FT_Fixed )
   FT_RoundFix( FT_Fixed  a );
@@ -3971,7 +3975,7 @@ FT_BEGIN_HEADER
   /*    a :: The number for which the ceiling function is to be computed.  */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    The result of `(a + 0x10000 - 1) & -0x10000'.                      */
+  /*    `a' rounded towards plus infinity.                                 */
   /*                                                                       */
   FT_EXPORT( FT_Fixed )
   FT_CeilFix( FT_Fixed  a );
@@ -3990,7 +3994,7 @@ FT_BEGIN_HEADER
   /*    a :: The number for which the floor function is to be computed.    */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    The result of `a & -0x10000'.                                      */
+  /*    `a' rounded towards minus infinity.                                */
   /*                                                                       */
   FT_EXPORT( FT_Fixed )
   FT_FloorFix( FT_Fixed  a );
