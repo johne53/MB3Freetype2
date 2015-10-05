@@ -377,7 +377,10 @@
       size = stream->read( stream, stream->pos, zip->input,
                            FT_GZIP_BUFFER_SIZE );
       if ( size == 0 )
+      {
+        zip->limit = zip->cursor;
         return FT_THROW( Invalid_Stream_Operation );
+      }
     }
     else
     {
@@ -386,7 +389,10 @@
         size = FT_GZIP_BUFFER_SIZE;
 
       if ( size == 0 )
+      {
+        zip->limit = zip->cursor;
         return FT_THROW( Invalid_Stream_Operation );
+      }
 
       FT_MEM_COPY( zip->input, stream->base + stream->pos, size );
     }
@@ -433,7 +439,8 @@
       }
       else if ( err != Z_OK )
       {
-        error = FT_THROW( Invalid_Stream_Operation );
+        zip->limit = zip->cursor;
+        error      = FT_THROW( Invalid_Stream_Operation );
         break;
       }
     }
@@ -563,16 +570,16 @@
   }
 
 
-  static FT_ULong
-  ft_gzip_stream_io( FT_Stream  stream,
-                     FT_ULong   pos,
-                     FT_Byte*   buffer,
-                     FT_ULong   count )
+  static unsigned long
+  ft_gzip_stream_io( FT_Stream       stream,
+                     unsigned long   offset,
+                     unsigned char*  buffer,
+                     unsigned long   count )
   {
     FT_GZipFile  zip = (FT_GZipFile)stream->descriptor.pointer;
 
 
-    return ft_gzip_file_io( zip, pos, buffer, count );
+    return ft_gzip_file_io( zip, offset, buffer, count );
   }
 
 
