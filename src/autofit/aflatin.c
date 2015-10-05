@@ -1038,8 +1038,11 @@
 
     if ( dim == AF_DIMENSION_VERT )
     {
-      FT_TRACE5(( "blue zones (style `%s')\n",
-                  af_style_names[metrics->root.style_class->style] ));
+#ifdef FT_DEBUG_LEVEL_TRACE
+      if ( axis->blue_count )
+        FT_TRACE5(( "blue zones (style `%s')\n",
+                    af_style_names[metrics->root.style_class->style] ));
+#endif
 
       /* scale the blue zones */
       for ( nn = 0; nn < axis->blue_count; nn++ )
@@ -2880,7 +2883,7 @@
         goto Exit;
 
       /* apply blue zones to base characters only */
-      if ( !( metrics->root.globals->glyph_styles[glyph_index] & AF_NOBASE ) )
+      if ( !( metrics->root.globals->glyph_styles[glyph_index] & AF_NONBASE ) )
         af_latin_hints_compute_blue_edges( hints, metrics );
     }
 

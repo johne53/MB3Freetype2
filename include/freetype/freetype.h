@@ -2743,6 +2743,16 @@ FT_BEGIN_HEADER
    *     bitmaps transparently.  Those bitmaps will be in the
    *     @FT_PIXEL_MODE_GRAY format.
    *
+   *   FT_LOAD_COMPUTE_METRICS ::
+   *     This flag sets computing glyph metrics without the use of bundled
+   *     metrics tables (for example, the `hdmx' table in TrueType fonts).
+   *     Well-behaving fonts have optimized bundled metrics and these should
+   *     be used.  This flag is mainly used by font validating or font
+   *     editing applications, which need to ignore, verify, or edit those
+   *     tables.
+   *
+   *     Currently, this flag is only implemented for TrueType fonts.
+   *
    *   FT_LOAD_CROP_BITMAP ::
    *     Ignored.  Deprecated.
    *
@@ -2788,6 +2798,7 @@ FT_BEGIN_HEADER
 #define FT_LOAD_NO_AUTOHINT                  ( 1L << 15 )
   /* Bits 16..19 are used by `FT_LOAD_TARGET_' */
 #define FT_LOAD_COLOR                        ( 1L << 20 )
+#define FT_LOAD_COMPUTE_METRICS              ( 1L << 21 )
 
   /* */
 
@@ -3371,6 +3382,13 @@ FT_BEGIN_HEADER
   /*        charcode = FT_Get_Next_Char( face, charcode, &gindex );        */
   /*      }                                                                */
   /*    }                                                                  */
+  /*                                                                       */
+  /*    Be aware that character codes can have values up to 0xFFFFFFFF;    */
+  /*    this might happen for non-Unicode or malformed cmaps.  However,    */
+  /*    even with regular Unicode encoding, so-called `last resort fonts'  */
+  /*    (using SFNT cmap format 13, see function @FT_Get_CMap_Format)      */
+  /*    normally have entries for all Unicode characters up to 0x1FFFFF,   */
+  /*    which can cause *a lot* of iterations.                             */
   /*                                                                       */
   /*    Note that `*agindex' is set to~0 if the charmap is empty.  The     */
   /*    result itself can be~0 in two cases: if the charmap is empty or    */
@@ -4075,7 +4093,7 @@ FT_BEGIN_HEADER
    */
 #define FREETYPE_MAJOR  2
 #define FREETYPE_MINOR  6
-#define FREETYPE_PATCH  0
+#define FREETYPE_PATCH  1
 
 
   /*************************************************************************/
