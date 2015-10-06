@@ -271,7 +271,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\ftdebug.c"
+				RelativePath="..\..\windows\ftdebug.c"
 				>
 			</File>
 			<File
