@@ -1,3 +1,322 @@
+2015-11-04  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Better tracing of composite glyphs.
+
+	* src/truetype/ttgload.c (TT_Load_Composite_Glyph,
+	load_truetype_glyph): Implement it.
+
+2015-11-03  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Protect against zero-size bitmaps (#46345).
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_bitmap): Check
+	`glyph_size'.
+
+2015-11-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	* src/autofit/afloader.c (af_loader_load_g): Implement emboldening.
+
+2015-11-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[autofit] Implement darkening computation function.
+
+	This is a crude adaption of the original `cf2_computeDarkening'
+	function.
+
+	* src/autofit/afloader.c (af_intToFixed, af_fixedToInt,
+	af_floatToFixed): New macros, taken from `cf2fixed.h'.
+	(af_loader_compute_darkening): New function.
+	* src/autofit/afloader.h: Updated.
+
+2015-11-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[autofit] Add functions to get standard widths for writing systems.
+
+	We need the computed standard horizontal and vertical widths for the
+	emboldening calculation.  This method provides a convenient way to
+	extract it from writing-system-specific metrics structures, which
+	all script definitions must implement.
+
+	* src/autofit/aftypes.h (AF_WritingSystem_GetStdWidthsFunc): New
+	function type.
+	(AF_WritingSystemClassRec): New member `style_metrics_getstdw'.
+	(AF_DEFINE_WRITING_SYSTEM_CLASS): Updated.
+
+	* src/autofit/afcjk.c (af_cjk_get_standard_width): New function.
+	(af_cjk_writing_system_class): Updated.
+	* src/autofit/afdummy.c	(af_dummy_writing_system_class): Updated.
+	* src/autofit/afindic.c (af_cjk_get_standard_width): New function.
+	(af_indic_writing_system_class): Updated.
+	* src/autofit/aflatin.c (af_latin_get_standard_width): New function.
+	(af_indic_writing_system_class): Updated.
+	* src/autofit/aflatin.c (af_latin_get_standard_width): New function.
+	(af_indic_writing_system_class): Updated.
+
+2015-11-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[autofit] Extend `AF_FaceGlobalsRec' to hold emboldening data.
+
+	* src/autofit/afglobal.h (AF_FaceGlobalsRec): Add fields.
+
+	* src/autofit/afglobal.c (af_face_globals_new): Initialize new
+	fields.
+	(af_face_globals_free): Reset new fields.
+
+2015-11-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[autofit] Add stem-darkening properties.
+
+	Actual code follows in a later commit.
+
+	* include/freetype/ftautoh.h: Document `no-stem-darkening' and
+	`darkening-parameters'.
+
+	* src/autofit/afmodule.h: New fields `no_stem_darkening' and
+	`darken_params'.
+
+	* src/autofit/afmodule.c (af_property_set, af_property_get):
+	Handle them.
+	(af_autofitter_init): Initialize them.
+
+2015-11-02  Bungeman  <bungeman@gmail.com>
+
+	[ftfuzzer] Add support for multiple files (patch #8779).
+
+	Currently, libFuzzer only supports mutation of a single file.  We
+	circumvent this problem by using an uncompressed tar archive as
+	multiple-file input for the fuzzer.
+
+	This patch enables tests of `FT_Attach_Stream' and AFM/PFM parsing;
+	a constructed tarball should contain a font file as the first
+	element, and files to be attached as further elements.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Include libarchive headers.
+	(archive_read_entry_data, parse_data): New functions.
+	(LLVMFuzzerTestOneInput): Updated.
+
+	* src/tools/ftfuzzer/ftmutator.cc: New file, providing a custom
+	mutator for libFuzzer that can mutate tarballs in a sensible way.
+
+2015-10-31  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix cmap 14 validation (#46346).
+
+	* src/sfnt/ttcmap.c (tt_cmap14_validate): Check limit before
+	accessing `numRanges' and `numMappings'.
+	Fix size check for non-default UVS table.
+
+2015-10-31  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Handle infinite recursion in bitmap strikes (#46344).
+
+	* src/sfnt/ttsbit.c (TT_SBitDecoder_LoadFunc,
+	tt_sbit_decoder_load_bitmap, tt_sbit_decoder_load_byte_aligned,
+	tt_sbit_decoder_load_bit_aligned, tt_sbit_decoder_load_png): Add
+	argument for recursion depth.
+	(tt_sbit_decoder_load_compound): Add argument for recursion depth.
+	Increase recursion counter for recursive call.
+	(tt_sbit_decoder_load_image): Add argument for recursion depth.
+	Check recurse depth.
+	(tt_face_load_sbit_image): Updated.
+
+2015-10-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afhints.c (af_glyph_hints_dump_points): Minor.
+
+2015-10-29  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Remove code to set MSVC's /FD compiler switch.
+
+	Problem reported by David Capello <davidcapello@gmail.com>; see
+
+	  http://lists.nongnu.org/archive/html/freetype-devel/2015-10/msg00108.html
+
+	for details.
+
+2015-10-27  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Add some safety guards (#46302).
+
+	* src/pfr/pfrload.h (PFR_CHECK): Rename to...
+	(PFR_CHECK_SIZE): ... this.
+	(PFR_SIZE): [!PFR_CONFIG_NO_CHECKS]: Define to PFR_CHECK_SIZE.
+
+	* src/pfr/pfrload.c (pfr_log_font_count): Check `count'. 
+	(pfr_extra_item_load_kerning_pairs): Remove tracing message.
+	(pfr_phy_font_load): Use PFR_CHECK_SIZE where appropriate.
+	Allocate `chars' after doing a size checks.
+
+	* src/pfr/pfrsbit.c (pfr_load_bitmap_bits): Move test for invalid
+	bitmap format to...
+	(pfr_slot_load_bitmap): ... this function.
+	Check bitmap size.
+
+2015-10-26  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix sanitizing logic for `loca' (#46223).
+
+	* src/truetype/ttpload.c (tt_face_load_loca): A thinko caused an
+	incorrect adjustment of the number of glyphs, most often using far
+	too large values.
+
+2015-10-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve tracing.
+
+	* src/autofit/afhints.c (af_print_idx, af_get_segment_index,
+	af_get_edge_index): New functions.
+
+	(af_glyph_hints_dump_points): Remove unnecessary `|', `[', and `]'.
+	Add segment and edge index for each point.
+	Slightly change printing order of some elements.
+	Don't print `-1' but `--' for missing elements.
+
+	(af_glyph_hints_dump_segments, af_glyph_hints_dump_edges): Remove
+	unnecessary `|', `[', and `]'.
+	Don't print `-1' but `--' for missing elements.
+
+2015-10-24  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Sanitize bitmap strike glyph height.
+
+	Problem reported by Nikolay Sivov <bunglehead@gmail.com>.
+
+	* src/sfnt/ttsbit.c (tt_face_load_strike_metrics): Avoid zero value
+	for `metrics->height' by applying some heuristics.
+
+2015-10-22  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt, type42] Fix clang compiler warnings.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Initialize `offset'.
+
+	* src/type42/t42parse.c (t42_parse_sfnts): Use proper cast.
+
+2015-10-22  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[cff] Avoid overflow/module arithmetic.
+
+	This modifies the addition of subroutine number to subroutine bias
+	from unsigned to signed, but does not change any results.
+
+	* src/cff/cf2ft.c (cf2_initGlobalRegionBuffer,
+	cf2_initLocalRegionBuffer): Change variable names from (unsigned)
+	`idx' to (signed) `subrNum', since it is not an index until after
+	the bias is added.
+	* src/cff/cf2ft.h: Updated.
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString) <cf2_cmdCALLSUBR>:
+	Updated similarly.
+
+2015-10-22  Werner Lemberg  <wl@gnu.org>
+
+	[cid] Better check of `SubrCount' dictionary entry (#46272).
+
+	* src/cid/cidload.c (cid_face_open): Add more sanity tests for
+	`fd_bytes', `gd_bytes', `sd_bytes', and `num_subrs'.
+
+2015-10-21  Werner Lemberg  <wl@gnu.org>
+
+	[base] Pacify compiler (#46266).
+
+	* src/base/ftoutln.c (FT_Outline_EmboldenXY): Initialize `in' and
+	`anchor'.
+
+2015-10-21  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Fix heap buffer overflow (#46269).
+
+	* src/type42/t42parse.c (t42_parse_sfnts): Fix off-by-one error in
+	bounds checking.
+
+2015-10-21  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Fix limit in assert for max hints.
+
+	* src/cff/cf2interp.c (cf2_hintmask_setAll): Allow mask equal to the
+	limit (96 bits).
+
+2015-10-21  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Remove an assert (#46107).
+
+	* src/cff/cf2hints.c (cf2_hintmap_insertHint): Ignore paired edges
+	in wrong order.
+
+2015-10-21  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Avoid unnecessarily large allocation for WOFFs (#46257).
+
+	* src/sfnt/sfobjs.c (woff_open_font): Use WOFF's `totalSfntSize'
+	only after thorough checks.
+	Add tracing messages.
+
+2015-10-21  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Better check invalid `sfnts' array data (#46255).
+
+	* src/type42/t42parse.c (t42_parse_sfnts): Table lengths must be
+	checked individually against available data size.
+
+2015-10-20  Werner Lemberg  <wl@gnu.org>
+
+	[cid] Add a bunch of safety checks.
+
+	* src/cid/cidload.c (parse_fd_array): Check `num_dicts' against
+	stream size.
+	(cid_read_subrs): Check largest offset against stream size.
+	(cid_parse_dict): Move safety check to ...
+	(cid_face_open): ... this function.
+	Also test length of binary data and values of `SDBytes',
+	`SubrMapOffset', `SubrCount', `CIDMapOffset', and `CIDCount'.
+
+2015-10-20  Werner Lemberg  <wl@gnu.org>
+
+	[cid] Avoid segfault with malformed input (#46250).
+
+	* src/cid/cidload.c (cid_read_subrs): Return a proper error code for
+	unsorted offsets.
+
+2015-10-20  StudioEtrange  <nomorgan@gmail.com>
+
+	* CMakeLists.txt: Enable shared library builds on MinGW (#46233).
+
+2015-10-20  Werner Lemberg  <wl@gnu.org>
+
+	* src/type1/t1afm.c (T1_Read_Metrics): Fix memory leak (#46229).
+
+2015-10-19  Bungeman  <bungeman@gmail.com>
+
+	[cid] Better handle invalid glyph stream offsets (#46221).
+
+	* src/cid/cidgload.c (cid_load_glyph): Check minimum size of glyph
+	length.
+
+2015-10-18  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix tracing of negative numbers.
+
+	Due to incorrect casting negative numbers were shown as very large
+	(positive) integers on 64bit systems.
+
+	* src/psaux/t1decode.c (t1_decoder_parse_charstrings) <op_none>:
+	Use division instead of shift.
+
+2015-10-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve TT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES (#46223).
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h: Surround it
+	with #ifndef ... #endif, as suggested in the tracker issue.
+
+2015-10-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Better protection against malformed `fpgm' (#46223).
+
+	* src/truetype/ttobjs.c (tt_size_init_bytecode): Don't execute a
+	malformed `fpgm' table more than once.
+
 2015-10-17  Werner Lemberg  <wl@gnu.org>
 
 	* src/cid/cidgload.c (cid_load_glyph): Fix memory leak.

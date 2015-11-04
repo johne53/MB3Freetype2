@@ -100,13 +100,13 @@ else ()
   endif ()
 endif ()
 
-if (WIN32 AND BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "Shared libraries not supported on Windows.")
-endif ()
-
 
 project(freetype)
 
+
+if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "Building shared libraries on Windows needs MinGW")
+endif ()
 
 # Disallow in-source builds
 if ("${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
@@ -327,12 +327,6 @@ if (BUILD_FRAMEWORK)
     PUBLIC_HEADER "${PUBLIC_HEADERS}"
     XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
   )
-endif ()
-
-
-if (MSVC)
-  set_target_properties(freetype PROPERTIES
-    COMPILE_FLAGS /Fd"$(IntDir)$(TargetName).pdb")
 endif ()
 
 
