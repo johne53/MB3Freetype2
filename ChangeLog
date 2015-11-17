@@ -1,3 +1,94 @@
+2015-11-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afhints.c (af_get_segment_index): Fix it.
+
+	The old code was too simple, returning invalid values in most cases
+	where a segment crosses the contour start.
+
+2015-11-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/bdf/bdflib.c (bdf_load_font): Fix small memory leak (#46439).
+
+2015-11-11  Werner Lemberg  <wl@gnu.org>
+
+	[cff, autofit] Switch off stem darkening by default.
+
+	* src/autofit/afmodule.c (af_autofitter_init), src/cff/cffobjs.c
+	(cff_driver_init): Do it.
+
+2015-11-10  Jan Alexander Steffens (heftig)  <jan.steffens@gmail.com>
+
+	Allow native CFF hinter in FT_RENDER_MODE_LIGHT.
+
+	Both the native CFF hinter and the auto-hinter now have a very
+	similar rendering style.
+
+	* include/freetype/freetype.h: Mention that FT_LOAD_TARGET_LIGHT no
+	longer implies FT_LOAD_FORCE_AUTOHINT.
+
+	* include/freetype/ftmodapi.h (FT_MODULE_DRIVER_HINTS_LIGHTLY): New
+	macro.
+
+	* include/freetype/internal/ftobjs.h (FT_DRIVER_HINTS_LIGHTLY): New
+	macro.
+
+	* src/cff/cffdrivr.c (cff_driver_class): Use it.
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Update auto-hinter selection
+	logic.
+
+2015-11-09  Werner Lemberg  <wl@gnu.org>
+
+	* src/cid/cidload.c (cid_face_open): Fix GDBytes guard (#46408).
+
+2015-11-09  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Remove integer to pointer conversion compiler warning.
+
+	Problem reported by Alexei.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Use a solution found
+	in the glib library to fix the issue.
+
+2015-11-08  Behdad Esfahbod  <behdad@behdad.org>
+
+	[sfnt] Accept version 3 of `EBLC' and `CBLC' tables also.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit): Implement it.
+
+2015-11-08  Philipp Knechtges  <philipp-dev@knechtges.com>
+
+	[autofit] Don't distort (latin) glyphs too much (#46195).
+
+	* src/autofit/aflatin.h (AF_LatinBlueRec): Add `ascender' and
+	`descender' fields.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Collect
+	ascender and descender data for blue zones.
+	(af_latin_metrics_scale_dim): Reject vertical scaling values that
+	change the result by more than two pixels.
+
+2015-11-05  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Ignore embedded bitmaps with zero size (#46379).
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_bit_aligned): Implement
+	it.
+
+2015-11-04  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Catch infinite recursion in subglyphs (#46372).
+
+	* include/freetype/internal/tttypes.h (TT_LoaderRec): New field
+	`composites'.
+
+	* src/truetype/ttgload.c: Include FT_LIST_H.
+	(load_truetype_glyph): Add composite subglyph index to a list;
+	abort if index is already in list.
+	(tt_loader_init): Updated.
+	(tt_loader_done): New function.
+	(TT_Load_Glyph): Call `tt_loader_done'.
+
 2015-11-04  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Better tracing of composite glyphs.
