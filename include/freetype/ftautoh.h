@@ -442,16 +442,29 @@ FT_BEGIN_HEADER
   /**************************************************************************
    *
    * @property:
-   *   no-stem-darkening
+   *   no-stem-darkening[autofit]
    *
    * @description:
-   *   *Experimental* *only*
+   *   *Experimental* *only,* *requires* *linear* *alpha* *blending* *and*
+   *   *gamma* *correction*
    *
-   *   The main purpose of emboldening glyphs or `stem darkening' is to
-   *   enhance readability at smaller sizes.  The smaller the size, the more
-   *   emboldening is applied to keep glyphs from `thinning out'.  All
-   *   glyphs that pass through the autohinter will be emboldened unless
-   *   this property is set to TRUE.
+   *   Stem darkening emboldens glyphs at smaller sizes to make them more
+   *   readable on common low-DPI screens when using linear alpha blending
+   *   and gamma correction, see @FT_Render_Glyph.  When not using linear
+   *   alpha blending and gamma correction, glyphs will appear heavy and
+   *   fuzzy!
+   *
+   *   Gamma correction essentially lightens fonts since shades of grey are
+   *   shifted to higher pixel values (=~higher brightness) to match the
+   *   original intention to the reality of our screens.  The side-effect is
+   *   that glyphs `thin out'.  Mac OS~X and Adobe's proprietary font
+   *   rendering library implement a counter-measure: stem darkening at
+   *   smaller sizes where shades of gray dominate.  By emboldening a glyph
+   *   slightly in relation to its pixel size, individual pixels get higher
+   *   coverage of filled-in outlines and are therefore `blacker'.  This
+   *   counteracts the `thinning out' of glyphs, making text remain readable
+   *   at smaller sizes.  All glyphs that pass through the auto-hinter will
+   *   be emboldened unless this property is set to TRUE.
    *
    *   See the description of the CFF driver for algorithmic details.  Total
    *   consistency with the CFF driver is currently not achieved because the
@@ -460,25 +473,13 @@ FT_BEGIN_HEADER
    *   The smaller the size (especially 9ppem and down), the higher the loss
    *   of emboldening versus the CFF driver.
    *
-   *   *ATTENTION*: This feature has been developed with linear alpha
-   *   blending and gamma correction of glyphs in mind: A rendering library
-   *   must apply linear alpha blending while compositing glyph bitmaps onto
-   *   a surface and then apply gamma correction to the glyph pixels to get
-   *   from linear space to display space (unless the display works in
-   *   linear space).  Internal testing at Adobe found that a gamma
-   *   correction value of 1.8 gives good results across a wide range of
-   *   displays with a sRGB gamma curve or a similar one.
-   *
-   *   If this is not possible, it might be better to disable stem
-   *   darkening.  Currently, this can only be done globally.
-   *
    */
 
 
   /**************************************************************************
    *
    * @property:
-   *   darkening-parameters
+   *   darkening-parameters[autofit]
    *
    * @description:
    *   *Experimental* *only*
@@ -486,7 +487,7 @@ FT_BEGIN_HEADER
    *   See the description of the CFF driver for details.  This
    *   implementation appropriates the
    *   CFF_CONFIG_OPTION_DARKENING_PARAMETER_* #defines for consistency.
-   *   Note the differences described in @no-stem-darkening.
+   *   Note the differences described in @no-stem-darkening[autofit].
    *
    */
 

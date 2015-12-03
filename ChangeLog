@@ -1,3 +1,171 @@
+2015-12-03  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/install.mk (install): Remove stale `ft2build.h'.
+
+2015-12-01  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Avoid dangling pointer (#46572).
+
+	* src/type1/t1afm.c (T1_Read_Metrics): Properly reset
+	`face->afm_data'.
+
+2015-11-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* include/freetype/ftlcdfil.h: Documentation tweak.
+
+2015-11-28  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.6.2 released.
+	=========================
+
+
+	Tag sources with `VER-2-6-2'.
+
+	* docs/VERSION.DLL: Update documentation and bump version number to
+	2.6.2.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.6.1/2.6.2/, s/261/262/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 2.
+
+	* builds/unix/configure.raw (version_info): Set to 18:2:12.
+	* CMakeLists.txt (VERSION_PATCH): Set to 2.
+
+	* docs/CHANGES: Updated.
+
+2015-11-28  Werner Lemberg  <wl@gnu.org>
+
+	Fix C++ compilation.
+
+	* src/autofit/afloader.c: Include FT_INTERNAL_CALC_H.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Pacify compiler.
+
+2015-11-28  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	Change default LCD filter to be normalized and color-balanced.
+
+	* src/base/ftlcdfil.c (FT_Library_SetLcdFilter): Update
+	`default_filter'.
+
+2015-11-28  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Allow references to section names.
+
+	In the reference, we show the section's title enclosed in single
+	quotes.
+
+	* src/tools/docmaker/formatter.py (Formatter::__init__): Collect
+	section names as identifiers.
+
+	* src/tools/docmaker/tohtml.py (section_title_header): Split into...
+	(section_title_header1, section_title_header2): ... these two
+	strings.
+	(HtmlFormatter::make_block_url, make_html_word, html_source_quote):
+	Handle sections.
+	(HtmlFormatter::section_enter): Updated to add `id' HTML attribute.
+
+2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
+
+	[cmake] Add script to test the config module.
+
+	* builds/cmake/testbuild.sh: New file.
+
+2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
+
+	* CMakeLists.txt: Create `freetype-config.cmake' config module.
+
+2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
+
+	* CMakeLists.txt: Set CMAKE_DEBUG_POSTFIX to `d'.
+
+2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
+
+	[cmake] Add better control of library dependencies.
+
+	* CMakeLists.txt: Add `WITH_*' variables to force/auto/omit
+	ZLIB/BZip2/PNG/HarfBuzz.
+
+2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
+
+	[cmake] Make `FindHarfbuzz' observe the REQUIRED option.
+
+	* builds/cmake/FindHarfBuzz.cmake: Implement it.
+
+2015-11-27  Werner Lemberg  <wl@gnu.org>
+
+	[cmake] Collect files specific to cmake in `builds/cmake'.
+
+	* builds/FindHarfBuzz.cmake: Move to ...
+	* builds/cmake/FindHarfBuzz.cmake: ... this place.
+
+	* CMakeLists.txt (CMAKE_MODULE_PATH): Updated.
+
+2015-11-27  Alexander Bock  <alexander.j.bock@nasa.gov>
+
+	CMakeLists.txt: Honour new command line flag `FREETYPE_NO_DIST'.
+
+2015-11-26  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Allow `foo[bar]' as identifier.
+
+	We need this to handle equally named properties in different
+	modules.
+
+	* src/tools/docmaker/content.py (re_identifier),
+	src/tools/docmaker/sources.py (re_crossref): Allow `foo[bar]'.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::make_html_word,
+	HtmlFormatter::index_exit, HtmlFormatter::section_enter,
+	HtmlFormatter::block_enter): Handle `foo[bar]'.
+
+2015-11-25  Werner Lemberg  <wl@gnu.org>
+
+	* src/bdf/bdflib.c (bdf_load_font): Fix small memory leak (#46480).
+
+	(_bdf_parse_glyphs): Always reset `p->glyph_name' after moving its
+	contents.
+
+2015-11-21  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/internal/ftcalc.h: Don't use `register' keyword.
+
+	This fixes compiler warnings.
+
+	Reported by Behdad.
+
+2015-11-20  Werner Lemberg  <wl@gnu.org>
+
+	Add `FT_LCD_FILTER_LEGACY1' enum value.
+
+	This does the same as `FT_LCD_FILTER_LEGACY'.
+
+	See
+
+	  https://bugs.freedesktop.org/show_bug.cgi?id=92981
+
+	for the reasoning.
+
+	* include/freetype/ftlcdfil.h (FT_LcdFilter): New value
+	`FT_LCD_FILTER_LEGACY1'.
+
+	* src/base/ftlcdfil.c (FT_Library_SetLcdFilter): Use it.
+
 2015-11-15  Werner Lemberg  <wl@gnu.org>
 
 	* src/autofit/afhints.c (af_get_segment_index): Fix it.
