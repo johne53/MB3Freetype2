@@ -1521,7 +1521,8 @@
     if ( error )
       goto Exit;
 
-    if ( FT_Stream_Seek( stream, pos + offset ) )
+    error = FT_Stream_Seek( stream, pos + offset );
+    if ( error )
       goto Exit;
 
     if ( FT_ALLOC( sfnt_ps, (FT_Long)length ) )
@@ -1802,7 +1803,8 @@
       goto Exit;
 
     /* rewind sfnt stream before open_face_PS_from_sfnt_stream() */
-    if ( FT_Stream_Seek( stream, flag_offset + 4 ) )
+    error = FT_Stream_Seek( stream, flag_offset + 4 );
+    if ( error )
       goto Exit;
 
     if ( FT_ALLOC( sfnt_data, rlen ) )
@@ -2183,7 +2185,8 @@
                FT_ERR_EQ( error, Table_Missing )                        )
           {
             /* TrueType but essential tables are missing */
-            if ( FT_Stream_Seek( stream, 0 ) )
+            error = FT_Stream_Seek( stream, 0 );
+            if ( error )
               break;
 
             error = open_face_PS_from_sfnt_stream( library,

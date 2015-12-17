@@ -1,3 +1,264 @@
+2015-12-15  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add blue-zone support for Bengali script.
+
+	This essentially moves the Bengali script from the `Indic' hinter to
+	the `Latin' hinter.
+
+	* src/autofit/afblue.dat: Add blue zone data for Bengali.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Bengali standard characters and move
+	data out of AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afranges.c: Move Bengali data out of
+	AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afstyles.h: Update Bengali data; in particular, use
+	AF_WRITING_SYSTEM_LATIN.
+
+2015-12-14  Ben Wagner  <bungeman@gmail.com>
+
+	[bdf] Remove dead code (#46625).
+
+	The BDF specification only allows decimal numbers, no octal or
+	hexidecimal decoding is needed.
+
+	* src/bdf/bdflib.c (_bdf_atoul, _bdf_atol, _bdf_atous,
+	_bdf_atos): Remove unused code and parameters.
+	Update all callers.
+	(odigits): Remove.
+
+2015-12-14  Werner Lemberg  <wl@gnu.org>
+
+	[base] Fix calls to `FT_Stream_Seek'.
+
+	* src/base/ftobjs.c (Mac_Read_sfnt_Resource, FT_Open_Face): Set
+	`error'.
+
+2015-12-14  Ben Wagner <bungeman@gmail.com>
+
+	[base] Check error when seeking to data supplied offset (#46635).
+
+	* src/base/ftobjs.c (open_face_PS_from_sfnt_stream):
+	`ft_lookup_PS_in_sfnt_stream' returns offset and and length from
+	user supplied data.  Use of this these values must be checked.
+
+2015-12-13  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Myanmar script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Myanmar.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Myanmar standard characters.
+
+	* src/autofit/afranges.c: Add Myanmar data.
+
+	* src/autofit/afstyles.h: Add Myanmar data.
+
+2015-12-12  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Minor.
+
+2015-12-12  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afscript.h: Avoid potential crash.
+
+2015-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Restore OpenType feature check.
+
+	This was removed while rewriting the HarfBuzz interface.
+
+	* src/autofit/afglobal.h (AF_FaceGlobalsRec): Add `hb_buf' field to
+	hold internal HarfBuzz buffer, needed for feature comparison.
+
+	* src/autofit/afglobal.c (af_face_globals_new,
+	af_face_globals_free): Initialize and destroy `hb_buf'.
+
+	* src/autofit/afshaper.c (af_shaper_get_cluster): Compare character
+	(cluster) with and without applied feature.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Fix tracing
+	message.
+
+2015-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Remove redundant code.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths): Do it.
+
+2015-12-09  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Thinko.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Don't count
+	empty blue zones (bug introduced 2015-12-06).
+
+2015-12-09  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Introduce subscript top blue zones.
+
+	This feature is mainly for Khmer: The idea is to avoid a clash
+	between the top of subscript glyphs and the bottom of normal
+	baseline glyphs.
+
+	This only works for character clusters mapped to multiple glyphs.
+
+	* src/autofit/afblue.dat: Add subscript top blue zone for Khmer.
+
+	* src/autofit/afblue.hin (AF_BLUE_PROPERTY_LATIN_SUB_TOP): New
+	macro.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/aflatin.h (AF_LATIN_IS_SUB_TOP_BLUE,
+	AF_LATIN_BLUE_SUB_TOP): New macros.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Handle new
+	blue zone property.
+	Update tracing messages.
+	(af_latin_metrics_scale_dim): Handle new blue zone property.
+	(af_latin_hints_compute_blue_edges): Updated.
+
+2015-12-09  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix tracing message.
+
+	* src/autofit/aflatin.c (af_latin_metrics_scale_dim): Display
+	inactive blue zones also.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afblue.dat: Add more Khmer clusters.
+
+	Some fonts have incorrect ligatures; we need more samples to get a
+	good mean value.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Typos.
+
+	* src/autofit/afshaper.c (af_shaper_buf_create, af_shaper_get_elem)
+	[!FT_CONFIG_OPTION_USE_HARFBUZZ]: Make it compile.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Khmer script.
+
+	We split Khmer into two auto-hinter scripts: `Khmer' (`khmr') and
+	`Khmer symbols' (`khms', U+19E0-U+19FF).
+
+	* src/autofit/afblue.dat: Add blue zone data for Khmer.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Khmer standard characters.
+
+	* src/autofit/afranges.c: Add Khmer data.
+
+	* src/autofit/afstyles.h: Add Khmer data.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Rewrite HarfBuzz interface to support character clusters.
+
+	Scripts like Khmer have blue zones that can't be directly
+	represented by Unicode characters.  Instead, it is necessary to let
+	HarfBuzz convert character clusters into proper glyph representation
+	forms, then deriving the blue zone information from the resulting
+	glyphs.
+
+	* src/autofit/hbshim.c, src/autofit/hbshim.h: Replaced by...
+	* src/autofit/afshaper.c, src/autofit/afshaper.h: ... these two new
+	files, providing a new API to access HarfBuzz.
+
+	The new API manages a HarfBuzz buffer with `af_shaper_buf_create'
+	and `af_shaper_buf_destroy'.  The buffer receives a UTF8 encoded
+	string with function `af_shaper_get_cluster', and the resulting
+	glyph data (indices, advance widths, vertical offsets) can be
+	iteratively accessed with function `af_shaper_get_elem'.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths,
+	af_cjk_metrics_init_blues, af_cjk_metrics_check_digits): Updated.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths,
+	af_latin_metrics_init_blues, af_latin_metrics_check_digits):
+	Updated.
+
+	* include/freetype/internal/fttrace.h: s/afharfbuzz/afshaper/.
+
+	* src/autofit/afglobal.c: s/hbshim.h/afshaper.h/.
+	(af_face_globals_compute_style_coverage): Updated.
+
+	* src/autofit/afglocal.h: s/hbshim.h/afshaper.h/.
+
+	* src/autofit/autofit.c: s/hbshim.c/afshaper.c/.
+
+	* src/autofit/Jamfile, src/autofit/rules.mk (AUTOF_DRV_SRC):
+	Updated.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Prepare forthcoming changes.
+
+	This makes it easier to control the commits.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Add dummy
+	loop.  No functional change.
+
+2015-12-06  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Use string of standard characters.
+
+	This is more flexible; additionally, it would allow character
+	clusters.
+
+	* src/autofit/aftypes.h (SCRIPT, AF_DEFINE_SCRIPT_CLASS): Updated.
+	(AF_ScriptClassRec): Replace `standard_char[123]' with
+	`standard_charstring'.
+
+	* src/autofit/afscript.h: Replace last three character arguments
+	of the `SCRIPT' calls with a string parameter, holding the standard
+	characters (in UTF-8 encoding) separated with spaces.
+
+	* src/autofit/afglobal.c, src/autofit/afglobal.h,
+	src/autofit/afpic.c, src/autofit/afranges.c, src/autofit/hbshim.c
+	(SCRIPT): Updated.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths),
+	src/autofit/aflatin.c (af_latin_metrics_init_widths): Updated.
+
+2015-12-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afblue.dat: Separate blue zone characters with spaces.
+
+	Another preparation for character cluster support.
+
+	* src/autofit/afblue.c, src/autofit.afblue.h: Regenerated.
+
+2015-12-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/afblue.pl (convert_ascii_chars): Don't ignore spaces.
+
+	Instead, reduce multiple spaces to a single one.  We need this later
+	for supporting character clusters in `afblue.dat'.
+
+2015-12-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afblue.hin (GET_UTF8_CHAR): Use `do...while(0)'.
+
+	* src/autofit/afblue.h: Regenerated.
+
+2015-12-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afwarp.c: s/INT_MIN/FT_INT_MIN/.
+
 2015-12-03  Werner Lemberg  <wl@gnu.org>
 
 	* builds/unix/install.mk (install): Remove stale `ft2build.h'.
@@ -337,7 +598,7 @@
 	Handle them.
 	(af_autofitter_init): Initialize them.
 
-2015-11-02  Bungeman  <bungeman@gmail.com>
+2015-11-02  Ben Wagner  <bungeman@gmail.com>
 
 	[ftfuzzer] Add support for multiple files (patch #8779).
 
@@ -400,7 +661,7 @@
 	(PFR_CHECK_SIZE): ... this.
 	(PFR_SIZE): [!PFR_CONFIG_NO_CHECKS]: Define to PFR_CHECK_SIZE.
 
-	* src/pfr/pfrload.c (pfr_log_font_count): Check `count'. 
+	* src/pfr/pfrload.c (pfr_log_font_count): Check `count'.
 	(pfr_extra_item_load_kerning_pairs): Remove tracing message.
 	(pfr_phy_font_load): Use PFR_CHECK_SIZE where appropriate.
 	Allocate `chars' after doing a size checks.
@@ -545,7 +806,7 @@
 
 	* src/type1/t1afm.c (T1_Read_Metrics): Fix memory leak (#46229).
 
-2015-10-19  Bungeman  <bungeman@gmail.com>
+2015-10-19  Ben Wagner  <bungeman@gmail.com>
 
 	[cid] Better handle invalid glyph stream offsets (#46221).
 
@@ -623,7 +884,7 @@
 
 	* src/tools/ftfuzzer/README: New file.
 
-2015-10-15  Bungeman  <bungeman@gmail.com>
+2015-10-15  Ben Wagner  <bungeman@gmail.com>
 
 	[bdf] Fix memory leak (#46213).
 
@@ -646,7 +907,7 @@
 
 	The used indices were off by 1.
 
-2015-10-15  Bungeman  <bungeman@gmail.com>
+2015-10-15  Ben Wagner  <bungeman@gmail.com>
 	    Werner Lemberg  <wl@gnu.org>
 
 	* src/tools/ftfuzzer/ftfuzzer.cc: Handle fixed sizes (#46211).
@@ -992,7 +1253,7 @@
 	* src/autofit/afstyles.h: Add Lao data.
 
 2015-09-27  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
- 
+
 	[base] Fix a leak by broken sfnt-PS or resource fork (#46028).
 
 	open_face_from_buffer() frees passed buffer if valid font
