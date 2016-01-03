@@ -221,164 +221,6 @@
 
   /*************************************************************************/
   /*                                                                       */
-  /* Hash table utilities for the properties.                              */
-  /*                                                                       */
-  /*************************************************************************/
-
-  /* XXX: Replace this with FreeType's hash functions */
-
-
-#define INITIAL_HT_SIZE  241
-
-  typedef void
-  (*hash_free_func)( hashnode  node );
-
-  static hashnode*
-  hash_bucket( const char*  key,
-               hashtable*   ht )
-  {
-    const char*    kp  = key;
-    unsigned long  res = 0;
-    hashnode*      bp  = ht->table, *ndp;
-
-
-    /* Mocklisp hash function. */
-    while ( *kp )
-      res = ( res << 5 ) - res + (unsigned long)*kp++;
-
-    ndp = bp + ( res % ht->size );
-    while ( *ndp )
-    {
-      kp = (*ndp)->key;
-      if ( kp[0] == key[0] && ft_strcmp( kp, key ) == 0 )
-        break;
-      ndp--;
-      if ( ndp < bp )
-        ndp = bp + ( ht->size - 1 );
-    }
-
-    return ndp;
-  }
-
-
-  static FT_Error
-  hash_rehash( hashtable*  ht,
-               FT_Memory   memory )
-  {
-    hashnode*     obp = ht->table, *bp, *nbp;
-    unsigned int  i, sz = ht->size;
-    FT_Error      error = FT_Err_Ok;
-
-
-    ht->size <<= 1;
-    ht->limit  = ht->size / 3;
-
-    if ( FT_NEW_ARRAY( ht->table, ht->size ) )
-      goto Exit;
-
-    for ( i = 0, bp = obp; i < sz; i++, bp++ )
-    {
-      if ( *bp )
-      {
-        nbp = hash_bucket( (*bp)->key, ht );
-        *nbp = *bp;
-      }
-    }
-    FT_FREE( obp );
-
-  Exit:
-    return error;
-  }
-
-
-  static FT_Error
-  hash_init( hashtable*  ht,
-             FT_Memory   memory )
-  {
-    unsigned int  sz    = INITIAL_HT_SIZE;
-    FT_Error      error = FT_Err_Ok;
-
-
-    ht->size  = sz;
-    ht->limit = sz / 3;
-    ht->used  = 0;
-
-    if ( FT_NEW_ARRAY( ht->table, sz ) )
-      goto Exit;
-
-  Exit:
-    return error;
-  }
-
-
-  static void
-  hash_free( hashtable*  ht,
-             FT_Memory   memory )
-  {
-    if ( ht != 0 )
-    {
-      unsigned int  i, sz = ht->size;
-      hashnode*     bp = ht->table;
-
-
-      for ( i = 0; i < sz; i++, bp++ )
-        FT_FREE( *bp );
-
-      FT_FREE( ht->table );
-    }
-  }
-
-
-  static FT_Error
-  hash_insert( char*       key,
-               size_t      data,
-               hashtable*  ht,
-               FT_Memory   memory )
-  {
-    hashnode   nn;
-    hashnode*  bp      = hash_bucket( key, ht );
-    FT_Error   error   = FT_Err_Ok;
-
-
-    nn = *bp;
-    if ( !nn )
-    {
-      if ( FT_NEW( nn ) )
-        goto Exit;
-      *bp = nn;
-
-      nn->key  = key;
-      nn->data = data;
-
-      if ( ht->used >= ht->limit )
-      {
-        error = hash_rehash( ht, memory );
-        if ( error )
-          goto Exit;
-      }
-      ht->used++;
-    }
-    else
-      nn->data = data;
-
-  Exit:
-    return error;
-  }
-
-
-  static hashnode
-  hash_lookup( const char* key,
-               hashtable*  ht )
-  {
-    hashnode *np = hash_bucket( key, ht );
-
-
-    return *np;
-  }
-
-
-  /*************************************************************************/
-  /*                                                                       */
   /* Utility types and functions.                                          */
   /*                                                                       */
   /*************************************************************************/
@@ -970,7 +812,7 @@
     /* First check whether the property has        */
     /* already been added or not.  If it has, then */
     /* simply ignore it.                           */
-    if ( hash_lookup( name, &(font->proptbl) ) )
+    if ( ft_hash_str_lookup( name, &(font->proptbl) ) )
       goto Exit;
 
     if ( FT_RENEW_ARRAY( font->user_props,
@@ -995,7 +837,7 @@
 
     n = _num_bdf_properties + font->nuser_props;
 
-    error = hash_insert( p->name, n, &(font->proptbl), memory );
+    error = ft_hash_str_insert( p->name, n, &(font->proptbl), memory );
     if ( error )
       goto Exit;
 
@@ -1006,25 +848,23 @@
   }
 
 
-  FT_LOCAL_DEF( bdf_property_t * )
+  FT_LOCAL_DEF( bdf_property_t* )
   bdf_get_property( char*        name,
                     bdf_font_t*  font )
   {
-    hashnode  hn;
-    size_t    propid;
+    size_t*  propid;
 
 
     if ( name == 0 || *name == 0 )
       return 0;
 
-    if ( ( hn = hash_lookup( name, &(font->proptbl) ) ) == 0 )
+    if ( ( propid = ft_hash_str_lookup( name, &(font->proptbl) ) ) == NULL )
       return 0;
 
-    propid = hn->data;
-    if ( propid >= _num_bdf_properties )
-      return font->user_props + ( propid - _num_bdf_properties );
+    if ( *propid >= _num_bdf_properties )
+      return font->user_props + ( *propid - _num_bdf_properties );
 
-    return (bdf_property_t*)_bdf_properties + propid;
+    return (bdf_property_t*)_bdf_properties + *propid;
   }
 
 
@@ -1232,8 +1072,7 @@
                      char*          value,
                      unsigned long  lineno )
   {
-    size_t          propid;
-    hashnode        hn;
+    size_t*         propid;
     bdf_property_t  *prop, *fp;
     FT_Memory       memory = font->memory;
     FT_Error        error  = FT_Err_Ok;
@@ -1242,11 +1081,12 @@
 
 
     /* First, check whether the property already exists in the font. */
-    if ( ( hn = hash_lookup( name, (hashtable *)font->internal ) ) != 0 )
+    if ( ( propid = ft_hash_str_lookup( name,
+                                        (FT_Hash)font->internal ) ) != NULL )
     {
       /* The property already exists in the font, so simply replace */
       /* the value of the property with the current value.          */
-      fp = font->props + hn->data;
+      fp = font->props + *propid;
 
       switch ( fp->format )
       {
@@ -1278,13 +1118,13 @@
 
     /* See whether this property type exists yet or not. */
     /* If not, create it.                                */
-    hn = hash_lookup( name, &(font->proptbl) );
-    if ( hn == 0 )
+    propid = ft_hash_str_lookup( name, &(font->proptbl) );
+    if ( propid == NULL )
     {
       error = bdf_create_property( name, BDF_ATOM, font );
       if ( error )
         goto Exit;
-      hn = hash_lookup( name, &(font->proptbl) );
+      propid = ft_hash_str_lookup( name, &(font->proptbl) );
     }
 
     /* Allocate another property if this is overflow. */
@@ -1308,11 +1148,10 @@
       font->props_size++;
     }
 
-    propid = hn->data;
-    if ( propid >= _num_bdf_properties )
-      prop = font->user_props + ( propid - _num_bdf_properties );
+    if ( *propid >= _num_bdf_properties )
+      prop = font->user_props + ( *propid - _num_bdf_properties );
     else
-      prop = (bdf_property_t*)_bdf_properties + propid;
+      prop = (bdf_property_t*)_bdf_properties + *propid;
 
     fp = font->props + font->props_used;
 
@@ -1345,10 +1184,10 @@
     if ( _bdf_strncmp( name, "COMMENT", 7 ) != 0 )
     {
       /* Add the property to the font property table. */
-      error = hash_insert( fp->name,
-                           font->props_used,
-                           (hashtable *)font->internal,
-                           memory );
+      error = ft_hash_str_insert( fp->name,
+                                  font->props_used,
+                                  (FT_Hash)font->internal,
+                                  memory );
       if ( error )
         goto Exit;
     }
@@ -2099,22 +1938,22 @@
         bdf_property_t*  prop;
 
 
-        error = hash_init( &(font->proptbl), memory );
+        error = ft_hash_str_init( &(font->proptbl), memory );
         if ( error )
           goto Exit;
         for ( i = 0, prop = (bdf_property_t*)_bdf_properties;
               i < _num_bdf_properties; i++, prop++ )
         {
-          error = hash_insert( prop->name, i,
-                               &(font->proptbl), memory );
+          error = ft_hash_str_insert( prop->name, i,
+                                      &(font->proptbl), memory );
           if ( error )
             goto Exit;
         }
       }
 
-      if ( FT_ALLOC( p->font->internal, sizeof ( hashtable ) ) )
+      if ( FT_ALLOC( p->font->internal, sizeof ( FT_HashRec ) ) )
         goto Exit;
-      error = hash_init( (hashtable *)p->font->internal,memory );
+      error = ft_hash_str_init( (FT_Hash)p->font->internal, memory );
       if ( error )
         goto Exit;
       p->font->spacing      = p->opts->font_spacing;
@@ -2500,7 +2339,7 @@
     /* Free up the internal hash table of property names. */
     if ( font->internal )
     {
-      hash_free( (hashtable *)font->internal, memory );
+      ft_hash_str_free( (FT_Hash)font->internal, memory );
       FT_FREE( font->internal );
     }
 
@@ -2545,7 +2384,7 @@
     FT_FREE( font->overflow.glyphs );
 
     /* bdf_cleanup */
-    hash_free( &(font->proptbl), memory );
+    ft_hash_str_free( &(font->proptbl), memory );
 
     /* Free up the user defined properties. */
     for ( prop = font->user_props, i = 0;
@@ -2566,15 +2405,15 @@
   bdf_get_font_property( bdf_font_t*  font,
                          const char*  name )
   {
-    hashnode  hn;
+    size_t*  propid;
 
 
     if ( font == 0 || font->props_size == 0 || name == 0 || *name == 0 )
       return 0;
 
-    hn = hash_lookup( name, (hashtable *)font->internal );
+    propid = ft_hash_str_lookup( name, (FT_Hash)font->internal );
 
-    return hn ? ( font->props + hn->data ) : 0;
+    return propid ? ( font->props + *propid ) : 0;
   }
 
 

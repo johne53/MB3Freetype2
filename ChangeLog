@@ -1,3 +1,207 @@
+2015-12-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Make top-to-bottom hinting work in latin auto-hinter.
+
+	This improves rendering of scripts like Bengali or Devanagari.
+
+	* src/autofit/afhints.c (af_axis_hints_new_edge): Add parameter to
+	pass top-to-bottom hinting flag.  This makes the function sort edges
+	in descending vertical position.
+
+	* src/autofit/afhints.c: Updated.
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_edges,
+	af_latin_hint_edges): Use `top_to_bottom_hinting' flag.
+
+	* src/autofit/afcjk.c (af_cjk_hints_compute_edges),
+	src/autofit/aflatin2.c (af_latin2_hints_compute_edges): Updated.
+
+2015-12-24  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add hinting direction to `AF_ScriptClassRec'.
+
+	Still unused.
+
+	* src/autofit/afglobal.c (SCRIPT): Handle hinting direction.
+
+	* src/autofit/aftypes.h (AF_ScriptClassRec): Add
+	`top_to_bottom_hinting' field.
+	(AF_HINTING_BOTTOM_TO_TOP, AF_HINTING_TOP_TO_BOTTOM): New macros.
+	(AF_DEFINE_SCRIPT_CLASS): Updated.
+
+2015-12-23  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Start implementing hinting direction (up/down, down/up).
+
+	Right now, it does nothing.
+
+	* src/autofit/afscript.h: Add another parameter to `SCRIPT',
+	specifying hinting direction.
+
+	* src/autofit/afglobal.c, scr/autofit/afglobal.h,
+	src/autofit/afpic.c, src/autofit/afranges.h, src/autofit/afshaper.c,
+	src/autofit/aftypes.h: Extend `SCRIPT' definitions.
+
+2015-12-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/type1/t1load.c (parse_subrs): Fix memory leak (#46744).
+
+2015-12-22  Werner Lemberg  <wl@gnu.org>
+
+	[base] Make hash interface symmetric.
+
+	Use `num' and `str' infixes everywhere.
+
+	* src/base/fthash.c (ft_hash_init): Renamed to...
+	(hash_init): ... This.
+	(ft_hash_str_init, ft_hash_num_init): New functions.
+	(ft_hash_free): Renamed to...
+	(ft_hash_str_free): ... This.
+
+	* include/freetype/internal/fthash.h: Updated.
+
+	* src/bdf/bdflib.c, src/type1/t1load.c, src/type1/t1objs.c: Updated.
+
+2015-12-21  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Avoid shift of negative numbers (#46732).
+
+	* src/type1/t1load.c (parse_subrs): Do it.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[type1, psaux] Handle large values of num_subrs correctly (#46692).
+
+	We now use a hash to map from subr indices to array elements holding
+	the subroutines, if necessary.
+
+	* include/freetype/internal/t1types.h: Include FT_INTERNAL_HASH_H.
+	(T1_FontRec): Add `subrs_hash' field.
+
+	* include/freetype/internal/psaux.h: Include FT_INTERNAL_HASH_H.
+	(T1_DecoderRec): Add `subrs_hash' field.
+
+	* src/type1/t1load.h (T1_LoaderRec): Add `subrs_hash' field.
+
+	* src/type1/t1driver.c: Include FT_INTERNAL_HASH_H.
+	(t1_ps_get_font_value) [PS_DICT_SUBR]: Look up hash if necessary.
+
+	* src/type1/t1load.c: Include FT_INTERNAL_HASH_H.
+	(parse_subrs): Use hash for subr indices that exceed the allocated
+	number of subr slots.
+	(t1_init_loader): Remove unnecessary code.
+	(t1_done_loader, T1_Open_Face): Updated.
+
+	* src/type1/t1gload.c (T1_Compute_Max_Advance, T1_Get_Advances,
+	T1_Load_Glyph): Updated.
+
+	* src/type1/t1objs.c (T1_Face_Done): Updated.
+
+	* src/psaux/t1decode.c: Include FT_INTERNAL_HASH_H.
+	(t1_decoder_parse_charstrings) [op_callsubr]: Look up hash if
+	necessary.
+
+	* src/cid/cidgload.c (cid_load_glyph): Updated.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base] Thinko: Remove free function pointer.
+
+	We don't copy keys or values while hashing.
+
+	* include/freetype/internal/fthash.h (FT_Hash_FreeFunc): Removed.
+	(FT_HashRec): Remove `free' field.
+
+	* src/base/fthash.c (hash_str_free): Removed.
+	(ft_hash_init, ft_hash_free): Updated.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base, bdf] Don't expose `FT_Hashnode' in hash functions.
+
+	* src/base/fthash.c (hash_lookup, ft_hash_str_lookup,
+	ft_hash_num_lookup): Return pointer to `size_t' instead of
+	`FT_Hashnode'.
+
+	* include/freetype/internal/fthash.h: Updated.
+
+	* src/bdf/bdflib.c (bdf_get_property, _bdf_add_property,
+	bdf_get_font_property): Updated.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base, bdf] Add number hashing.
+
+	* src/base/fthash.c (hash_num_lookup, hash_num_compare): New
+	functions.
+	(ft_hash_init): Add argument to select between number and string
+	hashing.
+	(ft_hash_num_insert, ft_hash_num_lookup): New functions.
+
+	* include/freetype/internal/fthash.h: Updated.
+
+	* src/bdf/bdflib.c (_bdf_parse_start): Updated.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base] Introduce hash lookup, compare, and free function pointers.
+
+	* include/freetype/internal/fthash.c (FT_Hash_LookupFunc,
+	FT_Hash_CompareFunc, FT_Hash_FreeFunc): New typedefs.
+	(FT_HashRec): Add `lookup', `compare', and `free' fields.
+
+	* src/base/fthash.c (hash_str_lookup, hash_str_compare,
+	hash_str_free): New functions.
+	(ft_hash_init): Set function pointers.
+	(hash_bucket, ft_hash_free): Use them.
+
+2015-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base, bdf] Use a union as a hash key.
+
+	We want to support both an integer and a string key later on.
+
+	* include/freetype/internal/fthash.h (FT_Hashkey): New union.
+	(FT_HashnodeRec): Updated.
+	(ft_hash_insert, ft_hash_lookup): Renamed to ...
+	(ft_hash_str_insert, ft_hash_str_lookup): ... this.
+
+	* src/base/fthash.c (hash_bucket): Updated.
+	(ft_hash_insert, ft_hash_lookup): Renamed to ...
+	(hash_insert, hash_lookup): ... this.
+	(ft_hash_str_insert, ft_hash_str_lookup): New wrapper functions.
+
+	* src/bdf/bdflib.c: Updated.
+
+2015-12-19  Werner Lemberg  <wl@gnu.org>
+
+	[bdf] Use new hash functions.
+
+	* src/bdf/bdf.h: Include FT_INTERNAL_HASH_H.
+	(hashnode, hashtable): Removed.
+	(bdf_font_t): Use `FT_HashRec' type for `proptbl'.
+
+	* src/bdf/bdflib.c: Remove all hash functions.
+	Update code for new hash structure and function names.
+
+2015-12-19  Werner Lemberg  <wl@gnu.org>
+
+	[bdf, base] Lift hash functions from bdf driver to base module.
+
+	* src/base/fthash.c, include/freetype/internal/fthash.h: New files,
+	containing (massaged) code from `bdflib.c' and `bdf.h'.
+
+	* include/freetype/internal/internal.h (FT_INTERNAL_HASH_H): New
+	macro.
+
+	* src/base/ftbase.c: Include `fthash.c'.
+
+	* src/base/Jamfile (_sources): Add `fthash'.
+
+	* src/base/rules.mk (BASE_SRC): Add `fthash.c'.
+
+	* docs/LICENSE.TXT: Updated.
+
 2015-12-15  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Add blue-zone support for Bengali script.
