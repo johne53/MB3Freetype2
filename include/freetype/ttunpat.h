@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Definitions for the unpatented TrueType hinting system               */
 /*                                                                         */
-/*  Copyright 2003-2015 by                                                 */
+/*  Copyright 2003-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  Written by Graham Asher <graham.asher@btinternet.com>                  */
@@ -18,8 +18,8 @@
 /***************************************************************************/
 
 
-#ifndef __TTUNPAT_H__
-#define __TTUNPAT_H__
+#ifndef TTUNPAT_H_
+#define TTUNPAT_H_
 
 
 #include <ft2build.h>
@@ -54,7 +54,7 @@ FT_BEGIN_HEADER
 FT_END_HEADER
 
 
-#endif /* __TTUNPAT_H__ */
+#endif /* TTUNPAT_H_ */
 
 
 /* END */

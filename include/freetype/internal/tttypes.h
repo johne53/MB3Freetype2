@@ -5,7 +5,7 @@
 /*    Basic SFNT/TrueType type definitions and interface (specification    */
 /*    only).                                                               */
 /*                                                                         */
-/*  Copyright 1996-2015 by                                                 */
+/*  Copyright 1996-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -17,8 +17,8 @@
 /***************************************************************************/
 
 
-#ifndef __TTTYPES_H__
-#define __TTTYPES_H__
+#ifndef TTTYPES_H_
+#define TTTYPES_H_
 
 
 #include <ft2build.h>
@@ -1523,7 +1523,7 @@ FT_BEGIN_HEADER
 
 FT_END_HEADER
 
-#endif /* __TTTYPES_H__ */
+#endif /* TTTYPES_H_ */
 
 
 /* END */

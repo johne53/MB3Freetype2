@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType error code handling (specification).                        */
 /*                                                                         */
-/*  Copyright 1996-2015 by                                                 */
+/*  Copyright 1996-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -72,13 +72,13 @@
   /*                                                                       */
   /*   This macro ends the list.                                           */
   /*                                                                       */
-  /*   Additionally, you have to undefine `__FTERRORS_H__' before          */
-  /*   #including this file.                                               */
+  /*   Additionally, you have to undefine `FTERRORS_H_' before #including  */
+  /*   this file.                                                          */
   /*                                                                       */
   /*   Here is a simple example.                                           */
   /*                                                                       */
   /*   {                                                                   */
-  /*     #undef __FTERRORS_H__                                             */
+  /*     #undef FTERRORS_H_                                                */
   /*     #define FT_ERRORDEF( e, v, s )  { e, s },                         */
   /*     #define FT_ERROR_START_LIST     {                                 */
   /*     #define FT_ERROR_END_LIST       { 0, NULL } };                    */
@@ -99,8 +99,8 @@
 
   /* */
 
-#ifndef __FTERRORS_H__
-#define __FTERRORS_H__
+#ifndef FTERRORS_H_
+#define FTERRORS_H_
 
 
   /* include module base error codes */
@@ -210,7 +210,7 @@
 #undef FT_ERR_PREFIX
 #endif
 
-#endif /* __FTERRORS_H__ */
+#endif /* FTERRORS_H_ */
 
 
 /* END */

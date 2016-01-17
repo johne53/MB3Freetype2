@@ -5,7 +5,7 @@
 /*    FreeType API for color filtering of subpixel bitmap glyphs           */
 /*    (specification).                                                     */
 /*                                                                         */
-/*  Copyright 2006-2015 by                                                 */
+/*  Copyright 2006-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -17,8 +17,8 @@
 /***************************************************************************/
 
 
-#ifndef __FT_LCD_FILTER_H__
-#define __FT_LCD_FILTER_H__
+#ifndef FTLCDFIL_H_
+#define FTLCDFIL_H_
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -137,7 +137,8 @@ FT_BEGIN_HEADER
    *     that is more forgiving to screens with non-ideal gamma curves and
    *     viewing angles.  Note that while color-fringing is reduced, it can
    *     only be minimized by using linear alpha blending and gamma
-   *     correction to render glyphs onto surfaces.
+   *     correction to render glyphs onto surfaces.  The default filter
+   *     weights are [0x08 0x4D 0x56 0x4D 0x08].
    *
    *   FT_LCD_FILTER_LIGHT ::
    *     The light filter is a variant that is sharper at the cost of
@@ -147,7 +148,8 @@ FT_BEGIN_HEADER
    *     is less forgiving to screens with non-ideal gamma curves and
    *     viewing angles.  This filter works best when the rendering system
    *     uses linear alpha blending and gamma correction to render glyphs
-   *     onto surfaces.
+   *     onto surfaces.  The light filter weights are
+   *     [0x00 0x55 0x56 0x55 0x00].
    *
    *   FT_LCD_FILTER_LEGACY ::
    *     This filter corresponds to the original libXft color filter.  It
@@ -248,10 +250,8 @@ FT_BEGIN_HEADER
    *   FT_Library_SetLcdFilterWeights
    *
    * @description:
-   *   Use this function to override the filter weights selected by
-   *   @FT_Library_SetLcdFilter.  By default, FreeType uses the quintuple
-   *   (0x00, 0x55, 0x56, 0x55, 0x00) for FT_LCD_FILTER_LIGHT, and (0x08,
-   *   0x4D, 0x56, 0x4D, 0x08) for FT_LCD_FILTER_DEFAULT.
+   *   This function can be used to enable LCD filter with custom weights,
+   *   instead of using presets in @FT_Library_SetLcdFilter.
    *
    * @input:
    *   library ::
@@ -271,9 +271,6 @@ FT_BEGIN_HEADER
    *   defined in your build of the library, which should correspond to all
    *   default builds of FreeType.
    *
-   *   This function must be called after @FT_Library_SetLcdFilter to have
-   *   any effect.
-   *
    * @since:
    *   2.4.0
    */
@@ -286,7 +283,7 @@ FT_BEGIN_HEADER
 
 FT_END_HEADER
 
-#endif /* __FT_LCD_FILTER_H__ */
+#endif /* FTLCDFIL_H_ */
 
 
 /* END */
