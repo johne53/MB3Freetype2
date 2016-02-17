@@ -5,9 +5,9 @@ require "../local-paths.lib";
 
 $major = 2;
 $minor = 6;
-$micro = 1;
-$binary_age = 601;
-$interface_age = 1;
+$micro = 3;
+$binary_age = 603;
+$interface_age = 3;
 $current_minus_age = 2;
 
 sub process_file
