@@ -111,6 +111,12 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE1\xB5\x92 \xE1\xB4\xBC \xE2\x81\xB0" ) /* ᵒ ᴼ ⁰ */
 
+  SCRIPT( mlym, MLYM,
+          "Malayalam",
+          HB_SCRIPT_MALAYALAM,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE0\xB4\xA0 \xE0\xB4\xB1" ) /* ഠ റ */
+
   SCRIPT( mymr, MYMR,
           "Myanmar",
           HB_SCRIPT_MYANMAR,
@@ -122,6 +128,19 @@
           HB_SCRIPT_INVALID,
           HINTING_BOTTOM_TO_TOP,
           "" )
+
+  SCRIPT( sinh, SINH,
+          "Sinhala",
+          HB_SCRIPT_SINHALA,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE0\xB6\xA7" ) /* ට */
+
+  /* only digit zero has a simple (round) shape in the Tamil script */
+  SCRIPT( taml, TAML,
+          "Tamil",
+          HB_SCRIPT_TAMIL,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE0\xAF\xA6" ) /* ௦ */
 
   /* there are no simple forms for letters; we thus use two digit shapes */
   SCRIPT( telu, TELU,
@@ -156,21 +175,9 @@
           HINTING_BOTTOM_TO_TOP,
           "o" ) /* XXX */
 
-  SCRIPT( mlym, MLYM,
-          "Malayalam",
-          HB_SCRIPT_MALAYALAM,
-          HINTING_BOTTOM_TO_TOP,
-          "o" ) /* XXX */
-
   SCRIPT( orya, ORYA,
           "Oriya",
           HB_SCRIPT_ORIYA,
-          HINTING_BOTTOM_TO_TOP,
-          "o" ) /* XXX */
-
-  SCRIPT( sinh, SINH,
-          "Sinhala",
-          HB_SCRIPT_SINHALA,
           HINTING_BOTTOM_TO_TOP,
           "o" ) /* XXX */
 
@@ -183,12 +190,6 @@
   SCRIPT( sylo, SYLO,
           "Syloti Nagri",
           HB_SCRIPT_SYLOTI_NAGRI,
-          HINTING_BOTTOM_TO_TOP,
-          "o" ) /* XXX */
-
-  SCRIPT( taml, TAML,
-          "Tamil",
-          HB_SCRIPT_TAMIL,
           HINTING_BOTTOM_TO_TOP,
           "o" ) /* XXX */
 

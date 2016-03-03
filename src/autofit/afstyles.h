@@ -168,6 +168,13 @@
          AF_COVERAGE_DEFAULT )
 #endif
 
+  STYLE( mlym_dflt, MLYM_DFLT,
+         "Malayalam default style",
+         AF_WRITING_SYSTEM_LATIN,
+         AF_SCRIPT_MLYM,
+         AF_BLUE_STRINGSET_MLYM,
+         AF_COVERAGE_DEFAULT )
+
   STYLE( mymr_dflt, MYMR_DFLT,
          "Myanmar default style",
          AF_WRITING_SYSTEM_LATIN,
@@ -180,6 +187,20 @@
          AF_WRITING_SYSTEM_DUMMY,
          AF_SCRIPT_NONE,
          (AF_Blue_Stringset)0,
+         AF_COVERAGE_DEFAULT )
+
+  STYLE( sinh_dflt, SINH_DFLT,
+         "Sinhala default style",
+         AF_WRITING_SYSTEM_LATIN,
+         AF_SCRIPT_SINH,
+         AF_BLUE_STRINGSET_SINH,
+         AF_COVERAGE_DEFAULT )
+
+  STYLE( taml_dflt, TAML_DFLT,
+         "Tamil default style",
+         AF_WRITING_SYSTEM_LATIN,
+         AF_SCRIPT_TAML,
+         AF_BLUE_STRINGSET_TAML,
          AF_COVERAGE_DEFAULT )
 
   STYLE( telu_dflt, TELU_DFLT,
@@ -211,12 +232,9 @@
   STYLE_DEFAULT_INDIC( gujr, GUJR, "Gujarati" )
   STYLE_DEFAULT_INDIC( guru, GURU, "Gurmukhi" )
   STYLE_DEFAULT_INDIC( limb, LIMB, "Limbu" )
-  STYLE_DEFAULT_INDIC( mlym, MLYM, "Malayalam" )
   STYLE_DEFAULT_INDIC( orya, ORYA, "Oriya" )
-  STYLE_DEFAULT_INDIC( sinh, SINH, "Sinhala" )
   STYLE_DEFAULT_INDIC( sund, SUND, "Sundanese" )
   STYLE_DEFAULT_INDIC( sylo, SYLO, "Syloti Nagri" )
-  STYLE_DEFAULT_INDIC( taml, TAML, "Tamil" )
   STYLE_DEFAULT_INDIC( tibt, TIBT, "Tibetan" )
 
 #endif /* AF_CONFIG_OPTION_INDIC */
