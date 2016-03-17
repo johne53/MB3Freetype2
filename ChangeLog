@@ -1,3 +1,81 @@
+2016-03-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Minor refactoring.
+
+	* src/smooth/ftgrays.c (gray_render_conic, gray_render_cubic): Move
+	upscaling from here...
+	(gray_conic_to, gray_cubic_to):... to here.
+
+2016-03-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin.c (af_latin_compute_stem_width): Optimize.
+
+2016-03-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Temporarily revert 6eb6158dd787 (#47114).
+
+	* src/smooth/ftgrays.c (gray_render_line): Old implementation.
+
+2016-03-12  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Improve coverage of rasterfuzzer.
+
+	* src/tools/ftfuzzer/rasterfuzzer.cc (LLVMFuzzerTestOneInput): Use
+	input data for `tags' array also.
+	Trim input data to get more positive hits.
+
+2016-03-11  Pavlo Denysov  <paul.kiev+savannah@gmail.com>
+
+	Fix CMake issues for iOS (patch #8941).
+
+	* CMakeLists.txt (CMAKE_TOOLCHAIN_FILE): Fix directory.
+	* builds/cmake/iOS.cmake: No longer enforce gcc.
+
+2016-03-09  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] Fix handling of non-intermediate GX tuples.
+
+	We probably did not notice this as all fonts we tested had only
+	tuple_coords[i] be +1 or -1 for non-intermediate tuples.
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Implement it.
+
+2016-03-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Refuse to render enormous outlines (#47114).
+
+	The goal is to avoid integer overflows in the rendering algorithms.
+	The limit is chosen arbitrarily at some 2^18 pixels, which should be
+	enough for modern devices including printers.
+
+	* src/base/ftoutln.c (FT_Outline_Render): Check CBox and reject
+	enormous outlines.
+
+2016-03-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Replace left shifts with multiplications (#47114).
+
+	* src/smooth/ftgrays.c (SUBPIXELS, UPSCALE, DOWNSCALE): Do it.
+
+2016-03-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Avoid excessive stem length rounding (#25392).
+
+	* src/autofit/aflatin.c (af_latin_compute_stem_width): Add argument
+	to pass difference between hinted and unhinted position of base
+	point; use this to adjust the stem width depending on the PPEM so
+	that it doesn't become too large under certain circumstances.
+	Update all callers using value 0 for this argument except...
+	(af_latin_align_linked_edge): Pass position delta of base point to
+	`af_latin_compute_stem_width'.
+
+2016-03-05  J Raynor <jxraynor@gmail.com>
+
+	Make FreeType compile on AIX out of the box.
+
+	* builds/unix/configure.raw (XX_ANSIFLAGS): Don't use `-ansi' on
+	AIX.
+
 2016-03-01  Werner Lemberg  <wl@gnu.org>
 	    Kostya Serebryany  <kcc@google.com>
 

@@ -320,17 +320,17 @@ typedef ptrdiff_t  FT_PtrDist;
 
 #define ONE_PIXEL       ( 1L << PIXEL_BITS )
 #define TRUNC( x )      ( (TCoord)( (x) >> PIXEL_BITS ) )
-#define SUBPIXELS( x )  ( (TPos)(x) << PIXEL_BITS )
+#define SUBPIXELS( x )  ( (TPos)(x) * ONE_PIXEL )
 #define FLOOR( x )      ( (x) & -ONE_PIXEL )
 #define CEILING( x )    ( ( (x) + ONE_PIXEL - 1 ) & -ONE_PIXEL )
 #define ROUND( x )      ( ( (x) + ONE_PIXEL / 2 ) & -ONE_PIXEL )
 
 #if PIXEL_BITS >= 6
-#define UPSCALE( x )    ( (x) << ( PIXEL_BITS - 6 ) )
+#define UPSCALE( x )    ( (x) * ( ONE_PIXEL >> 6 ) )
 #define DOWNSCALE( x )  ( (x) >> ( PIXEL_BITS - 6 ) )
 #else
 #define UPSCALE( x )    ( (x) >> ( 6 - PIXEL_BITS ) )
-#define DOWNSCALE( x )  ( (x) << ( 6 - PIXEL_BITS ) )
+#define DOWNSCALE( x )  ( (x) * ( 64 >> PIXEL_BITS ) )
 #endif
 
 
@@ -671,7 +671,7 @@ typedef ptrdiff_t  FT_PtrDist;
     gray_set_cell( RAS_VAR_ ex, ey );
   }
 
-#if 0
+#if 1
 
   /*************************************************************************/
   /*                                                                       */
@@ -1063,25 +1063,15 @@ typedef ptrdiff_t  FT_PtrDist;
 
 
   static void
-  gray_render_conic( RAS_ARG_ const FT_Vector*  control,
-                              const FT_Vector*  to )
+  gray_render_conic( RAS_ARG )
   {
     TPos        dx, dy;
     TPos        min, max, y;
     int         top, level;
-    int*        levels;
-    FT_Vector*  arc;
+    int*        levels = ras.lev_stack;
+    FT_Vector*  arc = ras.bez_stack;
 
 
-    levels = ras.lev_stack;
-
-    arc      = ras.bez_stack;
-    arc[0].x = UPSCALE( to->x );
-    arc[0].y = UPSCALE( to->y );
-    arc[1].x = UPSCALE( control->x );
-    arc[1].y = UPSCALE( control->y );
-    arc[2].x = ras.x;
-    arc[2].y = ras.y;
     top      = 0;
 
     dx = FT_ABS( arc[2].x + arc[0].x - 2 * arc[1].x );
@@ -1165,23 +1155,11 @@ typedef ptrdiff_t  FT_PtrDist;
 
 
   static void
-  gray_render_cubic( RAS_ARG_ const FT_Vector*  control1,
-                              const FT_Vector*  control2,
-                              const FT_Vector*  to )
+  gray_render_cubic( RAS_ARG )
   {
-    FT_Vector*  arc;
+    FT_Vector*  arc = ras.bez_stack;
     TPos        min, max, y;
 
-
-    arc      = ras.bez_stack;
-    arc[0].x = UPSCALE( to->x );
-    arc[0].y = UPSCALE( to->y );
-    arc[1].x = UPSCALE( control2->x );
-    arc[1].y = UPSCALE( control2->y );
-    arc[2].x = UPSCALE( control1->x );
-    arc[2].y = UPSCALE( control1->y );
-    arc[3].x = ras.x;
-    arc[3].y = ras.y;
 
     /* Short-cut the arc that crosses the current band. */
     min = max = arc[0].y;
@@ -1313,7 +1291,17 @@ typedef ptrdiff_t  FT_PtrDist;
                  const FT_Vector*  to,
                  gray_PWorker      worker )
   {
-    gray_render_conic( RAS_VAR_ control, to );
+    FT_Vector*  arc = ras.bez_stack;
+
+
+    arc[0].x = UPSCALE( to->x );
+    arc[0].y = UPSCALE( to->y );
+    arc[1].x = UPSCALE( control->x );
+    arc[1].y = UPSCALE( control->y );
+    arc[2].x = ras.x;
+    arc[2].y = ras.y;
+
+    gray_render_conic( RAS_VAR );
     return 0;
   }
 
@@ -1324,7 +1312,19 @@ typedef ptrdiff_t  FT_PtrDist;
                  const FT_Vector*  to,
                  gray_PWorker      worker )
   {
-    gray_render_cubic( RAS_VAR_ control1, control2, to );
+    FT_Vector*  arc = ras.bez_stack;
+
+
+    arc[0].x = UPSCALE( to->x );
+    arc[0].y = UPSCALE( to->y );
+    arc[1].x = UPSCALE( control2->x );
+    arc[1].y = UPSCALE( control2->y );
+    arc[2].x = UPSCALE( control1->x );
+    arc[2].y = UPSCALE( control1->y );
+    arc[3].x = ras.x;
+    arc[3].y = ras.y;
+
+    gray_render_cubic( RAS_VAR );
     return 0;
   }
 
