@@ -3106,9 +3106,9 @@
 
 
   static void
-  ft_black_reset( black_PRaster  raster,
-                  char*          pool_base,
-                  Long           pool_size )
+  ft_black_reset( FT_Raster  raster,
+                  PByte      pool_base,
+                  ULong      pool_size )
   {
     FT_UNUSED( raster );
     FT_UNUSED( pool_base );
@@ -3117,20 +3117,20 @@
 
 
   static int
-  ft_black_set_mode( black_PRaster  raster,
-                     ULong          mode,
-                     const char*    palette )
+  ft_black_set_mode( FT_Raster  raster,
+                     ULong      mode,
+                     void*      args )
   {
     FT_UNUSED( raster );
     FT_UNUSED( mode );
-    FT_UNUSED( palette );
+    FT_UNUSED( args );
 
     return 0;
   }
 
 
   static int
-  ft_black_render( black_PRaster            raster,
+  ft_black_render( FT_Raster                raster,
                    const FT_Raster_Params*  params )
   {
     const FT_Outline*  outline    = (const FT_Outline*)params->source;
@@ -3174,6 +3174,20 @@
 
     if ( !target_map->buffer )
       return FT_THROW( Invalid );
+
+    /* reject too large outline coordinates */
+    {
+      FT_Vector*  vec   = outline->points;
+      FT_Vector*  limit = vec + outline->n_points;
+
+
+      for ( ; vec < limit; vec++ )
+      {
+        if ( vec->x < -0x1000000L || vec->x > 0x1000000L ||
+             vec->y < -0x1000000L || vec->y > 0x1000000L )
+         return FT_THROW( Invalid );
+      }
+    }
 
     ras.outline = *outline;
     ras.target  = *target_map;

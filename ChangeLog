@@ -1,10 +1,163 @@
+2016-03-30  Werner Lemberg  <wl@gnu.org>
+
+	* src/pfr/pfrload.c (pfr_aux_name_load): Thinko (#47567).
+
+2016-03-30  Werner Lemberg  <wl@gnu.org>
+
+	* src/pfr/pfrload.c (pfr_log_font_count): Better font size estimate.
+
+2016-03-30  Werner Lemberg  <wl@gnu.org>
+
+	* src/pfr/pfrload.c (pfr_aux_name_load): Fix memory leak (#47567).
+
+2016-03-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftadvance.c (FT_Get_Advances): Fix invalid left shift.
+
+2016-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Fix binary search (#47514).
+
+	* src/pfr/pfrsbit.c (pfr_lookup_bitmap_data): Handle border
+	conditions correctly.
+
+2016-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Minor.
+
+	* src/pfr/pfrsbit.c (pfr_lookup_bitmap_data): Replace `left',
+	`right', and `middle' with `min', `max', and `mid' as used in other
+	FreeType binary search code.
+	(pfr_load_bitmap_metrics): Fix invalid left shift.
+
+2016-03-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/pfr/pfrtypes.h: Replace all enums with macros.
+
+	We need `~FOO' to unset bits, and only with unsigned values (which
+	`enum' isn't normally) this works cleanly.
+
+2016-03-26  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Robustify bitmap strike handling (#47514).
+
+	We did a binary search for a charcode without ensuring that the
+	searched data is ordered.  Validating the order is now done lazily,
+	this is, the first access to a bitmap glyph triggers the order check
+	in the corresponding bitmap strike.
+
+	* src/pfr/pfrtypes.h (PFR_BitmapFlags): New values
+	`PFR_BITMAP_VALID_CHARCODES' and `PFR_BITMAP_CHARCODES_VALIDATED'.
+
+	* src/pfr/pfrsbit.c (pfr_lookup_bitmap_data): Make `flags' argument
+	a pointer.  Handle new PFR_BITMAP_XXX flags.
+	(pfr_slot_load_bitmap): Updated.
+
+2016-03-26  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Fix handling of compound glyphs.
+
+	Extra items are indicated with different bit positions.
+
+	* src/pfr/pfrtypes.h (PFR_GlyphFlags): Replace
+	`PFR_GLYPH_EXTRA_ITEMS' with `PFR_GLYPH_SIMPLE_EXTRA_ITEMS' and
+	`PFR_GLYPH_COMPOUND_EXTRA_ITEMS'.
+
+	* src/pfr/pfrgload.c (pfr_glyph_load_simple,
+	pfr_glyph_load_compound): Use them.
+
+2016-03-25  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Minor.
+
+	* src/pfr/pfrsbit.c, srf/pfr/pfrobjs.c: Use flag names instead of
+	bare numbers.
+
+2016-03-25  Werner Lemberg  <wl@gnu.org>
+
+	[pfr] Various clang sanitizer fixes.
+
+	* src/pfr/pfrsbit.c (pfr_load_bitmap_metrics): Correctly handle
+	signed nibbles.
+	(pfr_slot_load_bitmap): Correctly exit frame in case of error.
+	Fix invalid left shifts.
+
+2016-03-23  Werner Lemberg  <wl@gnu.org>
+
+	Rename `VERSION.DLL' (#47472).
+
+	* docs/VERSION.DLL: Renamed to...
+	* docs/VERSIONS.TXT: ...this.
+
+2016-03-23  Werner Lemberg  <wl@gnu.org>
+
+	[raster, smooth] Directly test outline size (#47500).
+
+	This improves stand-alone compilation.
+
+	* src/base/ftoutln.c (FT_Outline_Render): Move cbox size test to...
+
+	* src/raster/ftraster.c (ft_black_render), src/smooth/ftgrays.c
+	(gray_raster_render): ...these functions.
+
+2016-03-23  Werner Lemberg  <wl@gnu.org>
+
+	[raster, smooth] Fix some clang sanitizer runtime issues.
+
+	* src/raster/ftraster.c (ft_black_reset, ft_black_set_mode,
+	ft_black_render): Harmonize signatures with `ftimage.h'.
+
+	* src/smooth/ftgrays.c (gray_raster_render, gray_raster_reset):
+	Ditto.
+
+2016-03-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgload.c (TT_Load_Simple_Glyph): Minor.
+
+	This fixes an AddressSanitizer issue:
+
+	  ttgload.c:430:7: runtime error: null pointer passed as argument 1,
+	                   which is declared to never be null
+
+2016-03-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afhints.c (af_glyph_hints_reload): Thinko.
+
+	This fixes the previous commit to this file.
+
+2016-03-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Partly revert recent changes.
+
+	* src/smooth/ftgrays.c (gray_conic_to, gray_cubic_to): Rework
+	conditions to fix rendering issues.
+
+2016-03-20  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Show `near' points in tracing.
+
+	* src/autofit/afhints.h (AF_FLAG_NEAR): New macro.
+
+	* src/autofit/afhints.c (af_glyph_hints_dump_points): Implement it.
+	(af_glyph_hints_reload): Handle AF_FLAG_NEAR.
+
+2016-03-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Minor refactoring and microoptimizations.
+
+	* src/smooth/ftgrays.c (gray_render_conic, gray_render_cubic): Move
+	band clipping from here.
+	(gray_conic_to, gray_cubic_to): ... to here.
+	(gray_rander_line, gray_render_scanline): Initialize variables closer
+	to their use.
+
 2016-03-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[smooth] Minor refactoring.
 
 	* src/smooth/ftgrays.c (gray_render_conic, gray_render_cubic): Move
-	upscaling from here...
-	(gray_conic_to, gray_cubic_to):... to here.
+	upscaling from here.
+	(gray_conic_to, gray_cubic_to): ... to here.
 
 2016-03-15  Werner Lemberg  <wl@gnu.org>
 
