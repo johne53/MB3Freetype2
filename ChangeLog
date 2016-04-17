@@ -1,3 +1,79 @@
+2016-04-16  David Capello  <davidcapello@gmail.com>
+
+	[cmake] Honor SKIP_INSTALL_* settings (as used in zlib).
+
+	As FreeType depends on zlib, if we don't install zlib (e.g., because
+	we defined SKIP_INSTALL_ALL), FreeType cannot be installed, too
+	(cmake triggers an error saying that FreeType cannot be installed
+	because zlib target isn't in the export set).
+
+	* CMakeLists.txt: Honor `SKIP_INSTALL_HEADERS',
+	`SKIP_INSTALL_LIBRARIES', and `SKIP_INSTALL_ALL' settings.
+
+2016-04-16  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] Another fix for non-intermediate GX tuples.
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Add some missing
+	cases.
+
+2016-04-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Remove forgotten macro.
+
+	* include/freetype/internal/internal.h
+	[FT_INTERNAL_POSTSCRIPT_GLOBALS_H]: Remove.
+
+2016-04-09  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Georgian scripts.
+
+	Georgian is problematic, since `uppercase' forms of Mkhedruli
+	(called Mtavruli) are not yet defined in Unicode, which means that
+	proper blue zones can't be defined.  However, there is already a
+	proposal submitted to Unicode; see
+
+	  http://www.unicode.org/L2/L2016/16034-n4707-georgian.pdf
+
+	Additionally, due to historical reasons, Unicode treats Khutsuri as
+	the same script as Mkhedruli, and so does OpenType.  However, since
+	the two scripts have completely different shapes it can happen that
+	blue zones differ considerably.  The tag `geok' used here (derived
+	from ISO 15924) to differentiate the two scripts is not an OpenType
+	tag in use.  If we now have a font that contains both glyphs for
+	Mkhedruli and Khutsuri, and it uses OpenType features for both also,
+	HarfBuzz unavoidably treats all glyphs as `geor'.  As a consequence,
+	blue zones for `geok' are not used for glyphs involved in the
+	OpenType features.
+
+	An issue not yet resolved is which OpenType feature should be used
+	to access Mtavruli glyph shapes; right now, FreeType doesn't set up
+	support for them, but it is easy to add them later on as soon as
+	more information is available.
+
+	* src/autofit/afblue.dat: Add blue zone data for Georgian.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Georgian standard characters.
+
+	* src/autofit/afranges.c: Add Georgian data.
+
+	* src/autofit/afstyles.h: Add Georgian data.
+
+2016-04-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Provide dummy blue zone for pseudo script `none'.
+
+	Even if the dummy hinter is used as the handler for `none' (which
+	doesn't use blue zones), it is more consistent than the old value
+	(which was 0), pointing to Arabic...
+
+	* src/autofit/afblue.dat: Add `AF_BLUE_STRINGSET_NONE'.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afstyles.h (none_dflt): Use AF_BLUE_STRINGSET_NONE.
+
 2016-03-30  Werner Lemberg  <wl@gnu.org>
 
 	* src/pfr/pfrload.c (pfr_aux_name_load): Thinko (#47567).
@@ -12,7 +88,7 @@
 
 2016-03-29  Werner Lemberg  <wl@gnu.org>
 
-	* src/base/ftadvance.c (FT_Get_Advances): Fix invalid left shift.
+	* src/base/ftadvanc.c (FT_Get_Advances): Fix invalid left shift.
 
 2016-03-29  Werner Lemberg  <wl@gnu.org>
 
@@ -70,7 +146,7 @@
 
 	[pfr] Minor.
 
-	* src/pfr/pfrsbit.c, srf/pfr/pfrobjs.c: Use flag names instead of
+	* src/pfr/pfrsbit.c, src/pfr/pfrobjs.c: Use flag names instead of
 	bare numbers.
 
 2016-03-25  Werner Lemberg  <wl@gnu.org>
@@ -1021,7 +1097,7 @@
 	[bdf] Remove dead code (#46625).
 
 	The BDF specification only allows decimal numbers, no octal or
-	hexidecimal decoding is needed.
+	hexadecimal decoding is needed.
 
 	* src/bdf/bdflib.c (_bdf_atoul, _bdf_atol, _bdf_atous,
 	_bdf_atos): Remove unused code and parameters.
@@ -1194,7 +1270,7 @@
 	* src/autofit/afglobal.c: s/hbshim.h/afshaper.h/.
 	(af_face_globals_compute_style_coverage): Updated.
 
-	* src/autofit/afglocal.h: s/hbshim.h/afshaper.h/.
+	* src/autofit/afglobal.h: s/hbshim.h/afshaper.h/.
 
 	* src/autofit/autofit.c: s/hbshim.c/afshaper.c/.
 
@@ -2160,7 +2236,7 @@
 
 2015-10-04  Werner Lemberg  <wl@gnu.org>
 
-	[bzip2, gzip] Avoid access of unitialized memory (#46109).
+	[bzip2, gzip] Avoid access of uninitialized memory (#46109).
 
 	* src/bzip2/ftbzip2.c (ft_bzip2_file_fill_input), src/gzip/ftgzip.c
 	(ft_gzip_file_fill_input): In case of an error, adjust the limit to
@@ -2168,7 +2244,7 @@
 
 2015-10-03  Werner Lemberg  <wl@gnu.org>
 
-	[bzip2, gzip] Avoid access of unitialized memory (#46109).
+	[bzip2, gzip] Avoid access of uninitialized memory (#46109).
 
 	* src/bzip2/ftbzip2.c (ft_bzip2_file_fill_output), src/gzip/ftgzip.c
 	(ft_gzip_file_fill_output): In case of an error, adjust the limit to
@@ -2577,7 +2653,7 @@
 	[raster,smooth] Microoptimizations.
 
 	* src/raster/ftraster.c (Insert_Y_Turn, Finalize_Profile_Table,
-	Beziier_Up, ): Use do-while loops.
+	Bezier_Up, ): Use do-while loops.
 
 	* src/smooth/ftgrays.c (gray_render_scanline, gray_render_line,
 	gray_convert_glyph): Ditto.
@@ -2708,7 +2784,7 @@
 	[base] Improve emboldener (#45596).
 
 	* src/base/ftoutln.c (FT_Outline_EmboldenXY): Correct displacement
-	of zero-lenght segments.
+	of zero-length segments.
 
 2015-08-16  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
@@ -2783,7 +2859,7 @@
 	* src/type1/t1gload.c (T1_Load_Glyph): Directly modify advances only
 	if font matrix is not trivial.
 	* src/cff/cffgload.c (cff_slot_load): Ditto.
-	* sff/cid/cidgload.c (cid_slot_load_glyph): Ditto for advances and the
+	* src/cid/cidgload.c (cid_slot_load_glyph): Ditto for advances and the
 	entire outline.
 
 2015-08-11  Werner Lemberg  <wl@gnu.org>
@@ -3528,7 +3604,7 @@
 
 	* src/autofit/afhints.h (AF_HINTS_DO_WARP): New macro.
 
-	* src/autofi/aflatin.c (af_latin_hints_apply)
+	* src/autofit/aflatin.c (af_latin_hints_apply)
 	[AF_CONFIG_OPTION_USE_WARPER]: Use `AF_HINTS_DO_WARP' to control use
 	of warper.
 
@@ -4159,7 +4235,7 @@
 	* src/pfr/pfrload.c (pfr_extra_item_load_font_id): Ditto.
 	* src/psaux/psobjs.c (ps_table_add), src/psaux/psobjs.h: Ditto.
 	* src/type1/t1load.c (parse_blend_axis_types, parse_encoding,
-	parse_chharstrings, parse_dict): Ditto.
+	parse_charstrings, parse_dict): Ditto.
 	* src/type42/t42parse.c (t42_parse_encoding, t42_parse_charstrings,
 	t42_parse_dict): Ditto.
 
@@ -4232,7 +4308,7 @@
 	* include/internal/ftstream.h (FT_Stream_Pos): Return `FT_ULong'.
 
 	* src/base/ftoutln.c, src/base/ftrfork.c, src/base/ftstream.c:
-	Signedess fixes.
+	Signedness fixes.
 
 2015-02-16  Werner Lemberg  <wl@gnu.org>
 
@@ -4750,7 +4826,7 @@
 
 2015-01-11  Werner Lemberg  <wl@gnu.org>
 
-	[truetype] Prettyfing.
+	[truetype] Prettifying.
 
 	* src/truetype/ttinterp.c (project, dualproj, fast_project,
 	fast_dualproj): Rename to...
@@ -4782,7 +4858,7 @@
 	[truetype] More macro expansions.
 
 	* src/truetype/ttinterp.c (INS_ARG): Remove macro by expansion,
-	adjusting funtion calls where necessary.
+	adjusting function calls where necessary.
 	(FT_UNUSED_ARG): Removed, no longer needed.
 
 2015-01-10  Werner Lemberg  <wl@gnu.org>

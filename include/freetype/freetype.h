@@ -2339,9 +2339,9 @@ FT_BEGIN_HEADER
   /*      used to determine both scaling values.                           */
   /*                                                                       */
   /*    FT_SIZE_REQUEST_TYPE_REAL_DIM ::                                   */
-  /*      The real dimension.  The sum of the the `ascender' and (minus    */
-  /*      of) the `descender' fields of @FT_FaceRec are used to determine  */
-  /*      both scaling values.                                             */
+  /*      The real dimension.  The sum of the `ascender' and (minus of)    */
+  /*      the `descender' fields of @FT_FaceRec are used to determine both */
+  /*      scaling values.                                                  */
   /*                                                                       */
   /*    FT_SIZE_REQUEST_TYPE_BBOX ::                                       */
   /*      The font bounding box.  The width and height of the `bbox' field */
@@ -2855,7 +2855,7 @@ FT_BEGIN_HEADER
    *
    *   If @FT_LOAD_RENDER is also set, the glyph is rendered in the
    *   corresponding mode (i.e., the mode that matches the used algorithm
-   *   best).  An exeption is FT_LOAD_TARGET_MONO since it implies
+   *   best).  An exception is FT_LOAD_TARGET_MONO since it implies
    *   @FT_LOAD_MONOCHROME.
    *
    *   You can use a hinting algorithm that doesn't correspond to the same
@@ -3273,7 +3273,7 @@ FT_BEGIN_HEADER
   /*    `.notdef').                                                        */
   /*                                                                       */
   /*    This function always returns an error if the config macro          */
-  /*    `FT_CONFIG_OPTION_NO_GLYPH_NAMES' is not defined in `ftoptions.h'. */
+  /*    `FT_CONFIG_OPTION_NO_GLYPH_NAMES' is not defined in `ftoption.h'.  */
   /*                                                                       */
   FT_EXPORT( FT_Error )
   FT_Get_Glyph_Name( FT_Face     face,
