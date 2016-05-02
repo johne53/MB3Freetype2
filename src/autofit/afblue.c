@@ -56,7 +56,7 @@
     '\0',
     '\xE1', '\x83', '\x92', ' ', '\xE1', '\x83', '\x93', ' ', '\xE1', '\x83', '\x94', ' ', '\xE1', '\x83', '\x95', ' ', '\xE1', '\x83', '\x97', ' ', '\xE1', '\x83', '\x98', ' ', '\xE1', '\x83', '\x9D', ' ', '\xE1', '\x83', '\xA6',  /* გ დ ე ვ თ ი ო ღ */
     '\0',
-    '\xE1', '\x83', '\x90', ' ', '\xE1', '\x83', '\x96', ' ', '\xE1', '\x83', '\x9B', ' ', '\xE1', '\x83', '\xA1', ' ', '\xE1', '\x83', '\xA8', ' ', '\xE1', '\x83', '\xAB', ' ', '\xE1', '\x83', '\xAE', ' ', '\xE1', '\x83', '\xB0',  /* ა ზ მ ს შ ძ ხ ჰ */
+    '\xE1', '\x83', '\x90', ' ', '\xE1', '\x83', '\x96', ' ', '\xE1', '\x83', '\x9B', ' ', '\xE1', '\x83', '\xA1', ' ', '\xE1', '\x83', '\xA8', ' ', '\xE1', '\x83', '\xAB', ' ', '\xE1', '\x83', '\xAE', ' ', '\xE1', '\x83', '\x9E',  /* ა ზ მ ს შ ძ ხ პ */
     '\0',
     '\xE1', '\x83', '\xA1', ' ', '\xE1', '\x83', '\xAE', ' ', '\xE1', '\x83', '\xA5', ' ', '\xE1', '\x83', '\x96', ' ', '\xE1', '\x83', '\x9B', ' ', '\xE1', '\x83', '\xA8', ' ', '\xE1', '\x83', '\xA9', ' ', '\xE1', '\x83', '\xAC',  /* ს ხ ქ ზ მ შ ჩ წ */
     '\0',
@@ -83,6 +83,16 @@
     '\xCE', '\xB1', ' ', '\xCE', '\xB5', ' ', '\xCE', '\xB9', ' ', '\xCE', '\xBF', ' ', '\xCF', '\x80', ' ', '\xCF', '\x83', ' ', '\xCF', '\x84', ' ', '\xCF', '\x89',  /* α ε ι ο π σ τ ω */
     '\0',
     '\xCE', '\xB2', ' ', '\xCE', '\xB3', ' ', '\xCE', '\xB7', ' ', '\xCE', '\xBC', ' ', '\xCF', '\x81', ' ', '\xCF', '\x86', ' ', '\xCF', '\x87', ' ', '\xCF', '\x88',  /* β γ η μ ρ φ χ ψ */
+    '\0',
+    '\xE0', '\xAA', '\xA4', ' ', '\xE0', '\xAA', '\xA8', ' ', '\xE0', '\xAA', '\x8B', ' ', '\xE0', '\xAA', '\x8C', ' ', '\xE0', '\xAA', '\x9B', ' ', '\xE0', '\xAA', '\x9F', ' ', '\xE0', '\xAA', '\xB0', ' ', '\xE0', '\xAB', '\xA6',  /* ત ન ઋ ઌ છ ટ ર ૦ */
+    '\0',
+    '\xE0', '\xAA', '\x96', ' ', '\xE0', '\xAA', '\x97', ' ', '\xE0', '\xAA', '\x98', ' ', '\xE0', '\xAA', '\x9E', ' ', '\xE0', '\xAA', '\x87', ' ', '\xE0', '\xAA', '\x88', ' ', '\xE0', '\xAA', '\xA0', ' ', '\xE0', '\xAA', '\x9C',  /* ખ ગ ઘ ઞ ઇ ઈ ઠ જ */
+    '\0',
+    '\xE0', '\xAA', '\x88', ' ', '\xE0', '\xAA', '\x8A', ' ', '\xE0', '\xAA', '\xBF', ' ', '\xE0', '\xAB', '\x80', ' ', '\xE0', '\xAA', '\xB2', '\xE0', '\xAB', '\x80', ' ', '\xE0', '\xAA', '\xB6', '\xE0', '\xAB', '\x8D', '\xE0', '\xAA', '\x9A', '\xE0', '\xAA', '\xBF', ' ', '\xE0', '\xAA', '\x9C', '\xE0', '\xAA', '\xBF', ' ', '\xE0', '\xAA', '\xB8', '\xE0', '\xAB', '\x80',  /* ઈ ઊ િ ી લી શ્ચિ જિ સી */
+    '\0',
+    '\xE0', '\xAB', '\x81', ' ', '\xE0', '\xAB', '\x83', ' ', '\xE0', '\xAB', '\x84', ' ', '\xE0', '\xAA', '\x96', '\xE0', '\xAB', '\x81', ' ', '\xE0', '\xAA', '\x9B', '\xE0', '\xAB', '\x83', ' ', '\xE0', '\xAA', '\x9B', '\xE0', '\xAB', '\x84',  /* ુ ૃ ૄ ખુ છૃ છૄ */
+    '\0',
+    '\xE0', '\xAB', '\xA6', ' ', '\xE0', '\xAB', '\xA7', ' ', '\xE0', '\xAB', '\xA8', ' ', '\xE0', '\xAB', '\xA9', ' ', '\xE0', '\xAB', '\xAD',  /* ૦ ૧ ૨ ૩ ૭ */
     '\0',
     '\xD7', '\x91', ' ', '\xD7', '\x93', ' ', '\xD7', '\x94', ' ', '\xD7', '\x97', ' ', '\xD7', '\x9A', ' ', '\xD7', '\x9B', ' ', '\xD7', '\x9D', ' ', '\xD7', '\xA1',  /* ב ד ה ח ך כ ם ס */
     '\0',
@@ -285,6 +295,13 @@
     { AF_BLUE_STRING_GREEK_SMALL,           0                                 },
     { AF_BLUE_STRING_GREEK_SMALL_DESCENDER, 0                                 },
     { AF_BLUE_STRING_MAX,                   0                                 },
+    { AF_BLUE_STRING_GUJARATI_TOP,       AF_BLUE_PROPERTY_LATIN_TOP      |
+                                         AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_GUJARATI_BOTTOM,    0                                 },
+    { AF_BLUE_STRING_GUJARATI_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_GUJARATI_DESCENDER, 0                                 },
+    { AF_BLUE_STRING_GUJARATI_DIGIT_TOP, AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_MAX,                0                                 },
     { AF_BLUE_STRING_HEBREW_TOP,       AF_BLUE_PROPERTY_LATIN_TOP  |
                                        AF_BLUE_PROPERTY_LATIN_LONG   },
     { AF_BLUE_STRING_HEBREW_BOTTOM,    0                             },
