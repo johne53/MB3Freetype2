@@ -1,3 +1,70 @@
+2016-05-16  Werner Lemberg  <wl@gnu.org>
+
+	[base] Reject invalid sfnt Mac resource (#47891).
+
+	* src/base/ftobjs.c (open_face_PS_from_sfnt_stream): Check validity
+	of `CID ' and `TYPE1' table offset and length.
+
+2016-05-16  Werner Lemberg  <wl@gnu.org>
+
+	[cid] Fix scanning for `StartData' and `/sfnts' (#47892).
+
+	* src/cid/cidparse.c (STARTDATA, STARTDATA_LEN, SFNTS, SFNTS_LEN):
+	New macros.
+	(cid_parser_new): Fix and document algorithm.
+
+2016-05-16  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[truetype] Improve the recursive reference detector.
+
+	The previous fix for #46372 misunderstood a composite glyph referring
+	same component twice as a recursive reference.  See the discussion
+
+	  http://lists.gnu.org/archive/html/freetype/2016-05/msg00000.html
+
+	Thanks to Khaled Hosny for finding this issue.
+
+	* src/truetype/ttgload.c (ft_list_get_node_at): A function to get
+	the i-th node from FT_List.
+	(load_truetype_glyph): In the traversal scan of the reference tree
+	in the composite glyph, we clear the nodes filled by previous
+	sibling chain.
+
+2016-05-07  Werner Lemberg  <wl@gnu.org>
+
+	[cache] Allow value 0 for face ID.
+
+	We never dereference `face_id', and some implementations might use a
+	running number instead of a pointer.  Additionally, disallowing
+	value zero was undocumented.
+
+	* src/cache/ftccmap.c (FTC_CMapCache_Lookup), src/cache/ftcmanag.c
+	(FTC_Manager_LookupFace, FTC_Manager_RemoveFaceID): Remove test for
+	`face_id'.
+
+2016-05-05  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] More efficient accounting of conic splits and draws.
+
+	A single decrement counter of segments to draw, instead of an array,
+	contains all the information necessary to decide when to split and
+	when to draw a conic segment. The number of splits before each draw is
+	equal to the number of trailing zeros in the counter.
+
+	* src/smooth/ftgrays.c (gray_TWorker): Remove `lev_stack'.
+	(gray_render_conic): Updated to use decrement counter of segments.
+
+2016-05-05  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Fix logic for `FT_Property_Set'.
+
+	Otherwise some properties could be set to arbitrary values, which is
+	harmless, but querying could give wrong positive results.
+
+	* src/cff/cffdrivr.c (cff_property_set) [hinting-engine],
+	* src/truetype/ttdriver.c (tt_property_set) [interpreter-version]:
+	Only allow defined values.
+
 2016-04-25  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Add blue-zone support for Gujarati script.
@@ -1161,7 +1228,7 @@
 	[base] Check error when seeking to data supplied offset (#46635).
 
 	* src/base/ftobjs.c (open_face_PS_from_sfnt_stream):
-	`ft_lookup_PS_in_sfnt_stream' returns offset and and length from
+	`ft_lookup_PS_in_sfnt_stream' returns offset and length from
 	user supplied data.  Use of this these values must be checked.
 
 2015-12-13  Werner Lemberg  <wl@gnu.org>

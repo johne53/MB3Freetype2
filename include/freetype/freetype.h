@@ -651,11 +651,11 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    FT_ENCODING_SJIS ::                                                */
   /*      Corresponds to Japanese SJIS encoding.  More info at             */
-  /*      at `http://en.wikipedia.org/wiki/Shift_JIS'.                     */
+  /*      `http://en.wikipedia.org/wiki/Shift_JIS'.                        */
   /*      See note on multi-byte encodings below.                          */
   /*                                                                       */
   /*    FT_ENCODING_GB2312 ::                                              */
-  /*      Corresponds to an encoding system for Simplified Chinese as used */
+  /*      Corresponds to an encoding system for Simplified Chinese as      */
   /*      used in mainland China.                                          */
   /*                                                                       */
   /*    FT_ENCODING_BIG5 ::                                                */
@@ -1103,7 +1103,7 @@ FT_BEGIN_HEADER
   /*    FT_FACE_FLAG_SCALABLE ::                                           */
   /*      Indicates that the face contains outline glyphs.  This doesn't   */
   /*      prevent bitmap strikes, i.e., a face can have both this and      */
-  /*      and @FT_FACE_FLAG_FIXED_SIZES set.                               */
+  /*      @FT_FACE_FLAG_FIXED_SIZES set.                                   */
   /*                                                                       */
   /*    FT_FACE_FLAG_FIXED_SIZES ::                                        */
   /*      Indicates that the face contains bitmap strikes.  See also the   */
@@ -1941,7 +1941,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    If the @FT_OPEN_MEMORY bit is set, assume that this is a           */
   /*    memory file of `memory_size' bytes, located at `memory_address'.   */
-  /*    The data are are not copied, and the client is responsible for     */
+  /*    The data are not copied, and the client is responsible for         */
   /*    releasing and destroying them _after_ the corresponding call to    */
   /*    @FT_Done_Face.                                                     */
   /*                                                                       */
