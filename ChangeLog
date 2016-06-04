@@ -1,3 +1,226 @@
+2016-06-04  Werner Lemberg  <wl@gnu.org>
+
+	Fix a test for named instances (#48122).
+
+	This was missed while giving negative face indices an extended
+	meaning.
+
+	* src/base/ftobjs.c (Mac_Read_sfnt_Resource): Implement.
+
+2016-05-31  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[truetype] Let SHPIX move points in the twilight zone in v40.
+
+	* src/truetype/ttinterp.c (Ins_SHPIX): Allow SHPIX to move points in
+	the twilight zone.  Otherwise, treat SHPIX the same as DELTAP.
+	Unbreaks various fonts such as older versions of Rokkitt and DTL
+	Argo T Light that would glitch severly after calling ALIGNRP after a
+	blocked SHPIX.
+
+2016-05-30  Werner Lemberg  <wl@gnu.org>
+
+	[type42] Support `CharStrings' entry format as created by LilyPond.
+
+	* src/type42/t42parse.c (t42_parse_charstrings): Handle entries
+	having the format
+
+	  (foo) cvn 12345 def
+
+2016-05-28  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afranges.c: Remove `UL' postfix from hex numbers.
+
+	Suggested by Alexei.  `UL' is only needed for 16bit compilers, but
+	it seems noone is using this anymore (and we no longer test whether
+	FreeType compiles in such an environment).  Otherwise, it is easy to
+	add the postfix to the `AF_UNICODE_RANGE' macro.
+
+2016-05-26  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Shrink bisection stack.
+
+	The convergence of Bézier flatteners is fast with the deviation
+	from straight line being assymptotically cut 4-fold on each bisection.
+	This justifies smaller bisection stack size.
+
+	* src/smooth/ftgrays.c (gray_TWorker): Remove common `bez_stack'.
+	(gray_render_conic): Create and use conic `bez_stack'. Move back the
+	band analysis from...
+	(gray_conic_to): ... here.
+	(gray_render_cubic): Create and use cubic `bez_stack'. Move back the
+	band analysis from...
+	(gray_cubic_to): ... here.
+	(gray_move_to): Updated.
+
+2016-05-25  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fixes for Armenian and Gujarati ranges.
+
+	* src/autofit/afranges.c (af_armn_uniranges): Corrected.
+	(af_guru_nonbase_uniranges): Make U+0A3E a base character.
+
+2016-05-24  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add support for Armenian script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Armenian.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Armenian standard characters.
+
+	* src/autofit/afranges.c: Add Armenian data.
+
+	* src/autofit/afstyles.h: Add Armenian data.
+
+2016-05-23  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/unix-cc.in (LINK_LIBRARY): Use `-export-symbols'.
+
+	This was commented about 10 years ago – I think the reason then to
+	disable libtool's `-export-symbols' option was to give some badly
+	programmed applications access to internal FreeType functions.
+
+	I believe that we should no longer take care of such programs; the
+	number of symbols exported should be rather restricted as much as
+	possible.
+
+2016-05-22  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Add blue-zone support for Gurmukhi script.
+
+	This essentially moves the Gurmukhi script from the `Indic' hinter to
+	the `Latin' hinter.
+
+	* src/autofit/afblue.dat: Add blue zone data for Gurmukhi.
+
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Gurmukhi standard characters and move
+	data out of AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afranges.c: Move Gurmukhi data out of
+	AF_CONFIG_OPTION_INDIC block.
+
+	* src/autofit/afstyles.h: Update Gurmukhi data; in particular, use
+	AF_WRITING_SYSTEM_LATIN.
+
+2016-05-21  Werner Lemberg  <wl@gnu.org>
+
+	Minor clang++ fixes.
+
+	* src/base/ftobjs.c (FT_Add_Module), src/psaux/psobjs.c
+	(ps_parser_load_field), src/type1/t1load.c (parse_subrs): Add
+	initializer.
+
+	* src/cache/ftccache.h (FTC_CACHE_TRYLOOP_END): Avoid implicit
+	conversion from NULL to boolean.
+
+2016-05-21  Werner Lemberg  <wl@gnu.org>
+
+	Work around a bug of the C 8.0.0.1 compiler on AIX 5.3 (#47955).
+
+	* include/freetype/internal/ftmemory.h (cplusplus_typeof): Use
+	braces for `extern "C++"'.
+
+2016-05-17  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[truetype] Make TT_LOADER_SET_PP support subpixel hinting [3/3].
+
+	* src/truetype/ttgload.c (TT_LOADER_SET_PP): Replace macro with...
+	(tt_loader_set_pp): ... this new function.
+	Update all callers.
+
+2016-05-17  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[truetype] New implementation of v38 bytecode interpreter [2/3].
+
+	This patch actually modifies the bytecode interpreter.
+
+	See added comments in `ttinterp.h' for more information on this and
+	the following commit in the series.
+
+	* src/truetype/ttinterp.c (SUBPIXEL_HINTING): Replaced by...
+	(NO_SUBPIXEL_HINTING, SUBPIXEL_HINTING_INFINALITY,
+	SUBPIXEL_HINTING_MINIMAL): ...new macros.
+	(Direct_Move, Direct_Move_X, Direct_Move_Y): Handle backwards
+	compatibility.
+	Updated.
+	(Ins_RS, Ins_FDEF, Ins_ENDF, Ins_CALL, Ins_LOOPCALL, Ins_MD):
+	Updated.
+	(Ins_INSTCTRL): Handle native ClearType mode flag.
+	Updated.
+	(Ins_FLIPPT, Ins_FLIPRGON, Ins_FLIPRGOFF): Handle backwards
+	compatibility.
+	(Move_Zp2_Point): Ditto.
+	(Ins_SHP): Updated.
+	(Ins_SHPIX): Handle backwards compatibility.
+	Updated.
+	(Ins_MSIRP, Ins_MDAP, Ins_MIAP, Ins_MDRP, Ins_MIRP): Updated.
+	(Ins_ALIGNRP): Updated.
+	(Ins_IUP, Ins_DELTAP): Handle backwards compatibility.
+	Updated.
+	(Ins_GETINFO): Handle v38 flags.
+	Updated.
+	(TT_RunIns): Handle backwards compatibility mode.
+	Updated.
+
+2016-05-17  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[truetype] New implementation of v38 bytecode interpreter [1/3].
+
+	This patch prepares data structures and the like.
+
+	See added comments in `ttinterp.h' for more information on this and
+	the following commits in the series.
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h
+	(TT_CONFIG_OPTION_SUBPIXEL_HINTING): Assign values to differentiate
+	between subpixel versions.
+	(TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY,
+	TT_SUPPORT_SUBPIXEL_HINTING_MINIMAL): New macros.
+
+	* include/freetype/ftttdrv.h (TT_INTERPRETER_VERSION_40): New macro.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Updated.
+
+	* src/truetype/ttinterp.h (TT_ExecContextRec): Define new fields
+	`subpixel_hinting_lean', `vertical_lcd_lean',
+	`backwards_compatibility', `iupx_called', iupy_called', and
+	`grayscale_cleartype' for new hinting mode.
+
+	* src/truetype/ttdriver.c (tt_property_set): Handle v38 and v40
+	interpreters conditionally.
+
+	* src/truetype/ttgload.c (TT_Hint_Glyph): Save phantom points unless
+	in v38 backwards compatibility mode.
+	Updated.
+	(compute_glyph_metrics): Add v38 backwards compatibility mode
+	constraint for adjusting advance widths.
+	Updated.
+	(tt_loader_init): Handle new flags `subpixel_hinting_lean',
+	`grayscale_cleartype', and `vertical_lcd_lean'.
+	Updated.
+	(tt_get_metrics, TT_Process_Simple_Glyph, TT_LOADER_SET_PP):
+	Updated.
+
+	* src/truetype/ttobjs.c (tt_driver_init): Conditionally set
+	default interpreter version number.
+
+	* src/truetype/ttsubpix.c, src/truetype/ttsubpix.h: Updated.
+
+2016-05-17  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix matrix scaling (#47848).
+
+	* include/freetype/config/ftstdlib.h (FT_LONG_MIN): New macro.
+
+	* src/cff/cffparse.c (cff_parse_font_matrix): Use largest scaling
+	value of all matrix coefficients to scale matrix.
+
+	* src/cff/cffobjs.c (cff_face_init): Use `matrix->yx' member for
+	matrix normalization if `matrix->yy' is zero.
+
 2016-05-16  Werner Lemberg  <wl@gnu.org>
 
 	[base] Reject invalid sfnt Mac resource (#47891).

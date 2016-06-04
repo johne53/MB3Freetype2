@@ -36,6 +36,12 @@
           HINTING_BOTTOM_TO_TOP,
           "\xD9\x84 \xD8\xAD \xD9\x80" ) /* ل ح ـ */
 
+  SCRIPT( armn, ARMN,
+          "Armenian",
+          HB_SCRIPT_ARMENIAN,
+          HINTING_BOTTOM_TO_TOP,
+          "\xD6\x85 \xD5\x95" ) /* օ Օ */
+
   /* there are no simple forms for letters; we thus use two digit shapes */
   SCRIPT( beng, BENG,
           "Bengali",
@@ -78,6 +84,12 @@
           HB_SCRIPT_GUJARATI,
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xAA\x9F \xE0\xAB\xA6" ) /* ટ ૦ */
+
+  SCRIPT( guru, GURU,
+          "Gurmukhi",
+          HB_SCRIPT_GURMUKHI,
+          HINTING_TOP_TO_BOTTOM,
+          "\xE0\xA8\xA0 \xE0\xA8\xB0 \xE0\xA9\xA6" ) /* ਠ ਰ ੦*/
 
   SCRIPT( hebr, HEBR,
           "Hebrew",
@@ -174,12 +186,6 @@
           "\xE0\xB8\xB2 \xE0\xB9\x85 \xE0\xB9\x90" ) /* า ๅ ๐ */
 
 #ifdef AF_CONFIG_OPTION_INDIC
-
-  SCRIPT( guru, GURU,
-          "Gurmukhi",
-          HB_SCRIPT_GURMUKHI,
-          HINTING_BOTTOM_TO_TOP,
-          "o" ) /* XXX */
 
   SCRIPT( limb, LIMB,
           "Limbu",

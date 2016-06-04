@@ -32,6 +32,18 @@
     '\0',
     '\xD9', '\x80',  /* ـ */
     '\0',
+    '\xD4', '\xB1', ' ', '\xD5', '\x84', ' ', '\xD5', '\x92', ' ', '\xD5', '\x93', ' ', '\xD4', '\xB2', ' ', '\xD4', '\xB3', ' ', '\xD4', '\xB4', ' ', '\xD5', '\x95',  /* Ա Մ Ւ Փ Բ Գ Դ Օ */
+    '\0',
+    '\xD5', '\x92', ' ', '\xD5', '\x88', ' ', '\xD5', '\x93', ' ', '\xD5', '\x83', ' ', '\xD5', '\x87', ' ', '\xD5', '\x8D', ' ', '\xD5', '\x8F', ' ', '\xD5', '\x95',  /* Ւ Ո Փ Ճ Շ Ս Տ Օ */
+    '\0',
+    '\xD5', '\xA5', ' ', '\xD5', '\xA7', ' ', '\xD5', '\xAB', ' ', '\xD5', '\xB4', ' ', '\xD5', '\xBE', ' ', '\xD6', '\x83', ' ', '\xD6', '\x86', ' ', '\xD6', '\x83',  /* ե է ի մ վ փ ֆ փ */
+    '\0',
+    '\xD5', '\xA1', ' ', '\xD5', '\xB5', ' ', '\xD6', '\x82', ' ', '\xD5', '\xBD', ' ', '\xD5', '\xA3', ' ', '\xD5', '\xBB', ' ', '\xD6', '\x80', ' ', '\xD6', '\x85',  /* ա յ ւ ս գ ջ ր օ */
+    '\0',
+    '\xD5', '\xB0', ' ', '\xD5', '\xB8', ' ', '\xD5', '\xB3', ' ', '\xD5', '\xA1', ' ', '\xD5', '\xA5', ' ', '\xD5', '\xAE', ' ', '\xD5', '\xBD', ' ', '\xD6', '\x85',  /* հ ո ճ ա ե ծ ս օ */
+    '\0',
+    '\xD5', '\xA2', ' ', '\xD5', '\xA8', ' ', '\xD5', '\xAB', ' ', '\xD5', '\xAC', ' ', '\xD5', '\xB2', ' ', '\xD5', '\xBA', ' ', '\xD6', '\x83', ' ', '\xD6', '\x81',  /* բ ը ի լ ղ պ փ ց */
+    '\0',
     '\xE0', '\xA6', '\x85', ' ', '\xE0', '\xA6', '\xA1', ' ', '\xE0', '\xA6', '\xA4', ' ', '\xE0', '\xA6', '\xA8', ' ', '\xE0', '\xA6', '\xAC', ' ', '\xE0', '\xA6', '\xAD', ' ', '\xE0', '\xA6', '\xB2', ' ', '\xE0', '\xA6', '\x95',  /* অ ড ত ন ব ভ ল ক */
     '\0',
     '\xE0', '\xA6', '\x87', ' ', '\xE0', '\xA6', '\x9F', ' ', '\xE0', '\xA6', '\xA0', ' ', '\xE0', '\xA6', '\xBF', ' ', '\xE0', '\xA7', '\x80', ' ', '\xE0', '\xA7', '\x88', ' ', '\xE0', '\xA7', '\x97',  /* ই ট ঠ ি ী ৈ ৗ */
@@ -93,6 +105,16 @@
     '\xE0', '\xAB', '\x81', ' ', '\xE0', '\xAB', '\x83', ' ', '\xE0', '\xAB', '\x84', ' ', '\xE0', '\xAA', '\x96', '\xE0', '\xAB', '\x81', ' ', '\xE0', '\xAA', '\x9B', '\xE0', '\xAB', '\x83', ' ', '\xE0', '\xAA', '\x9B', '\xE0', '\xAB', '\x84',  /* ુ ૃ ૄ ખુ છૃ છૄ */
     '\0',
     '\xE0', '\xAB', '\xA6', ' ', '\xE0', '\xAB', '\xA7', ' ', '\xE0', '\xAB', '\xA8', ' ', '\xE0', '\xAB', '\xA9', ' ', '\xE0', '\xAB', '\xAD',  /* ૦ ૧ ૨ ૩ ૭ */
+    '\0',
+    '\xE0', '\xA8', '\x95', ' ', '\xE0', '\xA8', '\x97', ' ', '\xE0', '\xA8', '\x99', ' ', '\xE0', '\xA8', '\x9A', ' ', '\xE0', '\xA8', '\x9C', ' ', '\xE0', '\xA8', '\xA4', ' ', '\xE0', '\xA8', '\xA7', ' ', '\xE0', '\xA8', '\xB8',  /* ਕ ਗ ਙ ਚ ਜ ਤ ਧ ਸ */
+    '\0',
+    '\xE0', '\xA8', '\x95', ' ', '\xE0', '\xA8', '\x97', ' ', '\xE0', '\xA8', '\x99', ' ', '\xE0', '\xA8', '\x9A', ' ', '\xE0', '\xA8', '\x9C', ' ', '\xE0', '\xA8', '\xA4', ' ', '\xE0', '\xA8', '\xA7', ' ', '\xE0', '\xA8', '\xB8',  /* ਕ ਗ ਙ ਚ ਜ ਤ ਧ ਸ */
+    '\0',
+    '\xE0', '\xA8', '\x87', ' ', '\xE0', '\xA8', '\x88', ' ', '\xE0', '\xA8', '\x89', ' ', '\xE0', '\xA8', '\x8F', ' ', '\xE0', '\xA8', '\x93', ' ', '\xE0', '\xA9', '\xB3', ' ', '\xE0', '\xA8', '\xBF', ' ', '\xE0', '\xA9', '\x80',  /* ਇ ਈ ਉ ਏ ਓ ੳ ਿ ੀ */
+    '\0',
+    '\xE0', '\xA8', '\x85', ' ', '\xE0', '\xA8', '\x8F', ' ', '\xE0', '\xA8', '\x93', ' ', '\xE0', '\xA8', '\x97', ' ', '\xE0', '\xA8', '\x9C', ' ', '\xE0', '\xA8', '\xA0', ' ', '\xE0', '\xA8', '\xB0', ' ', '\xE0', '\xA8', '\xB8',  /* ਅ ਏ ਓ ਗ ਜ ਠ ਰ ਸ */
+    '\0',
+    '\xE0', '\xA9', '\xA6', ' ', '\xE0', '\xA9', '\xA7', ' ', '\xE0', '\xA9', '\xA8', ' ', '\xE0', '\xA9', '\xA9', ' ', '\xE0', '\xA9', '\xAD',  /* ੦ ੧ ੨ ੩ ੭ */
     '\0',
     '\xD7', '\x91', ' ', '\xD7', '\x93', ' ', '\xD7', '\x94', ' ', '\xD7', '\x97', ' ', '\xD7', '\x9A', ' ', '\xD7', '\x9B', ' ', '\xD7', '\x9D', ' ', '\xD7', '\xA1',  /* ב ד ה ח ך כ ם ס */
     '\0',
@@ -251,13 +273,21 @@
     { AF_BLUE_STRING_ARABIC_BOTTOM, 0                              },
     { AF_BLUE_STRING_ARABIC_JOIN,   AF_BLUE_PROPERTY_LATIN_NEUTRAL },
     { AF_BLUE_STRING_MAX,           0                              },
-    { AF_BLUE_STRING_BENGALI_TOP,    AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_BENGALI_HEAD,   AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_BENGALI_BASE,   AF_BLUE_PROPERTY_LATIN_TOP      |
-                                     AF_BLUE_PROPERTY_LATIN_NEUTRAL  |
-                                     AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
-    { AF_BLUE_STRING_BENGALI_BASE,   0                                 },
-    { AF_BLUE_STRING_MAX,            0                                 },
+    { AF_BLUE_STRING_ARMENIAN_CAPITAL_TOP,     AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_ARMENIAN_CAPITAL_BOTTOM,  0                                 },
+    { AF_BLUE_STRING_ARMENIAN_SMALL_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_ARMENIAN_SMALL_TOP,       AF_BLUE_PROPERTY_LATIN_TOP      |
+                                               AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_ARMENIAN_SMALL_BOTTOM,    0                                 },
+    { AF_BLUE_STRING_ARMENIAN_SMALL_DESCENDER, 0                                 },
+    { AF_BLUE_STRING_MAX,                      0                                 },
+    { AF_BLUE_STRING_BENGALI_TOP,  AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_BENGALI_HEAD, AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_BENGALI_BASE, AF_BLUE_PROPERTY_LATIN_TOP      |
+                                   AF_BLUE_PROPERTY_LATIN_NEUTRAL  |
+                                   AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_BENGALI_BASE, 0                                 },
+    { AF_BLUE_STRING_MAX,          0                                 },
     { AF_BLUE_STRING_CYRILLIC_CAPITAL_TOP,     AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_CYRILLIC_CAPITAL_BOTTOM,  0                                 },
     { AF_BLUE_STRING_CYRILLIC_SMALL,           AF_BLUE_PROPERTY_LATIN_TOP      |
@@ -279,14 +309,14 @@
     { AF_BLUE_STRING_GEORGIAN_MKHEDRULI_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_GEORGIAN_MKHEDRULI_DESCENDER, 0                                 },
     { AF_BLUE_STRING_MAX,                          0                                 },
-    { AF_BLUE_STRING_GEORGIAN_ASOMTAVRULI_TOP,       AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_GEORGIAN_ASOMTAVRULI_BOTTOM,    0                                 },
-    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_TOP,          AF_BLUE_PROPERTY_LATIN_TOP      |
-                                                     AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
-    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_BOTTOM,       0                                 },
-    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_ASCENDER,     AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_DESCENDER,    0                                 },
-    { AF_BLUE_STRING_MAX,                            0                                 },
+    { AF_BLUE_STRING_GEORGIAN_ASOMTAVRULI_TOP,    AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_GEORGIAN_ASOMTAVRULI_BOTTOM, 0                                 },
+    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_TOP,       AF_BLUE_PROPERTY_LATIN_TOP      |
+                                                  AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_BOTTOM,    0                                 },
+    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_GEORGIAN_NUSKHURI_DESCENDER, 0                                 },
+    { AF_BLUE_STRING_MAX,                         0                                 },
     { AF_BLUE_STRING_GREEK_CAPITAL_TOP,     AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_GREEK_CAPITAL_BOTTOM,  0                                 },
     { AF_BLUE_STRING_GREEK_SMALL_BETA_TOP,  AF_BLUE_PROPERTY_LATIN_TOP        },
@@ -301,6 +331,14 @@
     { AF_BLUE_STRING_GUJARATI_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_GUJARATI_DESCENDER, 0                                 },
     { AF_BLUE_STRING_GUJARATI_DIGIT_TOP, AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_MAX,                0                                 },
+    { AF_BLUE_STRING_GURMUKHI_TOP,       AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_GURMUKHI_HEAD,      AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_GURMUKHI_BASE,      AF_BLUE_PROPERTY_LATIN_TOP      |
+                                         AF_BLUE_PROPERTY_LATIN_NEUTRAL  |
+                                         AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_GURMUKHI_BOTTOM,    0                                 },
+    { AF_BLUE_STRING_GURMUKHI_DIGIT_TOP, AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_MAX,                0                                 },
     { AF_BLUE_STRING_HEBREW_TOP,       AF_BLUE_PROPERTY_LATIN_TOP  |
                                        AF_BLUE_PROPERTY_LATIN_LONG   },
@@ -321,13 +359,13 @@
                                                   AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
     { AF_BLUE_STRING_KHMER_SYMBOLS_WANING_BOTTOM, 0                                 },
     { AF_BLUE_STRING_MAX,                         0                                 },
-    { AF_BLUE_STRING_LAO_TOP,             AF_BLUE_PROPERTY_LATIN_TOP      |
-                                          AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
-    { AF_BLUE_STRING_LAO_BOTTOM,          0                                 },
-    { AF_BLUE_STRING_LAO_ASCENDER,        AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_LAO_LARGE_ASCENDER,  AF_BLUE_PROPERTY_LATIN_TOP        },
-    { AF_BLUE_STRING_LAO_DESCENDER,       0                                 },
-    { AF_BLUE_STRING_MAX,                 0                                 },
+    { AF_BLUE_STRING_LAO_TOP,            AF_BLUE_PROPERTY_LATIN_TOP      |
+                                         AF_BLUE_PROPERTY_LATIN_X_HEIGHT   },
+    { AF_BLUE_STRING_LAO_BOTTOM,         0                                 },
+    { AF_BLUE_STRING_LAO_ASCENDER,       AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_LAO_LARGE_ASCENDER, AF_BLUE_PROPERTY_LATIN_TOP        },
+    { AF_BLUE_STRING_LAO_DESCENDER,      0                                 },
+    { AF_BLUE_STRING_MAX,                0                                 },
     { AF_BLUE_STRING_LATIN_CAPITAL_TOP,     AF_BLUE_PROPERTY_LATIN_TOP        },
     { AF_BLUE_STRING_LATIN_CAPITAL_BOTTOM,  0                                 },
     { AF_BLUE_STRING_LATIN_SMALL_F_TOP,     AF_BLUE_PROPERTY_LATIN_TOP        },
