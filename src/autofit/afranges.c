@@ -122,6 +122,19 @@
   };
 
 
+  const AF_Script_UniRangeRec  af_cher_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x13A0,  0x13FF ),  /* Cherokee            */
+    AF_UNIRANGE_REC(  0xAB70,  0xABBF ),  /* Cherokee Supplement */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_cher_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
   const AF_Script_UniRangeRec  af_cyrl_uniranges[] =
   {
     AF_UNIRANGE_REC(  0x0400,  0x04FF ),  /* Cyrillic            */
@@ -168,6 +181,22 @@
     AF_UNIRANGE_REC(  0x0953,  0x0957 ),
     AF_UNIRANGE_REC(  0x0962,  0x0963 ),
     AF_UNIRANGE_REC(  0xA8E0,  0xA8F1 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_ethi_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1200,  0x137F ),  /* Ethiopic            */
+    AF_UNIRANGE_REC(  0x1380,  0x139F ),  /* Ethiopic Supplement */
+    AF_UNIRANGE_REC(  0x2D80,  0x2DDF ),  /* Ethiopic Extended   */
+    AF_UNIRANGE_REC(  0xAB00,  0xAB2F ),  /* Ethiopic Extended-A */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_ethi_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x135D,  0x135F ),
     AF_UNIRANGE_REC(       0,       0 )
   };
 

@@ -475,6 +475,32 @@ typedef ptrdiff_t  FT_PtrDist;
   } gray_TRaster, *gray_PRaster;
 
 
+#ifdef FT_DEBUG_LEVEL_TRACE
+
+  /* to be called while in the debugger --                                */
+  /* this function causes a compiler warning since it is unused otherwise */
+  static void
+  gray_dump_cells( RAS_ARG )
+  {
+    int  yindex;
+
+
+    for ( yindex = 0; yindex < ras.ycount; yindex++ )
+    {
+      PCell  cell;
+
+
+      printf( "%3d:", yindex );
+
+      for ( cell = ras.ycells[yindex]; cell != NULL; cell = cell->next )
+        printf( " (%3ld, c:%4ld, a:%6ld)",
+                cell->x, cell->cover, cell->area );
+      printf( "\n" );
+    }
+  }
+
+#endif /* FT_DEBUG_LEVEL_TRACE */
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -494,50 +520,6 @@ typedef ptrdiff_t  FT_PtrDist;
     ras.area        = 0;
     ras.cover       = 0;
     ras.invalid     = 1;
-  }
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Compute the outline bounding box.                                     */
-  /*                                                                       */
-  static void
-  gray_compute_cbox( RAS_ARG )
-  {
-    FT_Outline*  outline = &ras.outline;
-    FT_Vector*   vec     = outline->points;
-    FT_Vector*   limit   = vec + outline->n_points;
-
-
-    if ( outline->n_points <= 0 )
-    {
-      ras.min_ex = ras.max_ex = 0;
-      ras.min_ey = ras.max_ey = 0;
-      return;
-    }
-
-    ras.min_ex = ras.max_ex = vec->x;
-    ras.min_ey = ras.max_ey = vec->y;
-
-    vec++;
-
-    for ( ; vec < limit; vec++ )
-    {
-      TPos  x = vec->x;
-      TPos  y = vec->y;
-
-
-      if ( x < ras.min_ex ) ras.min_ex = x;
-      if ( x > ras.max_ex ) ras.max_ex = x;
-      if ( y < ras.min_ey ) ras.min_ey = y;
-      if ( y > ras.max_ey ) ras.max_ey = y;
-    }
-
-    /* truncate the bounding box to integer pixels */
-    ras.min_ex = ras.min_ex >> 6;
-    ras.min_ey = ras.min_ey >> 6;
-    ras.max_ex = ( ras.max_ex + 63 ) >> 6;
-    ras.max_ey = ( ras.max_ey + 63 ) >> 6;
   }
 
 
@@ -668,7 +650,7 @@ typedef ptrdiff_t  FT_PtrDist;
     gray_set_cell( RAS_VAR_ ex, ey );
   }
 
-#if 1
+#ifndef FT_LONG64
 
   /*************************************************************************/
   /*                                                                       */
@@ -1323,29 +1305,25 @@ typedef ptrdiff_t  FT_PtrDist;
 
       if ( coverage )
       {
+        unsigned char*  q = p + spans->x;
+
+
         /* For small-spans it is faster to do it by ourselves than
          * calling `memset'.  This is mainly due to the cost of the
          * function call.
          */
-        if ( spans->len >= 8 )
-          FT_MEM_SET( p + spans->x, (unsigned char)coverage, spans->len );
-        else
+        switch ( spans->len )
         {
-          unsigned char*  q = p + spans->x;
-
-
-          switch ( spans->len )
-          {
-          case 7: *q++ = (unsigned char)coverage;
-          case 6: *q++ = (unsigned char)coverage;
-          case 5: *q++ = (unsigned char)coverage;
-          case 4: *q++ = (unsigned char)coverage;
-          case 3: *q++ = (unsigned char)coverage;
-          case 2: *q++ = (unsigned char)coverage;
-          case 1: *q   = (unsigned char)coverage;
-          default:
-            ;
-          }
+        case 7: *q++ = coverage;
+        case 6: *q++ = coverage;
+        case 5: *q++ = coverage;
+        case 4: *q++ = coverage;
+        case 3: *q++ = coverage;
+        case 2: *q++ = coverage;
+        case 1: *q   = coverage;
+        case 0: break;
+        default:
+          FT_MEM_SET( q, coverage, spans->len );
         }
       }
     }
@@ -1407,10 +1385,10 @@ typedef ptrdiff_t  FT_PtrDist;
       /* see whether we can add this span to the current list */
       count = ras.num_gray_spans;
       span  = ras.gray_spans + count - 1;
-      if ( count > 0                          &&
-           ras.span_y == y                    &&
-           (int)span->x + span->len == (int)x &&
-           span->coverage == coverage         )
+      if ( span->coverage == coverage       &&
+           (TCoord)span->x + span->len == x &&
+           ras.span_y == y                  &&
+           count > 0                        )
       {
         span->len = (unsigned short)( span->len + acount );
         return;
@@ -1455,33 +1433,6 @@ typedef ptrdiff_t  FT_PtrDist;
       ras.num_gray_spans++;
     }
   }
-
-
-#ifdef FT_DEBUG_LEVEL_TRACE
-
-  /* to be called while in the debugger --                                */
-  /* this function causes a compiler warning since it is unused otherwise */
-  static void
-  gray_dump_cells( RAS_ARG )
-  {
-    int  yindex;
-
-
-    for ( yindex = 0; yindex < ras.ycount; yindex++ )
-    {
-      PCell  cell;
-
-
-      printf( "%3d:", yindex );
-
-      for ( cell = ras.ycells[yindex]; cell != NULL; cell = cell->next )
-        printf( " (%3ld, c:%4ld, a:%6ld)",
-                cell->x, cell->cover, cell->area );
-      printf( "\n" );
-    }
-  }
-
-#endif /* FT_DEBUG_LEVEL_TRACE */
 
 
   static void
@@ -1839,6 +1790,50 @@ typedef ptrdiff_t  FT_PtrDist;
   }
 
 #endif /* STANDALONE_ */
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* Compute the outline bounding box.                                     */
+  /*                                                                       */
+  static void
+  gray_compute_cbox( RAS_ARG )
+  {
+    FT_Outline*  outline = &ras.outline;
+    FT_Vector*   vec     = outline->points;
+    FT_Vector*   limit   = vec + outline->n_points;
+
+
+    if ( outline->n_points <= 0 )
+    {
+      ras.min_ex = ras.max_ex = 0;
+      ras.min_ey = ras.max_ey = 0;
+      return;
+    }
+
+    ras.min_ex = ras.max_ex = vec->x;
+    ras.min_ey = ras.max_ey = vec->y;
+
+    vec++;
+
+    for ( ; vec < limit; vec++ )
+    {
+      TPos  x = vec->x;
+      TPos  y = vec->y;
+
+
+      if ( x < ras.min_ex ) ras.min_ex = x;
+      if ( x > ras.max_ex ) ras.max_ex = x;
+      if ( y < ras.min_ey ) ras.min_ey = y;
+      if ( y > ras.max_ey ) ras.max_ey = y;
+    }
+
+    /* truncate the bounding box to integer pixels */
+    ras.min_ex = ras.min_ex >> 6;
+    ras.min_ey = ras.min_ey >> 6;
+    ras.max_ex = ( ras.max_ex + 63 ) >> 6;
+    ras.max_ey = ( ras.max_ey + 63 ) >> 6;
+  }
 
 
   typedef struct  gray_TBand_

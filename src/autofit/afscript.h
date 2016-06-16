@@ -47,7 +47,13 @@
           "Bengali",
           HB_SCRIPT_BENGALI,
           HINTING_TOP_TO_BOTTOM,
-          "\xE0\xA7\xA6 \xE0\xA7\xAA" ) /* ০ ৪*/
+          "\xE0\xA7\xA6 \xE0\xA7\xAA" ) /* ০ ৪ */
+
+  SCRIPT( cher, CHER,
+          "Cherokee",
+          HB_SCRIPT_CHEROKEE,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\x8E\xA4 \xE1\x8F\x85 \xEA\xAE\x95" ) /* Ꭴ Ꮕ ꮕ */
 
   SCRIPT( cyrl, CYRL,
           "Cyrillic",
@@ -60,6 +66,12 @@
           HB_SCRIPT_DEVANAGARI,
           HINTING_TOP_TO_BOTTOM,
           "\xE0\xA4\xA0 \xE0\xA4\xB5 \xE0\xA4\x9F" ) /* ठ व ट */
+
+  SCRIPT( ethi, ETHI,
+          "Ethiopic",
+          HB_SCRIPT_ETHIOPIC,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\x8B\x90" ) /* ዐ */
 
   SCRIPT( geor, GEOR,
           "Georgian (Mkhedruli)",
@@ -89,7 +101,7 @@
           "Gurmukhi",
           HB_SCRIPT_GURMUKHI,
           HINTING_TOP_TO_BOTTOM,
-          "\xE0\xA8\xA0 \xE0\xA8\xB0 \xE0\xA9\xA6" ) /* ਠ ਰ ੦*/
+          "\xE0\xA8\xA0 \xE0\xA8\xB0 \xE0\xA9\xA6" ) /* ਠ ਰ ੦ */
 
   SCRIPT( hebr, HEBR,
           "Hebrew",
