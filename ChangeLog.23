@@ -197,7 +197,7 @@
 	Fix Savannah bug #28395.
 
 	* src/truetype/ttdriver.c (Load_Glyph), src/type1/t1gload.c
-	(T1_Loada_Glyph): Don't check `num_glyphs' if incremental interface
+	(T1_Load_Glyph): Don't check `num_glyphs' if incremental interface
 	is used.
 
 2010-01-05  Ken Sharp  <ken.sharp@artifex.com>
@@ -2815,7 +2815,7 @@
 	ft_bitmap_glyph_class and ft_outline_glyph_class will be allocated
 	in the pic_container instead of the global scope and use macros from
 	basepic.h to access them.
-	* src/base/ftbbox.c allocate bbox_interface stract on the stack
+	* src/base/ftbbox.c allocate bbox_interface struct on the stack
 	instead of the global scope when FT_CONFIG_OPTION_PIC is defined.
 	* src/base/ftstroke.c access ft_outline_glyph_class allocated in
 	ftglyph.c via macros from basepic.h

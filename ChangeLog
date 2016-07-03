@@ -1,3 +1,119 @@
+2016-07-02  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Remove unused structure members.
+
+	* src/autofit/afhints.h (AF_SegmentRec, AF_EdgeRec): Remove
+	`num_linked'.
+
+	* src/autofit/afcjk.c (af_cjk_hints_link_segments): Updated.
+
+2016-07-02  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Update to Unicode 9.0.0.
+
+	* src/autofit/afranges.c (af_arab_nonbase_uniranges,
+	af_cyrl_uniranges): Add new data.
+
+2016-07-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Variable type revision (part 1).
+
+	This patch restores original `TCoord' definition as `int' so that the
+	rendering pool is used more efficiently on LP64 platforms (unix).
+
+	* src/smooth/ftgrays.c (gray_TWorker, TCell, gray_TBand): Switch some
+	fields to `TCoord'.
+	(gray_find_cell, gray_render_scanline, gray_render_line, gray_hline,
+	gray_sweep, gray_convert_glyph): Updated.
+
+2016-06-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Minor clean-ups.
+
+	* src/smooth/ftgrays.c (gray_TWorker): Remove redundant `ycount'.
+	(gray_sweep, gray_convert_glyph, gray_dump_cells): Updated.
+
+2016-06-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Minor clean-ups.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Do not use volatile
+	qualifier.
+	(gray_raster_render): Move span initializations from here.
+	(gray_sweep): ... to here and remove unused `target' argument.
+
+2016-06-26  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[pcf] Fix handling of very large fonts (#47708).
+
+	* src/pcf/pcfread.c (pcf_get_encodings): Make `encodingOffset' an
+	unsigned short.
+	Only reject `0xFFFF' as an invalid encoding offset.
+
+2016-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Really fix deallocation in case of error (#47726).
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Thinko; initialize
+	`outline.points' also.
+
+2016-06-23  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Consolidate memory management.
+
+	* src/smooth/ftgrays.c (gray_init_cells): Remove function.
+	(gray_TWorker): Remove fields that become local variables.
+	(gray_raster_render): Move rendering buffer declaration from here.
+	(gray_convert_glyph): ... to here and update accordingly.
+
+2016-06-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Consolidate boundary checks.
+
+	Removing the checks from `gray_hline' shaves 1% off rendering speed.
+
+	* src/smooth/ftgrays.c [STANDALONE_]: Duplicate `FT_MIN' and `FT_MAX'.
+	(gray_TWorker): No need to store `clip_box'.
+	(gray_hline): Remove unnecessary boundary checks.
+	(gray_convert_glyph): Move boundary checks from here.
+	(gray_raster_render): ... to here and consolidate.
+
+2016-06-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Use `FT_Outline_Get_CBox'.
+
+	* src/smooth/ftgrays.c [STANDALONE_]: Duplicate `FT_Outline_Get_CBox'.
+	(gray_compute_cbox): Remove this function.
+	(gray_convert_glyph): Update to use `FT_Outline_Get_CBox'.
+
+2016-06-20  Werner Lemberg  <wl@gnu.org>
+
+	[smooth] Remove compiler warnings.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Fix reports from clang.
+
+2016-06-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Sanitize memory managenent.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Cleaned up.
+
+2016-06-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Remove `band_shoot' that never worked.
+
+	* src/smooth/ftgrays.c (gray_TWorker): Remove `band_shoot'.
+	(gray_convert_glyph): Updated.
+
+2016-06-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster, smooth] Handle FT_RENDER_POOL_SIZE better.
+
+	* src/raster/ftraster.c (FT_MAX_BLACK_POOL): New macro.
+	(ft_black_render): Updated.
+	* src/smooth/ftgrays.c (FT_MAX_GRAY_POOL): New macro.
+	(gray_raster_render): Updated.
+
 2016-06-16  Werner Lemberg  <wl@gnu.org>
 
 	* src/base/md5.c: Updated to recent version.
@@ -1317,7 +1433,7 @@
 	* src/autofit/afscript.h: Add another parameter to `SCRIPT',
 	specifying hinting direction.
 
-	* src/autofit/afglobal.c, scr/autofit/afglobal.h,
+	* src/autofit/afglobal.c, src/autofit/afglobal.h,
 	src/autofit/afpic.c, src/autofit/afranges.h, src/autofit/afshaper.c,
 	src/autofit/aftypes.h: Extend `SCRIPT' definitions.
 
@@ -1847,7 +1963,7 @@
 
 2015-11-27  Tamas Kenez  <tamas.kenez@adasworks.com>
 
-	[cmake] Make `FindHarfbuzz' observe the REQUIRED option.
+	[cmake] Make `FindHarfBuzz' observe the REQUIRED option.
 
 	* builds/cmake/FindHarfBuzz.cmake: Implement it.
 
@@ -3481,7 +3597,7 @@
 	* src/autofit/aftypes.h [FT_DEBUG_AUTOFIT]: Include
 	FT_CONFIG_STANDARD_LIBRARY_H earlier.
 
-	* src/truetype/ttpic.h: Include FT_INTERNL_PIC_H.
+	* src/truetype/ttpic.h: Include FT_INTERNAL_PIC_H.
 
 2015-07-07  Werner Lemberg  <wl@gnu.org>
 
