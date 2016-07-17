@@ -1,3 +1,363 @@
+2016-07-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Add bytecode support for GX variation fonts.
+
+	This commit implements undocumented (but confirmed) stuff from
+	Apple's old bytecode engine.
+
+	  GETVARIATION[], opcode 0x91
+	    This opcode pushes normalized variation coordinates for all axes
+	    onto the stack (in 2.14 format).  Coordinate of first axis gets
+	    pushed first.
+
+	  GETINFO[], selector bit 3
+	    If GX variation support is enabled, bit 10 of the result is set
+	    to 1.
+
+	* src/truetype/ttinterp.c: Include FT_MULTIPLE_MASTERS_H.
+	(opcode_name) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Updated.
+	(Ins_GETINFO) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Handle selector
+	bit 3, checking support for variation glyph hinting.
+	(Ins_GETVARIATION) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: New function
+	to implement opcode 0x91.
+	(TT_RunIns) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Handle opcode 0x91.
+
+2016-07-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix GETINFO bytecode instruction.
+
+	* src/truetype/ttinterp.c (Ins_GETINFO): Fix return value for
+	stretching information.
+
+2016-07-16  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] Make all glyphs in `Zycon' GX font work.
+
+	* src/truetype/ttgxvar.c (ft_var_readpackedpoints): Fix boundary
+	tests.
+
+2016-07-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix GX delta tracing.
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Trace
+	relative point movements.
+
+2016-07-16  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] More fixes for GX.
+
+	This finally fixes the rendering of the cyclist and the lizard in
+	the `Zycon' font.
+
+	* src/truetype/ttgxvar.c (ft_var_readpackedpoints): `first' point
+	index is always cumulative.
+
+	(tt_handle_deltas): Rename to...
+	(tt_interpolate_deltas): ... This.
+	Add new parameter for output point array.
+	Update caller.
+
+	(TT_Vary_Apply_Glyph_Deltas): Add `points_out' array; it now holds
+	the intermediate results of `tt_interpolate_deltas' that are to be
+	added to `outline->points'.
+
+2016-07-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_segments): Thinko.
+
+	`max_pos' is always larger than `min_pos' so `FT_ABS' is not needed.
+
+	Reported by Alexei.
+
+2016-07-16  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	* src/truetype/ttinterp.c (Ins_MIRP): Fix copy-and-paste error.
+
+	Problem reported by Hin-Tak Leung.
+
+2016-07-15  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Update and improve segment and edge tracing.
+
+	* src/autofit/afhints.c (af_glyph_hints_dump_segments): Trace
+	`delta' also.
+	Don't show first point of segment as a replacement for `pos'; this
+	is (a) misleading, since the difference to `pos' can be almost
+	arbitrarily large in corner cases, and (b) it is better to have all
+	segment data in font units instead of a single value given in output
+	space coordinates.
+	Improve layout.
+	(af_glyph_hints_dump_edges): Show px->units and units->px conversion
+	values for convenience.
+	Improve layout.
+
+2016-07-15  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] For edges, reject segments wider than 1px (#41334).
+
+	* src/autofit/afhints.h (AF_SegmentRec): New member `delta'.
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_segments): Compute
+	`delta'.
+	(af_latin_hints_compute_edges): Reject segments with a delta larger
+	than 0.5px.
+
+2016-07-14  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/freetype.h (FT_IS_NAMED_INSTANCE): New macro.
+
+2016-07-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix `face_index' value in `FT_Face' for named instances.
+
+	* src/sfnt/sfobjc.s (sfnt_init_face): Don't strip off higher 16bits.
+
+2016-07-14  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Fix tracing.
+
+2016-07-14  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] Fix gxvar delta interpolation.
+
+	The coordinates of the base font should be used for interpolation
+	purposes, NOT the current points (i.e., the result of accumulation
+	of previous deltas).
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Initialize
+	`points_org' before looping over all tuples.
+
+2016-07-12  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.6.5 released.
+	=========================
+
+
+	Tag sources with `VER-2-6-5'.
+
+	This commit immediately follows `[mac] Fix ftexport.sym target in
+	Jamfile.' on a separate branch, which was then merged with master
+	after the release.
+
+	* include/freetype/config/ftoption.h
+	(TT_CONFIG_OPTION_SUBPIXEL_HINTING): Comment out.
+
+	* docs/VERSION.TXT: Add entry for version 2.6.5.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.6.4/2.6.5/, s/264/265/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 5.
+
+	* builds/unix/configure.raw (version_info): Set to 18:5:12.
+	* CMakeLists.txt (VERSION_PATCH): Set to 5.
+
+	* docs/CHANGES: Updated.
+
+2016-07-11  Werner Lemberg  <wl@gnu.org>
+
+	Conditionally compile environment support.
+
+	* include/freetype/internal/ftobjs.h, src/autofit/afmodule.c,
+	src/base/ftobjs.c, src/cff/cffdrivr.c, src/truetype/ttdriver.c:
+	Decorate with `FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES' where
+	necessary.
+
+2016-07-11  Werner Lemberg  <wl@gnu.org>
+
+	Handle properties in `FREETYPE_PROPERTIES' environment variable.
+
+	This commit covers the most important one.
+
+	* src/autofit/afmodule.c (af_property_set): Handle `warping',
+	`darkening-parameters', and `no-stem-darkening'.
+
+	* src/cff/cffdrivr.c (cff_property_set): Handle
+	`darkening-parameters', `hinting-engine', and `no-stem-darkening'.
+
+	* src/truetype/ttdriver.c (tt_property_set): Handle
+	`interpreter-version'.
+
+2016-07-11  Werner Lemberg  <wl@gnu.org>
+
+	Replace calls to `atol' with `strtol'.
+
+	We later on need strtol's `endptr' feature.
+
+	* include/freetype/config/ftstdlib.h (ft_atol): Replace with...
+	(ft_strtol): ... this.
+
+	* src/base/ftdbgmem.c (ft_mem_debug_init): Updated.
+	* src/cid/cidparse.c (cid_parser_new): Ditto.
+	* src/type42/t42drivr.c (t42_get_name_index), src/type42/t42objs.c
+	(T42_GlyphSlot_Load): Ditto.
+
+2016-07-10  Werner Lemberg  <wl@gnu.org>
+
+	Implement handling of `FREETYPE_PROPERTIES' environment variable.
+
+	Recognizing properties follows in another commit.
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h
+	(FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES): New macro.
+
+	* include/freetype/config/ftstdlib.h (ft_getenv): New macro.
+
+	* src/base/ftinit.c (ft_set_default_properties): New function to
+	parse `FREETYPE_PROPERTIES' and calling `ft_property_string_set'.
+	(FT_Init_FreeType): Updated.
+
+2016-07-09  Werner Lemberg  <wl@gnu.org>
+
+	Add function `ft_property_string_set'.
+
+	This is a preparation for handling an `FREETYPE_PROPERTIES'
+	environment variable to control (some) driver properties.
+
+	No change in functionality.
+
+	* src/base/ftobjs.c (ft_property_do): Add `value_is_string'
+	parameter.
+	(ft_property_string_set): New function.
+	(FT_Property_Set, FT_Property_Get): Updated.
+
+	* include/freetype/internal/ftobjs.h: Updated.
+
+	* include/freetype/internal/services/svprop.h
+	(FT_Properties_SetFunc): Add `value_is_string' parameter.
+
+	* src/autofit/afmodule.c (af_property_set), src/cff/cffdrivr.c
+	(cff_property_set), src/truetype/ttdriver.c (tt_property_set):
+	Updated, emitting an error currently if `value_is_string' is set.
+
+2016-07-09  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[mac] Fix ftexport.sym target in Jamfile.
+
+	* Jamfile: Update the directories of the header files scanned for
+	ftexport.sym.  They were incorrect since the migration of the
+	header files, on 2015-06-22.  Either inexisting include/cache
+	(removed on 2006-03-20) is not needed to be listed explicitly.
+	Now ftmac.h is scanned only in the case of Mac OS & Mac OS X.
+
+2016-07-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Sub-banding protocol revision.
+
+	Rasterization sub-banding is utilized at large sizes while using a
+	rather small fixed memory pool.  Indeed it is possible to make an
+	educated guess how much memory is necessary at a given size for a
+	given glyph.  It turns out that, for a large majority of European
+	glyphs, you should store about 8 times more boundary pixels than
+	their height.  Or, vice versa, if your memory pool can hold 800
+	pixels the band height should be 100 and you should sub-band
+	anything larger than that.  Should you still run out of memory,
+	FreeType bisects the band but you have wasted some time.  This is
+	what has been implemented in FreeType since the beginning.
+
+	It was overlooked, however, that the top band could grow to twice
+	the default band size leading to unnecessary memory overflows there.
+	This commit fixes that.  Now the bands are distributed more evenly
+	and cannot exceed the default size.
+
+	Now the magic number 8 is really suitable for rather simple European
+	scripts.  For complex Chinese logograms the magic number should be
+	13 but that is subject for another day.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Revise sub-banding
+	protocol.
+
+2016-07-07  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[mac] Fix Savannah bug #48417.
+
+	Mac OS X linker throws errors when `-exported_symbol_list' input
+	file includes non-existing symbols.  Reported by Ryan Schmidt.
+
+	* builds/exports.mk: Exclude ftmac.h from the headers for apinames
+	by default.  Include it when ftmac.c would be compiled.
+
+2016-07-06  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (TInstruction_Function): Removed, unused.
+
+2016-07-05  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.6.4 released.
+	=========================
+
+
+	Tag sources with `VER-2-6-4'.
+
+	* docs/VERSION.TXT: Update documentation and bump version number to
+	2.6.4.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.6.3/2.6.4/, s/263/264/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 4.
+
+	* builds/unix/configure.raw (version_info): Set to 18:4:12.
+	* CMakeLists.txt (VERSION_PATCH): Set to 4.
+
+	* docs/CHANGES: Updated.
+
+2016-07-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/pfr/pfrsbit.c (pfr_lookup_bitmap_data): Fix compiler warning.
+
+2016-07-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Variable type revision (part 2).
+
+	* src/smooth/ftgrays.c (TArea): Restore original definition as `int'.
+	(gray_render_line) [FT_LONG64]: Updated.
+	(gray_convert_glyph): 32-bit band bisection stack should be 32 bands.
+	(gray_convert_glyph_inner): Trace successes and failures.
+
+2016-07-04  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Handle single-point contours as segments.
+
+	Doing so allows us to link them to edges – some fonts like
+	`NotoSansGurmukhi-Regular' have such isolated points sitting exactly
+	on other outlines.
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_segments): Don't
+	ignore one-point contours but handle them specially as one-point
+	segments.
+	(af_latin_hints_compute_edges): Append one-point segments to edges
+	if possible.
+
 2016-07-02  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Remove unused structure members.
@@ -1090,7 +1450,7 @@
 	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 3.
 
 	* builds/unix/configure.raw (version_info): Set to 18:3:12.
-	* CMakeLists.txt (VERSION_PATCH): Set to 2.
+	* CMakeLists.txt (VERSION_PATCH): Set to 3.
 
 	* docs/CHANGES: Updated.
 

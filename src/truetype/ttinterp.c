@@ -26,6 +26,7 @@
 #include FT_TRIGONOMETRY_H
 #include FT_SYSTEM_H
 #include FT_TRUETYPE_DRIVER_H
+#include FT_MULTIPLE_MASTERS_H
 
 #include "ttinterp.h"
 #include "tterrors.h"
@@ -72,14 +73,6 @@
 
 #define FAST_DUALPROJ( v )                          \
           exc->func_dualproj( exc, (v)->x, (v)->y )
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Instruction dispatch function, as used by the interpreter.            */
-  /*                                                                       */
-  typedef void  (*TInstruction_Function)( TT_ExecContext  exc,
-                                          FT_Long*        args );
 
 
   /*************************************************************************/
@@ -790,7 +783,7 @@
     /*  INS_$8F   */  PACK( 0, 0 ),
 
     /*  INS_$90  */   PACK( 0, 0 ),
-    /*  INS_$91  */   PACK( 0, 0 ),
+    /*  GETVAR   */   PACK( 0, 0 ), /* will be handled specially */
     /*  INS_$92  */   PACK( 0, 0 ),
     /*  INS_$93  */   PACK( 0, 0 ),
     /*  INS_$94  */   PACK( 0, 0 ),
@@ -1073,7 +1066,11 @@
     "7 INS_$8F",
 
     "7 INS_$90",
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+    "6 GETVAR",
+#else
     "7 INS_$91",
+#endif
     "7 INS_$92",
     "7 INS_$93",
     "7 INS_$94",
@@ -6096,7 +6093,6 @@
          exc->GS.freeVector.x != 0                          &&
          !( exc->sph_tweak_flags & SPH_TWEAK_NORMAL_ROUND ) )
       control_value_cutin = minimum_distance = 0;
-    else
 #endif /* TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY */
 
     /* XXX: UNDOCUMENTED! cvt[-1] = 0 always */
@@ -7236,7 +7232,7 @@
     /* Return Bit(s): 8             */
     /*                              */
     if ( ( args[0] & 2 ) != 0 && exc->tt_metrics.rotated )
-      K |= 0x80;
+      K |= 1 << 8;
 
     /********************************/
     /* GLYPH STRETCHED              */
@@ -7244,7 +7240,18 @@
     /* Return Bit(s): 9             */
     /*                              */
     if ( ( args[0] & 4 ) != 0 && exc->tt_metrics.stretched )
-      K |= 1 << 8;
+      K |= 1 << 9;
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+    /********************************/
+    /* VARIATION GLYPH              */
+    /* Selector Bit:  3             */
+    /* Return Bit(s): 10            */
+    /*                              */
+    /* XXX: UNDOCUMENTED!           */
+    if ( (args[0] & 8 ) != 0 && exc->face->blend )
+      K |= 1 << 10;
+#endif
 
     /********************************/
     /* BI-LEVEL HINTING AND         */
@@ -7386,6 +7393,41 @@
 
     args[0] = K;
   }
+
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* GETVARIATION[]: get normalized variation (blend) coordinates          */
+  /* Opcode range:   0x24                                                  */
+  /* Stack:          --> f2.14...                                          */
+  /*                                                                       */
+  /* XXX: UNDOCUMENTED!  There is no documentation from Apple for this     */
+  /*      bytecode instruction.                                            */
+  /*                                                                       */
+  static void
+  Ins_GETVARIATION( TT_ExecContext  exc,
+                    FT_Long*        args )
+  {
+    FT_UInt    num_axes = exc->face->blend->num_axis;
+    FT_Fixed*  coords   = exc->face->blend->normalizedcoords;
+
+    FT_UInt  i;
+
+
+    if ( BOUNDS( num_axes, exc->stackSize + 1 - exc->top ) )
+    {
+      exc->error = FT_THROW( Stack_Overflow );
+      return;
+    }
+
+    for ( i = 0; i < num_axes; i++ )
+      args[i] = coords[i] >> 2; /* convert 16.16 to 2.14 format */
+  }
+
+#endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
+
 
 
   static void
@@ -7574,7 +7616,21 @@
         exc->args = 0;
       }
 
-      exc->new_top = exc->args + ( Pop_Push_Count[exc->opcode] & 15 );
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+      if ( exc->opcode == 0x91 )
+      {
+        /* this is very special: GETVARIATION returns */
+        /* a variable number of arguments             */
+
+        /* it is the job of the application to `activate' GX handling, */
+        /* this is, calling any of the GX API functions on the current */
+        /* font to select a variation instance                         */
+        if ( exc->face->blend )
+          exc->new_top = exc->args + exc->face->blend->num_axis;
+      }
+      else
+#endif
+        exc->new_top = exc->args + ( Pop_Push_Count[exc->opcode] & 15 );
 
       /* `new_top' is the new top of the stack, after the instruction's */
       /* execution.  `top' will be set to `new_top' after the `switch'  */
@@ -8122,6 +8178,18 @@
         case 0x8F:
           Ins_UNKNOWN( exc );
           break;
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+        case 0x91:
+          /* it is the job of the application to `activate' GX handling, */
+          /* this is, calling any of the GX API functions on the current */
+          /* font to select a variation instance                         */
+          if ( exc->face->blend )
+            Ins_GETVARIATION( exc, args );
+          else
+            Ins_UNKNOWN( exc );
+          break;
+#endif
 
         default:
           if ( opcode >= 0xE0 )

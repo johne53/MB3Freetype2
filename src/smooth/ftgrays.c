@@ -387,9 +387,9 @@ typedef ptrdiff_t  FT_PtrDist;
   /* need to define them to "float" or "double" when experimenting with   */
   /* new algorithms                                                       */
 
-  typedef int   TCoord;   /* integer scanline/pixel coordinate */
   typedef long  TPos;     /* sub-pixel coordinate              */
-  typedef long  TArea;    /* cell areas, coordinate products   */
+  typedef int   TCoord;   /* integer scanline/pixel coordinate */
+  typedef int   TArea;    /* cell areas, coordinate products   */
 
 
   typedef struct TCell_*  PCell;
@@ -493,7 +493,7 @@ typedef ptrdiff_t  FT_PtrDist;
       printf( "%3d:", yindex );
 
       for ( cell = ras.ycells[yindex]; cell != NULL; cell = cell->next )
-        printf( " (%3d, c:%4d, a:%6ld)",
+        printf( " (%3d, c:%4d, a:%6d)",
                 cell->x, cell->cover, cell->area );
       printf( "\n" );
     }
@@ -928,7 +928,7 @@ typedef ptrdiff_t  FT_PtrDist;
     }
     else                                  /* any other line */
     {
-      TArea  prod = dx * fy1 - dy * fx1;
+      TPos  prod = dx * fy1 - dy * fx1;
       FT_UDIVPREP( dx );
       FT_UDIVPREP( dy );
 
@@ -1873,9 +1873,17 @@ typedef ptrdiff_t  FT_PtrDist;
       error = FT_Outline_Decompose( &ras.outline, &func_interface, &ras );
       if ( !ras.invalid )
         gray_record_cell( RAS_VAR );
+
+      FT_TRACE7(( "band [%d..%d]: %d cells\n",
+                  ras.min_ey, ras.max_ey, ras.num_cells ));
     }
     else
+    {
       error = FT_THROW( Memory_Overflow );
+
+      FT_TRACE7(( "band [%d..%d]: to be bisected\n",
+                  ras.min_ey, ras.max_ey ));
+    }
 
     return error;
   }
@@ -1885,27 +1893,28 @@ typedef ptrdiff_t  FT_PtrDist;
   gray_convert_glyph( RAS_ARG )
   {
     TCell        buffer[FT_MAX_GRAY_POOL];
-    const int    band_size = FT_MAX_GRAY_POOL / 8;
-    gray_TBand   bands[40];
-    gray_TBand*  band;
-    int          n, num_bands;
+    TCoord       band_size = FT_MAX_GRAY_POOL / 8;
+    int          num_bands;
     TCoord       min, max, max_y;
+    gray_TBand   bands[32];  /* enough to accommodate bisections */
+    gray_TBand*  band;
 
 
     /* set up vertical bands */
-    num_bands = (int)( ( ras.max_ey - ras.min_ey ) / band_size );
-    if ( num_bands == 0 )
-      num_bands = 1;
-    if ( num_bands >= 39 )
-      num_bands = 39;
+    if ( ras.count_ey > band_size )
+    {
+      /* two divisions rounded up */
+      num_bands = (int)( ( ras.count_ey + band_size - 1) / band_size );
+      band_size = ( ras.count_ey + num_bands - 1 ) / num_bands;
+    }
 
     min   = ras.min_ey;
     max_y = ras.max_ey;
 
-    for ( n = 0; n < num_bands; n++, min = max )
+    for ( ; min < max_y; min = max )
     {
       max = min + band_size;
-      if ( n == num_bands - 1 || max > max_y )
+      if ( max > max_y )
         max = max_y;
 
       bands[0].min = min;
