@@ -784,7 +784,7 @@
 
     /*  INS_$90  */   PACK( 0, 0 ),
     /*  GETVAR   */   PACK( 0, 0 ), /* will be handled specially */
-    /*  INS_$92  */   PACK( 0, 0 ),
+    /*  GETDATA  */   PACK( 0, 1 ),
     /*  INS_$93  */   PACK( 0, 0 ),
     /*  INS_$94  */   PACK( 0, 0 ),
     /*  INS_$95  */   PACK( 0, 0 ),
@@ -1068,10 +1068,11 @@
     "7 INS_$90",
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
     "6 GETVAR",
+    "7 GETDATA",
 #else
     "7 INS_$91",
-#endif
     "7 INS_$92",
+#endif
     "7 INS_$93",
     "7 INS_$94",
     "7 INS_$95",
@@ -4007,6 +4008,7 @@
         exc->error = FT_THROW( Nested_DEFS );
         return;
       case 0x2D:   /* ENDF */
+        def->end = exc->IP;
         return;
       }
     }
@@ -7400,11 +7402,12 @@
   /*************************************************************************/
   /*                                                                       */
   /* GETVARIATION[]: get normalized variation (blend) coordinates          */
-  /* Opcode range:   0x24                                                  */
+  /* Opcode range:   0x91                                                  */
   /* Stack:          --> f2.14...                                          */
   /*                                                                       */
-  /* XXX: UNDOCUMENTED!  There is no documentation from Apple for this     */
-  /*      bytecode instruction.                                            */
+  /* XXX: UNDOCUMENTED!  There is no official documentation from Apple for */
+  /*      this bytecode instruction.  Active only if a font has GX         */
+  /*      variation axes.                                                  */
   /*                                                                       */
   static void
   Ins_GETVARIATION( TT_ExecContext  exc,
@@ -7426,8 +7429,23 @@
       args[i] = coords[i] >> 2; /* convert 16.16 to 2.14 format */
   }
 
-#endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 
+  /*************************************************************************/
+  /*                                                                       */
+  /* GETDATA[]:    no idea what this is good for                           */
+  /* Opcode range: 0x92                                                    */
+  /* Stack:        --> 17                                                  */
+  /*                                                                       */
+  /* XXX: UNDOCUMENTED!  There is no documentation from Apple for this     */
+  /*      very weird bytecode instruction.                                 */
+  /*                                                                       */
+  static void
+  Ins_GETDATA( FT_Long*  args )
+  {
+    args[0] = 17;
+  }
+
+#endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 
 
   static void
@@ -8186,6 +8204,16 @@
           /* font to select a variation instance                         */
           if ( exc->face->blend )
             Ins_GETVARIATION( exc, args );
+          else
+            Ins_UNKNOWN( exc );
+          break;
+
+        case 0x92:
+          /* there is at least one MS font (LaoUI.ttf version 5.01) that */
+          /* uses IDEFs for 0x91 and 0x92; for this reason we activate   */
+          /* GETDATA for GX fonts only, similar to GETVARIATION          */
+          if ( exc->face->blend )
+            Ins_GETDATA( args );
           else
             Ins_UNKNOWN( exc );
           break;

@@ -158,13 +158,16 @@
       return NULL;
     }
 
-    if ( FT_NEW_ARRAY( points, n ) )
+    /* in the nested loops below we increase `i' twice; */
+    /* it is faster to simply allocate one more slot    */
+    /* than to add another test within the loop         */
+    if ( FT_NEW_ARRAY( points, n + 1 ) )
       return NULL;
 
     *point_cnt = n;
 
     first = 0;
-    i = 0;
+    i     = 0;
     while ( i < n )
     {
       runcnt = FT_GET_BYTE();
@@ -179,7 +182,7 @@
         {
           first      += FT_GET_USHORT();
           points[i++] = first;
-          if ( i == n )
+          if ( i >= n )
             break;
         }
       }
@@ -192,7 +195,7 @@
         {
           first      += FT_GET_BYTE();
           points[i++] = first;
-          if ( i == n )
+          if ( i >= n )
             break;
         }
       }
