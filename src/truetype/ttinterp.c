@@ -682,17 +682,17 @@
 
     /*  IUP[0]    */  PACK( 0, 0 ),
     /*  IUP[1]    */  PACK( 0, 0 ),
-    /*  SHP[0]    */  PACK( 0, 0 ),
-    /*  SHP[1]    */  PACK( 0, 0 ),
+    /*  SHP[0]    */  PACK( 0, 0 ), /* loops */
+    /*  SHP[1]    */  PACK( 0, 0 ), /* loops */
     /*  SHC[0]    */  PACK( 1, 0 ),
     /*  SHC[1]    */  PACK( 1, 0 ),
     /*  SHZ[0]    */  PACK( 1, 0 ),
     /*  SHZ[1]    */  PACK( 1, 0 ),
-    /*  SHPIX     */  PACK( 1, 0 ),
-    /*  IP        */  PACK( 0, 0 ),
+    /*  SHPIX     */  PACK( 1, 0 ), /* loops */
+    /*  IP        */  PACK( 0, 0 ), /* loops */
     /*  MSIRP[0]  */  PACK( 2, 0 ),
     /*  MSIRP[1]  */  PACK( 2, 0 ),
-    /*  AlignRP   */  PACK( 0, 0 ),
+    /*  AlignRP   */  PACK( 0, 0 ), /* loops */
     /*  RTDG      */  PACK( 0, 0 ),
     /*  MIAP[0]   */  PACK( 2, 0 ),
     /*  MIAP[1]   */  PACK( 2, 0 ),
@@ -765,7 +765,7 @@
     /*  SANGW     */  PACK( 1, 0 ),
     /*  AA        */  PACK( 1, 0 ),
 
-    /*  FlipPT    */  PACK( 0, 0 ),
+    /*  FlipPT    */  PACK( 0, 0 ), /* loops */
     /*  FlipRgON  */  PACK( 2, 0 ),
     /*  FlipRgOFF */  PACK( 2, 0 ),
     /*  INS_$83   */  PACK( 0, 0 ),
@@ -2879,7 +2879,7 @@
   /*                                                                       */
   /* NEG[]:        NEGate                                                  */
   /* Opcode range: 0x65                                                    */
-  /* Stack: f26.6 --> f26.6                                                */
+  /* Stack:        f26.6 --> f26.6                                         */
   /*                                                                       */
   static void
   Ins_NEG( FT_Long*  args )
@@ -3119,7 +3119,7 @@
   /*************************************************************************/
   /*                                                                       */
   /* MAX[]:        MAXimum                                                 */
-  /* Opcode range: 0x68                                                    */
+  /* Opcode range: 0x8B                                                    */
   /* Stack:        int32? int32? --> int32                                 */
   /*                                                                       */
   static void
@@ -3133,7 +3133,7 @@
   /*************************************************************************/
   /*                                                                       */
   /* MIN[]:        MINimum                                                 */
-  /* Opcode range: 0x69                                                    */
+  /* Opcode range: 0x8C                                                    */
   /* Stack:        int32? int32? --> int32                                 */
   /*                                                                       */
   static void
@@ -4492,7 +4492,7 @@
   /*                                                                       */
   /* FLIPOFF[]:    Set auto-FLIP to OFF                                    */
   /* Opcode range: 0x4E                                                    */
-  /* Stack: -->                                                            */
+  /* Stack:        -->                                                     */
   /*                                                                       */
   static void
   Ins_FLIPOFF( TT_ExecContext  exc )
@@ -7402,8 +7402,8 @@
   /*************************************************************************/
   /*                                                                       */
   /* GETVARIATION[]: get normalized variation (blend) coordinates          */
-  /* Opcode range:   0x91                                                  */
-  /* Stack:          --> f2.14...                                          */
+  /* Opcode range: 0x91                                                    */
+  /* Stack:        --> f2.14...                                            */
   /*                                                                       */
   /* XXX: UNDOCUMENTED!  There is no official documentation from Apple for */
   /*      this bytecode instruction.  Active only if a font has GX         */
@@ -7841,7 +7841,7 @@
           Ins_ALIGNPTS( exc, args );
           break;
 
-        case 0x28:  /* ???? */
+        case 0x28:  /* RAW */
           Ins_UNKNOWN( exc );
           break;
 
@@ -8193,7 +8193,8 @@
           Ins_INSTCTRL( exc, args );
           break;
 
-        case 0x8F:
+        case 0x8F:  /* ADJUST */
+        case 0x90:  /* ADJUST */
           Ins_UNKNOWN( exc );
           break;
 

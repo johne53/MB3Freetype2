@@ -1441,7 +1441,7 @@
     {
       FT_TRACE1(( "load_truetype_glyph: maxComponentDepth set to %d\n",
                   recurse_count ));
-      face->max_profile.maxComponentDepth = recurse_count;
+      face->max_profile.maxComponentDepth = (FT_UShort)recurse_count;
     }
 
 #ifndef FT_CONFIG_OPTION_INCREMENTAL
@@ -1807,11 +1807,11 @@
 
         for ( i = 0; i < limit; i++, subglyph++ )
         {
-          /* XXX: overflow check for subglyph->{arg1,arg2}.         */
-          /*      Deltas must be within signed 16-bit,              */
-          /*      but the restriction of summed deltas is not clear */
-          subglyph->arg1 = (FT_Int16)points[i].x;
-          subglyph->arg2 = (FT_Int16)points[i].y;
+          if ( subglyph->flags & ARGS_ARE_XY_VALUES )
+          {
+            subglyph->arg1 = (FT_Int16)points[i].x;
+            subglyph->arg2 = (FT_Int16)points[i].y;
+          }
         }
 
         loader->pp1.x = points[i + 0].x;

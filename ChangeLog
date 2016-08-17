@@ -1,3 +1,100 @@
+2016-08-16  Werner Lemberg  <wl@gnu.org>
+
+	[lzw] Optimize last commit.
+
+	* src/lzw/ftzopen.c (ft_lzwstate_get_code): Move check into
+	conditional clause.
+
+2016-08-16  Werner Lemberg  <wl@gnu.org>
+
+	[lzw] Avoid invalid left shift.
+
+	Reported as
+
+	  https://bugzilla.mozilla.org/show_bug.cgi?id=1295366
+
+	* src/lzw/ftzopen.c (ft_lzwstate_get_code): Limit `num_bits'.
+
+2016-08-16  Werner Lemberg  <wl@gnu.org>
+
+	[lzw] Avoid buffer overrun.
+
+	Reported as
+
+	  https://bugzilla.mozilla.org/show_bug.cgi?id=1273283
+
+	* src/lzw/ftzopen.c (ft_lzwstate_refill): Ensure `buf_size' doesn't
+	underflow.
+
+2016-08-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix compiler warning.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Add cast.
+
+2016-08-13  Werner Lemberg  <wl@gnu.org>
+
+	[winfonts] Avoid zero bitmap width and height.
+
+	Reported as
+
+	  https://bugzilla.mozilla.org/show_bug.cgi?id=1272173
+
+	* src/winfonts/winfnt.c (FNT_Face_Init): Check zero pixel height.
+	(FNT_Load_Glyph): Check for zero pitch.
+
+2016-08-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttinterp.c (Pop_Push_Count): Revert changes.
+
+2016-08-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttinterp.c (TT_RunIns): Minor and formatting.
+
+2016-08-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttinterp.c (Pop_Push_Count): Fix some entries.
+
+2016-08-10  Peter Klotz  <Peter.Klotz@ith-icoserve.com>
+
+	* src/smooth/ftgrays.c (gray_hline): Fix uninitialized access.
+
+2016-08-10  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Use correct type for `italicAngle' field (#48732).
+
+	* src/sfnt/ttload.c (tt_face_load_post): Fix types.
+
+2016-08-06  Jon Spencer  <jon@jonspencer.ca>
+
+	[sfnt] Fix `FT_Get_Advance' for bitmap strikes.
+
+	`FT_Get_Advance' returns 0 for bitmap fonts.  It first gets the
+	advance value from the font table and then scales it by the
+	`font->size->metrics->x_scale' field.  But `FT_Select_Size' doesn't
+	set that value for bitmap fonts and the advance gets scaled to zero.
+
+	Taken from
+
+	  https://github.com/behdad/harfbuzz/issues/252
+
+	* src/sfnt/ttsbit.c (tt_face_load_strike_metrics)
+	<TT_SBIT_TABLE_TYPE_EBLC>: Set scale values.
+
+2016-08-06  Behdad Esfahbod  <behdad@behdad.org>
+
+	[truetype] Fix GX variation handling of composites.
+
+	* src/truetype/ttgload.c (load_truetype_glyph)
+	[TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Check `ARGS_ARE_XY_VALUES' flag.
+
+2016-08-05  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Minor refactoring.
+
+	* src/smooth/ftgrays.c (gray_render_scanline, gray_render_line):
+	Updated.
+
 2016-07-29  Werner Lemberg  <wl@gnu.org>
 
 	[sfnt, truetype] Don't abort on invalid `maxComponentDepth'.
