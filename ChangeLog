@@ -1,3 +1,175 @@
+2016-09-03  Werner Lemberg  <wl@gnu.org>
+
+	[base] Avoid negative bitmap stroke dimensions (#48985).
+
+	* src/base/ftobjs.c (FT_Open_Face): Check whether negation was
+	actually successful.  For example, this can fail for value
+	-32768 if the type is `signed short'.  If there are problems,
+	disable the stroke.
+
+2016-09-03  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Avoid null pointer passed to FT_MEM_COPY (#48984).
+
+	* src/cff/cffload.c (cff_index_get_name): Check `byte_len'.
+
+2016-09-02  Werner Lemberg  <wl@gnu.org>
+
+	[unix] Enable 64bit support in file system access (#48962).
+
+	* builds/unix/configure.raw: Call `AC_SYS_LARGEFILE'.
+
+2016-09-02  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Avoid left shift of negative value (#48980).
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_load_bit_aligned): Use unsigned
+	constant.
+
+2016-09-02  Werner Lemberg  <wl@gnu.org>
+
+	* src/smooth/ftgrays.c (gray_hline): Fix clang compiler warnings.
+
+2016-09-02  Werner Lemberg  <wl@gnu.org>
+
+	Some preparations for the next release.
+
+	* include/freetype/config/ftoption.h
+	(TT_CONFIG_OPTION_SUBPIXEL_HINTING): Enable.
+
+	* docs/CHANGES: Updated.
+
+2016-09-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Simplify span rendering more.
+
+	It turns out that there is significant cost associated with `FT_Span'
+	creation and calls to `gray_render_span' because it happerns so
+	frequently. This removes these steps from our internal use but leaves
+	it alone for `FT_RASTER_FLAG_DIRECT" to preserve API. The speed gain
+	is about 5%.
+
+	* src/smooth/ftgrays.c (gray_render_span): Removed. The code is
+	migrated to...
+	(gray_hline): ... here.
+
+2016-08-30  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Streamline pixmap drawing a bit more.
+
+	Zero coverage is unlikely (1 out of 256) to warrant checking. This
+	gives 0.5% speed improvement in rendering simple glyphs.
+
+	* src/smooth/ftgrays.c (gray_hline, gray_render_span): Remove checks.
+
+2016-08-29  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Streamline pixmap drawing.
+
+	This gives 2% speed improvement in rendering simple glyphs.
+
+	* src/smooth/ftgrays.c (TPixmap): Reduced pixmap descriptor with a
+	pointer to its bottom-left and pitch to be used in...
+	(gray_TWorker): ... here.
+	(gray_render_span): Move pixmap flow check from here...
+	(gray_raster_render): .. to here.
+
+2016-08-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Reduce stack of band boundaries.
+
+	* src/smooth/ftgrays.c (gray_TBand): Removed.
+	(gray_convert_glyph): Updated to stack band boundaries concisely.
+
+2016-08-26  Werner Lemberg  <wl@gnu.org>
+
+	* src/cid/cidload.c (cid_face_open): Improve handling of `SDBytes'.
+
+2016-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[cid] Fix commit from 2016-05-16.
+
+	* src/cid/cidparse.c (cid_parser_new): Fix off-by-one errors.
+
+2016-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Cache offset and size to bitmap data table.
+
+	This commit avoids `EBDT' and friends being looked up again and
+	again while loading a single embedded bitmap.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec)
+	[TT_CONFIG_OPTION_EMBEDDED_BITMAPS]: New fields `ebdt_start' and
+	`ebdt_size'.
+
+	* src/sfnt/ttsbit.c (tt_sbit_decoder_init): Move table lookup to ...
+	(tt_face_load_sbit): ... this function; also store the table size
+	and offset.
+
+2016-08-26  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_raster_render): Minor tweaks.
+
+2016-08-26  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Fix heap buffer overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=36
+
+	* src/type1/t1load.c (parse_charstrings): Reject fonts that don't
+	contain glyph names.
+
+2016-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix previous commit (#48901).
+
+	* src/sfnt/ttcmap.c (tt_cmap4_char_map_binary): Thinkos.
+
+2016-08-25  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Speed up handling of invalid format 4 cmaps.
+
+	* src/sfnt/ttcmap.c (tt_cmap4_next, tt_cmap4_char_map_binary): Add
+	tests for `num_glyph' from `tt_cmap4_char_map_linear'.
+
+2016-08-25  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/internal/ftdriver.h: Remove unused typedefs.
+
+2016-08-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Simplify span rendering.
+
+	This removes unnecessary complexity of span merging and buffering.
+	Instead, the spans are rendered as they come, speeding up the
+	rendering by about 5% as a result.
+
+	* src/smooth/ftgrays.c [FT_MAX_GRAY_SPANS]: Macro removed.
+	(gray_TWorker): Remove span buffer and related fields.
+	(gray_sweep, gray_hline): Updated.
+
+	* include/freetype/ftimage.h: Remove documentation note about
+	`FT_MAX_GRAY_SPANS', which was never in `ftoption.h' and is now gone.
+
+2016-08-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix `MPS' instruction.
+
+	According to Greg Hitchcock, MPS in DWrite really returns the point
+	size.
+
+	* src/truetype/ttobjs.h (TT_SizeRec): Add `point_size' member.
+
+	* src/truetype/ttdriver.c (tt_size_request): Set `point_size'.
+
+	* src/truetype/ttinterp.h (TT_ExecContextRec): Add `pointSize'
+	member.
+
+	* src/truetype/ttinterp.c (TT_Load_Context): Updated.
+	(Ins_MPS): Fix instruction.
+
 2016-08-16  Werner Lemberg  <wl@gnu.org>
 
 	[lzw] Optimize last commit.
