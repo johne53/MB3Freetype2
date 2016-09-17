@@ -433,7 +433,6 @@ typedef ptrdiff_t  FT_PtrDist;
     TCoord  ex, ey;
     TCoord  min_ex, max_ex;
     TCoord  min_ey, max_ey;
-    TCoord  count_ex, count_ey;
 
     TArea   area;
     TCoord  cover;
@@ -481,17 +480,17 @@ typedef ptrdiff_t  FT_PtrDist;
   static void
   gray_dump_cells( RAS_ARG )
   {
-    int  yindex;
+    int  y;
 
 
-    for ( yindex = 0; yindex < ras.count_ey; yindex++ )
+    for ( y = ras.min_ey; y < ras.max_ey; y++ )
     {
-      PCell  cell;
+      PCell  cell = ras.ycells[y - ras.min_ey];
 
 
-      printf( "%3d:", yindex );
+      printf( "%3d:", y );
 
-      for ( cell = ras.ycells[yindex]; cell != NULL; cell = cell->next )
+      for ( ; cell != NULL; cell = cell->next )
         printf( " (%3d, c:%4d, a:%6d)",
                 cell->x, cell->cover, cell->area );
       printf( "\n" );
@@ -505,17 +504,14 @@ typedef ptrdiff_t  FT_PtrDist;
   /*                                                                       */
   /* Record the current cell in the table.                                 */
   /*                                                                       */
-  static PCell
-  gray_find_cell( RAS_ARG )
+  static void
+  gray_record_cell( RAS_ARG )
   {
     PCell  *pcell, cell;
     TCoord  x = ras.ex;
 
 
-    if ( x > ras.count_ex )
-      x = ras.count_ex;
-
-    pcell = &ras.ycells[ras.ey];
+    pcell = &ras.ycells[ras.ey - ras.min_ey];
     for (;;)
     {
       cell = *pcell;
@@ -523,7 +519,7 @@ typedef ptrdiff_t  FT_PtrDist;
         break;
 
       if ( cell->x == x )
-        goto Exit;
+        goto Found;
 
       pcell = &cell->next;
     }
@@ -531,30 +527,21 @@ typedef ptrdiff_t  FT_PtrDist;
     if ( ras.num_cells >= ras.max_cells )
       ft_longjmp( ras.jump_buffer, 1 );
 
+    /* insert new cell */
     cell        = ras.cells + ras.num_cells++;
     cell->x     = x;
-    cell->area  = 0;
-    cell->cover = 0;
+    cell->area  = ras.area;
+    cell->cover = ras.cover;
 
     cell->next  = *pcell;
     *pcell      = cell;
 
-  Exit:
-    return cell;
-  }
+    return;
 
-
-  static void
-  gray_record_cell( RAS_ARG )
-  {
-    if ( ras.area | ras.cover )
-    {
-      PCell  cell = gray_find_cell( RAS_VAR );
-
-
-      cell->area  += ras.area;
-      cell->cover += ras.cover;
-    }
+  Found:
+    /* update old cell */
+    cell->area  += ras.area;
+    cell->cover += ras.cover;
   }
 
 
@@ -578,55 +565,23 @@ typedef ptrdiff_t  FT_PtrDist;
 
     /* All cells that are on the left of the clipping region go to the */
     /* min_ex - 1 horizontal position.                                 */
-    ey -= ras.min_ey;
-
-    if ( ex > ras.max_ex )
-      ex = ras.max_ex;
-
-    ex -= ras.min_ex;
-    if ( ex < 0 )
-      ex = -1;
-
-    /* are we moving to a different cell ? */
-    if ( ex != ras.ex || ey != ras.ey )
-    {
-      /* record the current one if it is valid */
-      if ( !ras.invalid )
-        gray_record_cell( RAS_VAR );
-
-      ras.area  = 0;
-      ras.cover = 0;
-      ras.ex    = ex;
-      ras.ey    = ey;
-    }
-
-    ras.invalid = ( (unsigned int)ey >= (unsigned int)ras.count_ey ||
-                                  ex >= ras.count_ex               );
-  }
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Start a new contour at a given cell.                                  */
-  /*                                                                       */
-  static void
-  gray_start_cell( RAS_ARG_ TCoord  ex,
-                            TCoord  ey )
-  {
-    if ( ex > ras.max_ex )
-      ex = ras.max_ex;
 
     if ( ex < ras.min_ex )
       ex = ras.min_ex - 1;
 
-    ras.area    = 0;
-    ras.cover   = 0;
-    ras.ex      = ex - ras.min_ex;
-    ras.ey      = ey - ras.min_ey;
-    ras.invalid = 0;
+    /* record the current one if it is valid */
+    if ( !ras.invalid )
+      gray_record_cell( RAS_VAR );
 
-    gray_set_cell( RAS_VAR_ ex, ey );
+    ras.area  = 0;
+    ras.cover = 0;
+    ras.ex    = ex;
+    ras.ey    = ey;
+
+    ras.invalid = ( ey >= ras.max_ey || ey < ras.min_ey ||
+                    ex >= ras.max_ex );
   }
+
 
 #ifndef FT_LONG64
 
@@ -1224,15 +1179,11 @@ typedef ptrdiff_t  FT_PtrDist;
     TPos  x, y;
 
 
-    /* record current cell, if any */
-    if ( !ras.invalid )
-      gray_record_cell( RAS_VAR );
-
     /* start to a new position */
     x = UPSCALE( to->x );
     y = UPSCALE( to->y );
 
-    gray_start_cell( RAS_VAR_ TRUNC( x ), TRUNC( y ) );
+    gray_set_cell( RAS_VAR_ TRUNC( x ), TRUNC( y ) );
 
     ras.x = x;
     ras.y = y;
@@ -1308,17 +1259,15 @@ typedef ptrdiff_t  FT_PtrDist;
 
     if ( ras.render_span )  /* for FT_RASTER_FLAG_DIRECT only */
     {
-      span.x        = (short)( x + ras.min_ex );
+      span.x        = (short)x;
       span.len      = (unsigned short)acount;
       span.coverage = (unsigned char)coverage;
 
-      ras.render_span( y + ras.min_ey, 1, &span, ras.render_span_data );
+      ras.render_span( y, 1, &span, ras.render_span_data );
     }
     else
     {
-      unsigned char*  q = ras.target.origin -
-                          ras.target.pitch * ( y + ras.min_ey ) +
-                                               x + ras.min_ex;
+      unsigned char*  q = ras.target.origin - ras.target.pitch * y + x;
       unsigned char   c = (unsigned char)coverage;
 
 
@@ -1346,19 +1295,16 @@ typedef ptrdiff_t  FT_PtrDist;
   static void
   gray_sweep( RAS_ARG )
   {
-    int  yindex;
+    int  y;
 
-
-    if ( ras.num_cells == 0 )
-      return;
 
     FT_TRACE7(( "gray_sweep: start\n" ));
 
-    for ( yindex = 0; yindex < ras.count_ey; yindex++ )
+    for ( y = ras.min_ey; y < ras.max_ey; y++ )
     {
-      PCell   cell  = ras.ycells[yindex];
+      PCell   cell  = ras.ycells[y - ras.min_ey];
       TCoord  cover = 0;
-      TCoord  x     = 0;
+      TCoord  x     = ras.min_ex;
 
 
       for ( ; cell != NULL; cell = cell->next )
@@ -1366,22 +1312,22 @@ typedef ptrdiff_t  FT_PtrDist;
         TArea  area;
 
 
-        if ( cell->x > x && cover != 0 )
-          gray_hline( RAS_VAR_ x, yindex, (TArea)cover * ( ONE_PIXEL * 2 ),
+        if ( cover != 0 && cell->x > x )
+          gray_hline( RAS_VAR_ x, y, (TArea)cover * ( ONE_PIXEL * 2 ),
                       cell->x - x );
 
         cover += cell->cover;
         area   = (TArea)cover * ( ONE_PIXEL * 2 ) - cell->area;
 
-        if ( area != 0 && cell->x >= 0 )
-          gray_hline( RAS_VAR_ cell->x, yindex, area, 1 );
+        if ( area != 0 && cell->x >= ras.min_ex )
+          gray_hline( RAS_VAR_ cell->x, y, area, 1 );
 
         x = cell->x + 1;
       }
 
       if ( cover != 0 )
-        gray_hline( RAS_VAR_ x, yindex, (TArea)cover * ( ONE_PIXEL * 2 ),
-                    ras.count_ex - x );
+        gray_hline( RAS_VAR_ x, y, (TArea)cover * ( ONE_PIXEL * 2 ),
+                    ras.max_ex - x );
     }
 
     FT_TRACE7(( "gray_sweep: end\n" ));
@@ -1796,6 +1742,7 @@ typedef ptrdiff_t  FT_PtrDist;
   {
     TCell    buffer[FT_MAX_GRAY_POOL];
     TCoord   band_size = FT_MAX_GRAY_POOL / 8;
+    TCoord   count = ras.max_ey - ras.min_ey;
     int      num_bands;
     TCoord   min, max, max_y;
     TCoord   bands[32];  /* enough to accommodate bisections */
@@ -1803,11 +1750,11 @@ typedef ptrdiff_t  FT_PtrDist;
 
 
     /* set up vertical bands */
-    if ( ras.count_ey > band_size )
+    if ( count > band_size )
     {
       /* two divisions rounded up */
-      num_bands = (int)( ( ras.count_ey + band_size - 1) / band_size );
-      band_size = ( ras.count_ey + num_bands - 1 ) / num_bands;
+      num_bands = (int)( ( count + band_size - 1) / band_size );
+      band_size = ( count + num_bands - 1 ) / num_bands;
     }
 
     min   = ras.min_ey;
@@ -1853,7 +1800,6 @@ typedef ptrdiff_t  FT_PtrDist;
         ras.invalid   = 1;
         ras.min_ey    = band[1];
         ras.max_ey    = band[0];
-        ras.count_ey  = width;
 
         error = gray_convert_glyph_inner( RAS_VAR );
 
@@ -1997,9 +1943,6 @@ typedef ptrdiff_t  FT_PtrDist;
 
     if ( ras.max_ex <= ras.min_ex || ras.max_ey <= ras.min_ey )
       return 0;
-
-    ras.count_ex = ras.max_ex - ras.min_ex;
-    ras.count_ey = ras.max_ey - ras.min_ey;
 
     return gray_convert_glyph( RAS_VAR );
   }

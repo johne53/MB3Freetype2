@@ -291,7 +291,7 @@
     }
     else
     {
-      SFNT_Service      sfnt    = (SFNT_Service) ttface->sfnt;
+      SFNT_Service      sfnt    = (SFNT_Service)ttface->sfnt;
       FT_Size_Metrics*  metrics = &size->metrics;
 
 
@@ -319,7 +319,7 @@
     if ( FT_HAS_FIXED_SIZES( size->face ) )
     {
       TT_Face       ttface = (TT_Face)size->face;
-      SFNT_Service  sfnt   = (SFNT_Service) ttface->sfnt;
+      SFNT_Service  sfnt   = (SFNT_Service)ttface->sfnt;
       FT_ULong      strike_index;
 
 
