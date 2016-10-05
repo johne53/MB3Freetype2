@@ -1,3 +1,171 @@
+2016-10-01  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Disable bitmap strikes if we don't have a bitmap data table.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit): Check whether we have
+	a bitmap data table.
+
+2016-10-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Remove impossibility.
+
+	* src/smooth/ftgrays.c (TWorker): Rearrange fields.
+	(gray_convert_glyph): Remove impossible condition and clean up.
+
+2016-09-29  Werner Lemberg  <wl@gnu.org>
+
+	[pcf] Enrich family name with foundry name and glyph width info.
+
+	This is a very old patch from openSuSE (from 2006, submitted to
+	FreeType in 2011) that I forgot to apply.
+
+	  https://build.opensuse.org/package/view_file/openSUSE:Factory/freetype2/freetype2-bitmap-foundry.patch
+
+	Prepend the foundry name plus a space to the family name.  There are
+	many fonts just called `Fixed' which look completely different, and
+	which have nothing to do with each other.  When selecting `Fixed' in
+	KDE or Gnome one gets results that appear rather random, the style
+	changes often if one changes the size and one cannot select some
+	fonts at all.
+
+	We also check whether we have `wide' characters; all put together,
+	we get family names like `Sony Fixed' or `Misc Fixed Wide'.
+
+	* src/pcf/pcfread.c (pcf_load_font): Implement it.
+
+	* docs/CHANGES: Document it.
+
+2016-09-29  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Speed up.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (LLVMFuzzerTestOneInput): Don't
+	check for embedded bitmaps if we have a non-default instance.
+
+2016-09-29  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Disallow bitmap strokes for non-default instances.
+
+	Also speed up access of default instances if GX variations are
+	active.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Add
+	`is_default_instance' member.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Initialize
+	`is_default_instance'.
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph,
+	load_truetype_glyph): Add test for default instance.
+	(TT_Load_Glyph): Load embedded bitmaps for default instance only.
+
+	* src/truetype/ttgxvar.c (TT_Set_MM_Blend): Compute
+	`is_default_instance'.
+
+2016-09-29  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Clean up `TT_Face' structure.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Remove unused
+	fields `horz_metrics' and `vert_metrics'.
+	Update documentation.
+
+	* src/sfnt/sfobjs.c (sfnt_done_face): Updated.
+
+2016-09-28  Werner Lemberg  <wl@gnu.org>
+
+	More FT_ZERO usage.
+
+	* src/gxvalid/gxvcommn.c (gxv_ClassTable_validate):
+	s/ft_memset/FT_MEM_ZERO/.
+
+	* src/psaux/t1decode.c (t1_decoder_parse_charstrings):
+	s/ft_memset/FT_ARRAY_ZERO/.
+
+	* src/raster/ftraster.c (FT_ZERO): Define.
+	(ft_black_new): Use it.
+	* src/raster/ftrend1.c (ft_raster1_get_cbox):
+	s/FT_MEM_ZERO/FT_ZERO/.
+
+	* src/smooth/ftgrays.c (FT_ZERO): Define.
+	(gray_raster_new): Use it.
+	* src/smooth/ftsmooth.c (ft_smooth_get_cbox):
+	s/FT_MEM_ZERO/FT_ZERO/.
+
+2016-09-28  Werner Lemberg  <wl@gnu.org>
+
+	*/*: s/FT_MEM_ZERO/FT_ZERO/ where appropriate.
+
+2016-09-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Trace number of executed opcodes.
+
+	* src/truetype/ttinterp.c (TT_RunIns): Implement it.
+
+2016-09-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Speed up `TT_Load_Glyph'.
+
+	This avoids additional calls to `tt_face_lookup_table' for the
+	`glyf' table, which can be expensive.
+
+	* include/freetype/internal/tttypes.h (TT_LoaderRec): Move
+	`glyf_offset' field to ...
+	(TT_FaceRec): ... this structure.
+	* src/truetype/ttgload.c (load_truetype_glyph): Updated.
+	(tt_loader_init): Move initialization of `glyf_offset' to ...
+	* src/truetype/ttpload.c (tt_face_load_loca): ... this function.
+
+2016-09-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Introduce dynamic limits for some bytecode opcodes.
+
+	This speeds up FreeType's handling of malformed fonts.
+
+	* src/truetype/ttinterp.c (TT_RunIns): Set up limits for the number
+	of twilight points, the total number of negative jumps, and the
+	total number of loops in LOOPCALL opcodes.  The values are based on
+	the number of points and entries in the CVT table.
+	(Ins_JMPR): Test negative jump counter.
+	(Ins_LOOPCALL): Test loopcall counter.
+
+	* src/truetype/ttinterp.h (TT_ExecContext): Updated.
+
+	* docs/CHANGES: Updated.
+
+2016-09-25  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Sanitize only last entry of `loca' table.
+
+	Without this patch, a loca sequence like `0 100000 0 100000 ...',
+	where value 100000 is larger than the `glyf' table size, makes
+	FreeType handle the whole `glyf' table as a single glyph again and
+	again, which is certainly invalid (and can be very slow, too).
+
+	* src/truetype/ttpload.c (tt_face_get_location): Implement.
+	Improve tracing messages.
+
+2016-09-25  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (LLVMFuzzerTestOneInput): Fix typo.
+
+2016-09-24  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Tracing fixes.
+
+	* src/autofit/afmodule.c (af_autofitter_load_glyph): Call dumping
+	functions only if we actually do tracing.
+
+2016-09-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Reduce divisions in the line renderer.
+
+	We don't need some divisions if a line segments stays within a single
+	row or a single column of pixels.
+
+	* src/smooth/ftgrays.c (gray_render_line) [FT_LONG64]: Make divisions
+	conditional.
+
 2016-09-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* src/smooth/ftgrays.c (gray_sweep): Remove check for empty table.

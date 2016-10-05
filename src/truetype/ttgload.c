@@ -886,7 +886,7 @@
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
-    if ( loader->face->doblend )
+    if ( loader->face->doblend && !loader->face->is_default_instance )
     {
       /* Deltas apply to the unscaled data. */
       error = TT_Vary_Apply_Glyph_Deltas( loader->face,
@@ -1487,7 +1487,7 @@
       offset            = 0;
       loader->byte_len  = glyph_data.length;
 
-      FT_MEM_ZERO( &inc_stream, sizeof ( inc_stream ) );
+      FT_ZERO( &inc_stream );
       FT_Stream_OpenMemory( &inc_stream,
                             glyph_data.pointer,
                             (FT_ULong)glyph_data.length );
@@ -1505,10 +1505,10 @@
     {
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
       /* for the incremental interface, `glyf_offset' is always zero */
-      if ( !loader->glyf_offset                        &&
+      if ( !face->glyf_offset                          &&
            !face->root.internal->incremental_interface )
 #else
-      if ( !loader->glyf_offset )
+      if ( !face->glyf_offset )
 #endif /* FT_CONFIG_OPTION_INCREMENTAL */
       {
         FT_TRACE2(( "no `glyf' table but non-zero `loca' entry\n" ));
@@ -1517,7 +1517,7 @@
       }
 
       error = face->access_glyph_frame( loader, glyph_index,
-                                        loader->glyf_offset + offset,
+                                        face->glyf_offset + offset,
                                         (FT_UInt)loader->byte_len );
       if ( error )
         goto Exit;
@@ -1564,7 +1564,7 @@
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
-      if ( loader->face->doblend )
+      if ( loader->face->doblend && !loader->face->is_default_instance )
       {
         /* a small outline structure with four elements for */
         /* communication with `TT_Vary_Apply_Glyph_Deltas'  */
@@ -1727,7 +1727,7 @@
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
-      if ( face->doblend )
+      if ( face->doblend && !face->is_default_instance )
       {
         short        i, limit;
         FT_SubGlyph  subglyph;
@@ -2252,7 +2252,7 @@
     face   = (TT_Face)glyph->face;
     stream = face->root.stream;
 
-    FT_MEM_ZERO( loader, sizeof ( TT_LoaderRec ) );
+    FT_ZERO( loader );
 
 #ifdef TT_USE_BYTECODE_INTERPRETER
 
@@ -2497,32 +2497,6 @@
 
 #endif /* TT_USE_BYTECODE_INTERPRETER */
 
-    /* seek to the beginning of the glyph table -- for Type 42 fonts     */
-    /* the table might be accessed from a Postscript stream or something */
-    /* else...                                                           */
-
-#ifdef FT_CONFIG_OPTION_INCREMENTAL
-
-    if ( face->root.internal->incremental_interface )
-      loader->glyf_offset = 0;
-    else
-
-#endif
-
-    {
-      error = face->goto_table( face, TTAG_glyf, stream, 0 );
-
-      if ( FT_ERR_EQ( error, Table_Missing ) )
-        loader->glyf_offset = 0;
-      else if ( error )
-      {
-        FT_ERROR(( "tt_loader_init: could not access glyph table\n" ));
-        return error;
-      }
-      else
-        loader->glyf_offset = FT_STREAM_POS();
-    }
-
     /* get face's glyph loader */
     if ( !glyf_table_only )
     {
@@ -2592,18 +2566,17 @@
   {
     FT_Error      error;
     TT_LoaderRec  loader;
+    TT_Face       face = (TT_Face)glyph->face;
 
 
     FT_TRACE1(( "TT_Load_Glyph: glyph index %d\n", glyph_index ));
 
 #ifdef TT_CONFIG_OPTION_EMBEDDED_BITMAPS
 
-    /* try to load embedded bitmap if any              */
-    /*                                                 */
-    /* XXX: The convention should be emphasized in     */
-    /*      the documents because it can be confusing. */
+    /* try to load embedded bitmap (if any) */
     if ( size->strike_index != 0xFFFFFFFFUL      &&
-         ( load_flags & FT_LOAD_NO_BITMAP ) == 0 )
+         ( load_flags & FT_LOAD_NO_BITMAP ) == 0 &&
+         face->is_default_instance               )
     {
       error = load_sbit_image( size, glyph, glyph_index, load_flags );
       if ( !error )

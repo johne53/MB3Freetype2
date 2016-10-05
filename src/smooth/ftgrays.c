@@ -286,6 +286,10 @@ typedef ptrdiff_t  FT_PtrDist;
 #define FT_MEM_ZERO( dest, count )  FT_MEM_SET( dest, 0, count )
 #endif
 
+#ifndef FT_ZERO
+#define FT_ZERO( p )  FT_MEM_ZERO( p, sizeof ( *(p) ) )
+#endif
+
   /* as usual, for the speed hungry :-) */
 
 #undef RAS_ARG
@@ -371,8 +375,9 @@ typedef ptrdiff_t  FT_PtrDist;
 
   /* These macros speed up repetitive divisions by replacing them */
   /* with multiplications and right shifts.                       */
-#define FT_UDIVPREP( b )                                       \
-  long  b ## _r = (long)( FT_ULONG_MAX >> PIXEL_BITS ) / ( b )
+#define FT_UDIVPREP( c, b )                                        \
+  long  b ## _r = c ? (long)( FT_ULONG_MAX >> PIXEL_BITS ) / ( b ) \
+                    : 0
 #define FT_UDIV( a, b )                                        \
   ( ( (unsigned long)( a ) * (unsigned long)( b ## _r ) ) >>   \
     ( sizeof( long ) * FT_CHAR_BIT - PIXEL_BITS ) )
@@ -438,6 +443,7 @@ typedef ptrdiff_t  FT_PtrDist;
     TCoord  cover;
     int     invalid;
 
+    PCell*      ycells;
     PCell       cells;
     FT_PtrDist  max_cells;
     FT_PtrDist  num_cells;
@@ -449,8 +455,6 @@ typedef ptrdiff_t  FT_PtrDist;
 
     FT_Raster_Span_Func  render_span;
     void*                render_span_data;
-
-    PCell*     ycells;
 
   } gray_TWorker, *gray_PWorker;
 
@@ -890,8 +894,8 @@ typedef ptrdiff_t  FT_PtrDist;
     else                                  /* any other line */
     {
       TPos  prod = dx * fy1 - dy * fx1;
-      FT_UDIVPREP( dx );
-      FT_UDIVPREP( dy );
+      FT_UDIVPREP( ex1 != ex2, dx );
+      FT_UDIVPREP( ey1 != ey2, dy );
 
 
       /* The fundamental value `prod' determines which side and the  */
@@ -1697,12 +1701,14 @@ typedef ptrdiff_t  FT_PtrDist;
   FT_DEFINE_OUTLINE_FUNCS(
     func_interface,
 
-    (FT_Outline_MoveTo_Func) gray_move_to,
-    (FT_Outline_LineTo_Func) gray_line_to,
-    (FT_Outline_ConicTo_Func)gray_conic_to,
-    (FT_Outline_CubicTo_Func)gray_cubic_to,
-    0,
-    0 )
+    (FT_Outline_MoveTo_Func) gray_move_to,   /* move_to  */
+    (FT_Outline_LineTo_Func) gray_line_to,   /* line_to  */
+    (FT_Outline_ConicTo_Func)gray_conic_to,  /* conic_to */
+    (FT_Outline_CubicTo_Func)gray_cubic_to,  /* cubic_to */
+
+    0,                                       /* shift    */
+    0                                        /* delta    */
+  )
 
 
   static int
@@ -1785,18 +1791,15 @@ typedef ptrdiff_t  FT_PtrDist;
           cell_start = ( ycount * sizeof ( PCell ) + sizeof ( TCell ) - 1 ) /
                        sizeof ( TCell );
 
-          if ( FT_MAX_GRAY_POOL - cell_start < 2 )
-            goto ReduceBands;
-
           ras.cells     = buffer + cell_start;
           ras.max_cells = (FT_PtrDist)( FT_MAX_GRAY_POOL - cell_start );
+          ras.num_cells = 0;
 
           ras.ycells = (PCell*)buffer;
           while ( ycount )
             ras.ycells[--ycount] = NULL;
         }
 
-        ras.num_cells = 0;
         ras.invalid   = 1;
         ras.min_ey    = band[1];
         ras.max_ey    = band[0];
@@ -1812,7 +1815,6 @@ typedef ptrdiff_t  FT_PtrDist;
         else if ( error != ErrRaster_Memory_Overflow )
           return 1;
 
-      ReduceBands:
         /* render pool overflow; we will reduce the render band by half */
         width >>= 1;
 
@@ -1963,7 +1965,7 @@ typedef ptrdiff_t  FT_PtrDist;
 
 
     *araster = (FT_Raster)&the_raster;
-    FT_MEM_ZERO( &the_raster, sizeof ( the_raster ) );
+    FT_ZERO( &the_raster );
 
     return 0;
   }
@@ -2039,11 +2041,12 @@ typedef ptrdiff_t  FT_PtrDist;
 
     FT_GLYPH_FORMAT_OUTLINE,
 
-    (FT_Raster_New_Func)     gray_raster_new,
-    (FT_Raster_Reset_Func)   gray_raster_reset,
-    (FT_Raster_Set_Mode_Func)gray_raster_set_mode,
-    (FT_Raster_Render_Func)  gray_raster_render,
-    (FT_Raster_Done_Func)    gray_raster_done )
+    (FT_Raster_New_Func)     gray_raster_new,       /* raster_new      */
+    (FT_Raster_Reset_Func)   gray_raster_reset,     /* raster_reset    */
+    (FT_Raster_Set_Mode_Func)gray_raster_set_mode,  /* raster_set_mode */
+    (FT_Raster_Render_Func)  gray_raster_render,    /* raster_render   */
+    (FT_Raster_Done_Func)    gray_raster_done       /* raster_done     */
+  )
 
 
 /* END */

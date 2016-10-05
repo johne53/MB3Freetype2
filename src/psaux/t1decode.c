@@ -405,9 +405,7 @@
                ( decoder->buildchar == NULL )  );
 
     if ( decoder->buildchar && decoder->len_buildchar > 0 )
-      ft_memset( &decoder->buildchar[0],
-                 0,
-                 sizeof ( decoder->buildchar[0] ) * decoder->len_buildchar );
+      FT_ARRAY_ZERO( decoder->buildchar, decoder->len_buildchar );
 
     FT_TRACE4(( "\n"
                 "Start charstring\n" ));
@@ -1591,7 +1589,7 @@
                    FT_Render_Mode       hint_mode,
                    T1_Decoder_Callback  parse_callback )
   {
-    FT_MEM_ZERO( decoder, sizeof ( *decoder ) );
+    FT_ZERO( decoder );
 
     /* retrieve PSNames interface from list of current modules */
     {

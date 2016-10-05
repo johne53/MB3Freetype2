@@ -901,6 +901,8 @@
     if ( error )
       return error;
 
+    face->is_default_instance = 1;
+
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
     {
       FT_ULong  fvar_len;
@@ -1637,18 +1639,10 @@
       face->cmap_size = 0;
     }
 
-    /* freeing the horizontal metrics */
-    {
-      FT_Stream  stream = FT_FACE_STREAM( face );
+    face->horz_metrics_size = 0;
+    face->vert_metrics_size = 0;
 
-
-      FT_FRAME_RELEASE( face->horz_metrics );
-      FT_FRAME_RELEASE( face->vert_metrics );
-      face->horz_metrics_size = 0;
-      face->vert_metrics_size = 0;
-    }
-
-    /* freeing the vertical ones, if any */
+    /* freeing vertical metrics, if any */
     if ( face->vertical_info )
     {
       FT_FREE( face->vertical.long_metrics  );

@@ -257,12 +257,16 @@
           if ( !fixed_sizes_index )
           {
             // set up 20pt at 72dpi as an arbitrary size
-            if ( FT_Set_Char_Size( face, 20 * 64, 20 * 64, 72, 72 ) );
+            if ( FT_Set_Char_Size( face, 20 * 64, 20 * 64, 72, 72 ) )
               continue;
             flags |= FT_LOAD_NO_BITMAP;
           }
           else
           {
+            // bitmap strokes are not active for glyph variations
+            if ( instance_index )
+              continue;
+
             if ( FT_Select_Size( face, fixed_sizes_index - 1 ) )
               continue;
             flags |= FT_LOAD_COLOR;
