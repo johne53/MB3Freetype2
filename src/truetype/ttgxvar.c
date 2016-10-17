@@ -1552,10 +1552,15 @@
 
         for ( j = 0; j < point_count; j++ )
         {
-          int      pindex   = localpoints[j];
-          FT_Long  orig_cvt = face->cvt[pindex];
+          int      pindex;
+          FT_Long  orig_cvt;
 
 
+          pindex = localpoints[j];
+          if ( (FT_ULong)pindex >= face->cvt_size )
+            continue;
+
+          orig_cvt          = face->cvt[pindex];
           face->cvt[pindex] = (FT_Short)( orig_cvt +
                                           FT_MulFix( deltas[j], apply ) );
 
@@ -2163,15 +2168,18 @@
   {
     if ( blend != NULL )
     {
-      FT_UInt  i;
+      FT_UInt  i, num_axes;
 
+
+      /* blend->num_axis might not be set up yet */
+      num_axes = blend->mmvar->num_axis;
 
       FT_FREE( blend->normalizedcoords );
       FT_FREE( blend->mmvar );
 
       if ( blend->avar_segment != NULL )
       {
-        for ( i = 0; i < blend->num_axis; i++ )
+        for ( i = 0; i < num_axes; i++ )
           FT_FREE( blend->avar_segment[i].correspondence );
         FT_FREE( blend->avar_segment );
       }
