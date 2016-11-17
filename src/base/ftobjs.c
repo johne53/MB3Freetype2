@@ -641,6 +641,9 @@
       load_flags &= ~FT_LOAD_RENDER;
     }
 
+    if ( load_flags & FT_LOAD_BITMAP_METRICS_ONLY )
+      load_flags &= ~FT_LOAD_RENDER;
+
     /*
      * Determine whether we need to auto-hint or not.
      * The general rules are:
@@ -4214,7 +4217,7 @@
     if ( ft_trace_levels[trace_bitmap] >= 3 )
     {
       /* we convert to a single bitmap format for computing the checksum */
-      if ( !error )
+      if ( !error && slot->bitmap.buffer )
       {
         FT_Bitmap  bitmap;
         FT_Error   err;
