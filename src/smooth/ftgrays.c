@@ -1840,8 +1840,8 @@ typedef ptrdiff_t  FT_PtrDist;
   gray_raster_render( FT_Raster                raster,
                       const FT_Raster_Params*  params )
   {
-    const FT_Outline*  outline     = (const FT_Outline*)params->source;
-    const FT_Bitmap*   target_map  = params->target;
+    const FT_Outline*  outline    = (const FT_Outline*)params->source;
+    const FT_Bitmap*   target_map = params->target;
     FT_BBox            cbox, clip;
 
 #ifndef FT_STATIC_RASTER

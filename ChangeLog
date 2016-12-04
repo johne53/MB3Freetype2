@@ -1,3 +1,73 @@
+2016-12-01  Werner Lemberg  <wl@gnu.org>
+
+	[gzip] Improve building with external zlib (#49673).
+
+	Building FreeType with external zlib 1.2.8 makes msvc 14 stop with
+	the following error.
+
+	  ftgzip.c
+	  zlib-1.2.8\zlib.h(86): error C2061:
+	                         syntax error: identifier 'z_const'
+	  zlib-1.2.8\zlib.h(94): error C2054:
+	                         expected '(' to follow 'z_const'
+	  zlib-1.2.8\zlib.h(94): error C2085:
+	                         'msg': not in formal parameter list
+	  ...
+	  zlib-1.2.8\zlib.h(877): fatal error C1003:
+	                          error count exceeds 100; stopping compilation
+
+	The error happens because FreeType keeps an own copy of zlib-1.1.4
+	under `src/gzip'.  When building `src/gzip/ftgzip.c' with
+	FT_CONFIG_OPTION_SYSTEM_ZLIB defined, it uses
+
+	  #include <zlib.h>
+
+	which correctly finds an external `zlib.h', but `zlib.h' itself has
+	a line
+
+	  #include "zconf.h"
+
+	which makes Visual Studio 2015 find `src/gzip/zconf.h' while
+	compiling the files in `src/gzip'.
+
+	* src/gzip/zconf.h: Rename to...
+	* src/gzip/ftzconf.h: ... this.
+	* src/gzip/zlib.h, src/gzip/rules.mk (GZIP_DRV_SRCS): Updated.
+
+2016-12-01  Oleksandr Chekhovskyi  <oleksandr.chekhovskyi@gmail.com>
+
+	[autofit] Fix Emscripten crash (patch #9180).
+
+	Function calls through pointers must use a matching signature to
+	work on Emscripten, since such calls are dispatched through lookup
+	tables grouped by signature.
+
+	* src/autofit/aftypes.h (AF_WritingSystem_ApplyHintsFunc): Fix
+	typedef.
+
+2016-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[smooth] Revert previous commit.  Already fixed with 6ca54c64.
+
+2016-11-29  Werner Lemberg  <wl@gnu.org>
+
+	[smooth] Avoid conditional jump on uninitialized value (#49711).
+
+	* src/smooth/ftgrays.c (gray_raster_render): Initialize `worker'.
+
+2016-11-27  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[autofit] Code shuffling.
+
+	Also improve some comments and remove unused code.
+
+	No functional change.
+
+	* src/autofit/afloader.c (af_loader_load_g): Merged with...
+	(af_loader_load_glyph): ...this function.
+	Split off emboldening code into...
+	(af_loader_embolden_glyph_in_slot): ... this function.
+
 2016-11-17  Werner Lemberg  <wl@gnu.org>
 
 	Better support of LLP64 systems with gcc (and clang).
