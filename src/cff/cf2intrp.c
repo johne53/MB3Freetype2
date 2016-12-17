@@ -47,6 +47,8 @@
 
 #include "cf2error.h"
 
+#include "cffload.h"
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -215,8 +217,8 @@
     cf2_cmdESC,          /* 12 */
     cf2_cmdRESERVED_13,  /* 13 */
     cf2_cmdENDCHAR,      /* 14 */
-    cf2_cmdRESERVED_15,  /* 15 */
-    cf2_cmdRESERVED_16,  /* 16 */
+    cf2_cmdVSINDEX,      /* 15 */
+    cf2_cmdBLEND,        /* 16 */
     cf2_cmdRESERVED_17,  /* 17 */
     cf2_cmdHSTEMHM,      /* 18 */
     cf2_cmdHINTMASK,     /* 19 */
@@ -273,7 +275,8 @@
     cf2_escHFLEX,        /* 34 */
     cf2_escFLEX,         /* 35 */
     cf2_escHFLEX1,       /* 36 */
-    cf2_escFLEX1         /* 37 */
+    cf2_escFLEX1,        /* 37 */
+    cf2_escRESERVED_38   /* 38     & all higher     */
   };
 
 
@@ -403,6 +406,43 @@
   }
 
 
+  /* Blend numOperands on the stack,                */
+  /* store results into the first numBlends values, */
+  /* then pop remaining arguments.                  */
+  static void
+  cf2_doBlend( const CFF_Blend  blend,
+               CF2_Stack        opStack,
+               CF2_UInt         numBlends )
+  {
+    CF2_UInt  delta;
+    CF2_UInt  base;
+    CF2_UInt  i, j;
+    CF2_UInt  numOperands = (CF2_UInt)( numBlends * blend->lenBV );
+
+
+    base  = cf2_stack_count( opStack ) - numOperands;
+    delta = base + numBlends;
+
+    for ( i = 0; i < numBlends; i++ )
+    {
+      const CF2_Fixed*  weight = &blend->BV[1];
+
+      /* start with first term */
+      CF2_Fixed  sum = cf2_stack_getReal( opStack, i + base );
+
+
+      for ( j = 1; j < blend->lenBV; j++ )
+        sum += FT_MulFix( *weight++, cf2_stack_getReal( opStack, delta++ ) );
+
+      /* store blended result  */
+      cf2_stack_setReal( opStack, i + base, sum );
+    }
+
+    /* leave only `numBlends' results on stack */
+    cf2_stack_pop( opStack, numOperands - numBlends );
+  }
+
+
   /*
    * `error' is a shared error code used by many objects in this
    * routine.  Before the code continues from an error, it must check and
@@ -445,6 +485,7 @@
     CF2_Fixed  hintOriginY = curY;
 
     CF2_Stack  opStack = NULL;
+    FT_UInt    stackSize;
     FT_Byte    op1;                       /* first opcode byte */
 
     CF2_F16Dot16  storage[CF2_STORAGE_SIZE];    /* for `put' and `get' */
@@ -520,19 +561,24 @@
      * If one of the above operators occurs without explicitly specifying
      * a width, we assume the default width.
      *
+     * CFF2 charstrings always return the default width (0).
+     *
      */
-    haveWidth = FALSE;
+    haveWidth = font->isCFF2 ? TRUE : FALSE;
     *width    = cf2_getDefaultWidthX( decoder );
 
     /*
-     * Note: at this point, all pointers to resources must be NULL
-     * and all local objects must be initialized.
-     * There must be no branches to exit: above this point.
+     * Note: At this point, all pointers to resources must be NULL
+     *       and all local objects must be initialized.
+     *       There must be no branches to `exit:' above this point.
      *
      */
 
     /* allocate an operand stack */
-    opStack = cf2_stack_init( memory, error );
+    stackSize = font->isCFF2 ? cf2_getMaxstack( decoder )
+                             : CF2_OPERAND_STACK_SIZE;
+    opStack   = cf2_stack_init( memory, error, stackSize );
+
     if ( !opStack )
     {
       lastError = FT_THROW( Out_Of_Memory );
@@ -561,13 +607,22 @@
       {
         /* If we've reached the end of the charstring, simulate a */
         /* cf2_cmdRETURN or cf2_cmdENDCHAR.                       */
+        /* We do this for both CFF and CFF2.                      */
         if ( charstringIndex )
           op1 = cf2_cmdRETURN;  /* end of buffer for subroutine */
         else
           op1 = cf2_cmdENDCHAR; /* end of buffer for top level charstring */
       }
       else
+      {
         op1 = (FT_Byte)cf2_buf_readByte( charstring );
+
+        /* Explicit RETURN and ENDCHAR in CFF2 should be ignored. */
+        /* Note: Trace message will report 0 instead of 11 or 14. */
+        if ( ( op1 == cf2_cmdRETURN || op1 == cf2_cmdENDCHAR ) &&
+             font->isCFF2                                      )
+          op1 = cf2_cmdRESERVED_0;
+      }
 
       /* check for errors once per loop */
       if ( *error )
@@ -586,12 +641,58 @@
       case cf2_cmdRESERVED_2:
       case cf2_cmdRESERVED_9:
       case cf2_cmdRESERVED_13:
-      case cf2_cmdRESERVED_15:
-      case cf2_cmdRESERVED_16:
       case cf2_cmdRESERVED_17:
         /* we may get here if we have a prior error */
         FT_TRACE4(( " unknown op (%d)\n", op1 ));
         break;
+
+      case cf2_cmdVSINDEX:
+        FT_TRACE4(( " vsindex\n" ));
+
+        if ( !font->isCFF2 )
+          break;    /* clear stack & ignore */
+
+        if ( font->blend.usedBV )
+        {
+          /* vsindex not allowed after blend */
+          lastError = FT_THROW( Invalid_Glyph_Format );
+          goto exit;
+        }
+
+        font->vsindex = (FT_UInt)cf2_stack_popInt( opStack );
+        break;
+
+      case cf2_cmdBLEND:
+        {
+          FT_UInt  numBlends;
+
+
+          FT_TRACE4(( " blend\n" ));
+
+          if ( !font->isCFF2 )
+            break;    /* clear stack & ignore */
+
+          /* check cached blend vector */
+          if ( cff_blend_check_vector( &font->blend,
+                                       font->vsindex,
+                                       font->lenNDV,
+                                       font->NDV ) )
+          {
+            lastError = cff_blend_build_vector( &font->blend,
+                                                font->vsindex,
+                                                font->lenNDV,
+                                                font->NDV );
+            if ( lastError )
+              goto exit;
+          }
+
+          /* do the blend */
+          numBlends = (FT_UInt)cf2_stack_popInt( opStack );
+          cf2_doBlend( &font->blend, opStack, numBlends );
+
+          font->blend.usedBV = TRUE;
+        }
+        continue;     /* do not clear the stack */
 
       case cf2_cmdHSTEMHM:
       case cf2_cmdHSTEM:
@@ -830,325 +931,10 @@
           FT_Byte  op2 = (FT_Byte)cf2_buf_readByte( charstring );
 
 
+          /* first switch for 2-byte operators handles CFF2      */
+          /* and opcodes that are reserved for both CFF and CFF2 */
           switch ( op2 )
           {
-          case cf2_escDOTSECTION:
-            /* something about `flip type of locking' -- ignore it */
-            FT_TRACE4(( " dotsection\n" ));
-
-            break;
-
-          case cf2_escAND:
-            {
-              CF2_F16Dot16  arg1;
-              CF2_F16Dot16  arg2;
-
-
-              FT_TRACE4(( " and\n" ));
-
-              arg2 = cf2_stack_popFixed( opStack );
-              arg1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushInt( opStack, arg1 && arg2 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escOR:
-            {
-              CF2_F16Dot16  arg1;
-              CF2_F16Dot16  arg2;
-
-
-              FT_TRACE4(( " or\n" ));
-
-              arg2 = cf2_stack_popFixed( opStack );
-              arg1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushInt( opStack, arg1 || arg2 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escNOT:
-            {
-              CF2_F16Dot16  arg;
-
-
-              FT_TRACE4(( " not\n" ));
-
-              arg = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushInt( opStack, !arg );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escABS:
-            {
-              CF2_F16Dot16  arg;
-
-
-              FT_TRACE4(( " abs\n" ));
-
-              arg = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, FT_ABS( arg ) );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escADD:
-            {
-              CF2_F16Dot16  summand1;
-              CF2_F16Dot16  summand2;
-
-
-              FT_TRACE4(( " add\n" ));
-
-              summand2 = cf2_stack_popFixed( opStack );
-              summand1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, summand1 + summand2 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escSUB:
-            {
-              CF2_F16Dot16  minuend;
-              CF2_F16Dot16  subtrahend;
-
-
-              FT_TRACE4(( " sub\n" ));
-
-              subtrahend = cf2_stack_popFixed( opStack );
-              minuend    = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, minuend - subtrahend );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escDIV:
-            {
-              CF2_F16Dot16  dividend;
-              CF2_F16Dot16  divisor;
-
-
-              FT_TRACE4(( " div\n" ));
-
-              divisor  = cf2_stack_popFixed( opStack );
-              dividend = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, FT_DivFix( dividend, divisor ) );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escNEG:
-            {
-              CF2_F16Dot16  arg;
-
-
-              FT_TRACE4(( " neg\n" ));
-
-              arg = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, -arg );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escEQ:
-            {
-              CF2_F16Dot16  arg1;
-              CF2_F16Dot16  arg2;
-
-
-              FT_TRACE4(( " eq\n" ));
-
-              arg2 = cf2_stack_popFixed( opStack );
-              arg1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushInt( opStack, arg1 == arg2 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escDROP:
-            FT_TRACE4(( " drop\n" ));
-
-            (void)cf2_stack_popFixed( opStack );
-            continue; /* do not clear the stack */
-
-          case cf2_escPUT:
-            {
-              CF2_F16Dot16  val;
-              CF2_Int       idx;
-
-
-              FT_TRACE4(( " put\n" ));
-
-              idx = cf2_stack_popInt( opStack );
-              val = cf2_stack_popFixed( opStack );
-
-              if ( idx >= 0 && idx < CF2_STORAGE_SIZE )
-                storage[idx] = val;
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escGET:
-            {
-              CF2_Int  idx;
-
-
-              FT_TRACE4(( " get\n" ));
-
-              idx = cf2_stack_popInt( opStack );
-
-              if ( idx >= 0 && idx < CF2_STORAGE_SIZE )
-                cf2_stack_pushFixed( opStack, storage[idx] );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escIFELSE:
-            {
-              CF2_F16Dot16  arg1;
-              CF2_F16Dot16  arg2;
-              CF2_F16Dot16  cond1;
-              CF2_F16Dot16  cond2;
-
-
-              FT_TRACE4(( " ifelse\n" ));
-
-              cond2 = cf2_stack_popFixed( opStack );
-              cond1 = cf2_stack_popFixed( opStack );
-              arg2  = cf2_stack_popFixed( opStack );
-              arg1  = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, cond1 <= cond2 ? arg1 : arg2 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escRANDOM: /* in spec */
-            FT_TRACE4(( " random\n" ));
-
-            CF2_FIXME;
-            break;
-
-          case cf2_escMUL:
-            {
-              CF2_F16Dot16  factor1;
-              CF2_F16Dot16  factor2;
-
-
-              FT_TRACE4(( " mul\n" ));
-
-              factor2 = cf2_stack_popFixed( opStack );
-              factor1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, FT_MulFix( factor1, factor2 ) );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escSQRT:
-            {
-              CF2_F16Dot16  arg;
-
-
-              FT_TRACE4(( " sqrt\n" ));
-
-              arg = cf2_stack_popFixed( opStack );
-              if ( arg > 0 )
-              {
-                FT_Fixed  root = arg;
-                FT_Fixed  new_root;
-
-
-                /* Babylonian method */
-                for (;;)
-                {
-                  new_root = ( root + FT_DivFix( arg, root ) + 1 ) >> 1;
-                  if ( new_root == root )
-                    break;
-                  root = new_root;
-                }
-                arg = new_root;
-              }
-              else
-                arg = 0;
-
-              cf2_stack_pushFixed( opStack, arg );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escDUP:
-            {
-              CF2_F16Dot16  arg;
-
-
-              FT_TRACE4(( " dup\n" ));
-
-              arg = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, arg );
-              cf2_stack_pushFixed( opStack, arg );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escEXCH:
-            {
-              CF2_F16Dot16  arg1;
-              CF2_F16Dot16  arg2;
-
-
-              FT_TRACE4(( " exch\n" ));
-
-              arg2 = cf2_stack_popFixed( opStack );
-              arg1 = cf2_stack_popFixed( opStack );
-
-              cf2_stack_pushFixed( opStack, arg2 );
-              cf2_stack_pushFixed( opStack, arg1 );
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escINDEX:
-            {
-              CF2_Int   idx;
-              CF2_UInt  size;
-
-
-              FT_TRACE4(( " index\n" ));
-
-              idx  = cf2_stack_popInt( opStack );
-              size = cf2_stack_count( opStack );
-
-              if ( size > 0 )
-              {
-                /* for `cf2_stack_getReal', index 0 is bottom of stack */
-                CF2_UInt  gr_idx;
-
-
-                if ( idx < 0 )
-                  gr_idx = size - 1;
-                else if ( (CF2_UInt)idx >= size )
-                  gr_idx = 0;
-                else
-                  gr_idx = size - 1 - (CF2_UInt)idx;
-
-                cf2_stack_pushFixed( opStack,
-                                     cf2_stack_getReal( opStack, gr_idx ) );
-              }
-            }
-            continue; /* do not clear the stack */
-
-          case cf2_escROLL:
-            {
-              CF2_Int  idx;
-              CF2_Int  count;
-
-
-              FT_TRACE4(( " roll\n" ));
-
-              idx   = cf2_stack_popInt( opStack );
-              count = cf2_stack_popInt( opStack );
-
-              cf2_stack_roll( opStack, count, idx );
-            }
-            continue; /* do not clear the stack */
-
           case cf2_escHFLEX:
             {
               static const FT_Bool  readFromStack[12] =
@@ -1245,6 +1031,7 @@
             }
             continue;
 
+          /* these opcodes are reserved in both CFF & CFF2 */
           case cf2_escRESERVED_1:
           case cf2_escRESERVED_2:
           case cf2_escRESERVED_6:
@@ -1258,12 +1045,342 @@
           case cf2_escRESERVED_31:
           case cf2_escRESERVED_32:
           case cf2_escRESERVED_33:
-          default:
             FT_TRACE4(( " unknown op (12, %d)\n", op2 ));
+            break;
 
-          }; /* end of switch statement checking `op2' */
+          default:
+            {
+              if ( font->isCFF2 || op2 >= cf2_escRESERVED_38 )
+                FT_TRACE4(( " unknown op (12, %d)\n", op2 ));
+              else
+              {
+                /* second switch for 2-byte operators handles just CFF */
+                switch ( op2 )
+                {
 
+                case cf2_escDOTSECTION:
+                  /* something about `flip type of locking' -- ignore it */
+                  FT_TRACE4(( " dotsection\n" ));
+
+                  break;
+
+                case cf2_escAND:
+                  {
+                    CF2_F16Dot16  arg1;
+                    CF2_F16Dot16  arg2;
+
+
+                    FT_TRACE4(( " and\n" ));
+
+                    arg2 = cf2_stack_popFixed( opStack );
+                    arg1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushInt( opStack, arg1 && arg2 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escOR:
+                  {
+                    CF2_F16Dot16  arg1;
+                    CF2_F16Dot16  arg2;
+
+
+                    FT_TRACE4(( " or\n" ));
+
+                    arg2 = cf2_stack_popFixed( opStack );
+                    arg1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushInt( opStack, arg1 || arg2 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escNOT:
+                  {
+                    CF2_F16Dot16  arg;
+
+
+                    FT_TRACE4(( " not\n" ));
+
+                    arg = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushInt( opStack, !arg );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escABS:
+                  {
+                    CF2_F16Dot16  arg;
+
+
+                    FT_TRACE4(( " abs\n" ));
+
+                    arg = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, FT_ABS( arg ) );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escADD:
+                  {
+                    CF2_F16Dot16  summand1;
+                    CF2_F16Dot16  summand2;
+
+
+                    FT_TRACE4(( " add\n" ));
+
+                    summand2 = cf2_stack_popFixed( opStack );
+                    summand1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, summand1 + summand2 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escSUB:
+                  {
+                    CF2_F16Dot16  minuend;
+                    CF2_F16Dot16  subtrahend;
+
+
+                    FT_TRACE4(( " sub\n" ));
+
+                    subtrahend = cf2_stack_popFixed( opStack );
+                    minuend    = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, minuend - subtrahend );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escDIV:
+                  {
+                    CF2_F16Dot16  dividend;
+                    CF2_F16Dot16  divisor;
+
+
+                    FT_TRACE4(( " div\n" ));
+
+                    divisor  = cf2_stack_popFixed( opStack );
+                    dividend = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, FT_DivFix( dividend, divisor ) );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escNEG:
+                  {
+                    CF2_F16Dot16  arg;
+
+
+                    FT_TRACE4(( " neg\n" ));
+
+                    arg = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, -arg );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escEQ:
+                  {
+                    CF2_F16Dot16  arg1;
+                    CF2_F16Dot16  arg2;
+
+
+                    FT_TRACE4(( " eq\n" ));
+
+                    arg2 = cf2_stack_popFixed( opStack );
+                    arg1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushInt( opStack, arg1 == arg2 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escDROP:
+                  FT_TRACE4(( " drop\n" ));
+
+                  (void)cf2_stack_popFixed( opStack );
+                  continue; /* do not clear the stack */
+
+                case cf2_escPUT:
+                  {
+                    CF2_F16Dot16  val;
+                    CF2_Int       idx;
+
+
+                    FT_TRACE4(( " put\n" ));
+
+                    idx = cf2_stack_popInt( opStack );
+                    val = cf2_stack_popFixed( opStack );
+
+                    if ( idx >= 0 && idx < CF2_STORAGE_SIZE )
+                      storage[idx] = val;
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escGET:
+                  {
+                    CF2_Int  idx;
+
+
+                    FT_TRACE4(( " get\n" ));
+
+                    idx = cf2_stack_popInt( opStack );
+
+                    if ( idx >= 0 && idx < CF2_STORAGE_SIZE )
+                    cf2_stack_pushFixed( opStack, storage[idx] );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escIFELSE:
+                  {
+                    CF2_F16Dot16  arg1;
+                    CF2_F16Dot16  arg2;
+                    CF2_F16Dot16  cond1;
+                    CF2_F16Dot16  cond2;
+
+
+                    FT_TRACE4(( " ifelse\n" ));
+
+                    cond2 = cf2_stack_popFixed( opStack );
+                    cond1 = cf2_stack_popFixed( opStack );
+                    arg2  = cf2_stack_popFixed( opStack );
+                    arg1  = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, cond1 <= cond2 ? arg1 : arg2 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escRANDOM: /* in spec */
+                  FT_TRACE4(( " random\n" ));
+
+                  CF2_FIXME;
+                  break;
+
+                case cf2_escMUL:
+                  {
+                    CF2_F16Dot16  factor1;
+                    CF2_F16Dot16  factor2;
+
+
+                    FT_TRACE4(( " mul\n" ));
+
+                    factor2 = cf2_stack_popFixed( opStack );
+                    factor1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, FT_MulFix( factor1, factor2 ) );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escSQRT:
+                  {
+                    CF2_F16Dot16  arg;
+
+
+                    FT_TRACE4(( " sqrt\n" ));
+
+                    arg = cf2_stack_popFixed( opStack );
+                    if ( arg > 0 )
+                    {
+                      FT_Fixed  root = arg;
+                      FT_Fixed  new_root;
+
+
+                      /* Babylonian method */
+                      for (;;)
+                      {
+                        new_root = ( root + FT_DivFix( arg, root ) + 1 ) >> 1;
+                        if ( new_root == root )
+                          break;
+                        root = new_root;
+                      }
+                      arg = new_root;
+                    }
+                    else
+                      arg = 0;
+
+                    cf2_stack_pushFixed( opStack, arg );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escDUP:
+                  {
+                    CF2_F16Dot16  arg;
+
+
+                    FT_TRACE4(( " dup\n" ));
+
+                    arg = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, arg );
+                    cf2_stack_pushFixed( opStack, arg );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escEXCH:
+                  {
+                    CF2_F16Dot16  arg1;
+                    CF2_F16Dot16  arg2;
+
+
+                    FT_TRACE4(( " exch\n" ));
+
+                    arg2 = cf2_stack_popFixed( opStack );
+                    arg1 = cf2_stack_popFixed( opStack );
+
+                    cf2_stack_pushFixed( opStack, arg2 );
+                    cf2_stack_pushFixed( opStack, arg1 );
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escINDEX:
+                  {
+                    CF2_Int   idx;
+                    CF2_UInt  size;
+
+
+                    FT_TRACE4(( " index\n" ));
+
+                    idx  = cf2_stack_popInt( opStack );
+                    size = cf2_stack_count( opStack );
+
+                    if ( size > 0 )
+                    {
+                      /* for `cf2_stack_getReal', index 0 is bottom of stack */
+                      CF2_UInt  gr_idx;
+
+
+                      if ( idx < 0 )
+                        gr_idx = size - 1;
+                      else if ( (CF2_UInt)idx >= size )
+                        gr_idx = 0;
+                      else
+                        gr_idx = size - 1 - (CF2_UInt)idx;
+
+                      cf2_stack_pushFixed( opStack,
+                                           cf2_stack_getReal( opStack, gr_idx ) );
+                    }
+                  }
+                  continue; /* do not clear the stack */
+
+                case cf2_escROLL:
+                  {
+                    CF2_Int  idx;
+                    CF2_Int  count;
+
+
+                    FT_TRACE4(( " roll\n" ));
+
+                    idx   = cf2_stack_popInt( opStack );
+                    count = cf2_stack_popInt( opStack );
+
+                    cf2_stack_roll( opStack, count, idx );
+                  }
+                  continue; /* do not clear the stack */
+
+                } /* end of 2nd switch checking op2 */
+              }
+            }
+          } /* end of 1st switch checking op2 */
         } /* case cf2_cmdESC */
+
         break;
 
       case cf2_cmdENDCHAR:
@@ -1285,7 +1402,8 @@
         /* close path if still open */
         cf2_glyphpath_closeOpenPath( &glyphPath );
 
-        if ( cf2_stack_count( opStack ) > 1 )
+        /* disable seac for CFF2 (charstring ending with args on stack) */
+        if ( !font->isCFF2 && cf2_stack_count( opStack ) > 1 )
         {
           /* must be either 4 or 5 --                       */
           /* this is a (deprecated) implied `seac' operator */
@@ -1756,6 +1874,9 @@
   exit:
     /* check whether last error seen is also the first one */
     cf2_setError( error, lastError );
+
+    if ( *error )
+      FT_TRACE4(( "charstring error %d\n", *error ));
 
     /* free resources from objects we've used */
     cf2_glyphpath_finalize( &glyphPath );

@@ -1,3 +1,485 @@
+2016-12-17  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttobjs.c (tt_face_init): Simplify conditional code.
+
+2016-12-17  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt, truetype] Various sanitizing fixes.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): If the axis count in `fvar' is
+	zero, set `num_instances' to zero.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Handle `fvar' table with
+	zero axes as invalid.
+
+	* src/truetype/ttobjs.c (tt_face_init): Improve logic of loading
+	`loca', `cvt', `fpgm', and `prep' table.
+
+2016-12-17  Werner Lemberg  <wl@gnu.org>
+
+	Improve tracing of `FT_Open_Face'.
+
+	* src/base/ftobjs.c (FT_Open_Face): Return info on number of
+	available faces and numbered instances, or the indices of the
+	requested face and numbered instance.
+
+	* src/sfnt/sfobjs. (sfnt_open_font): Trace number of subfonts.
+
+2016-12-17  Werner Lemberg  <wl@gnu.org>
+
+	* src/cff/cffload.c (cff_load_private_dict): Always init `blend'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=295
+
+2016-12-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix `cvar' sanity test.
+
+	Reported by Dave Arnold.
+
+	* src/truetype/ttgxvar.c (tt_face_vary_cvt): Use tuple count mask.
+
+2016-12-16  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Remove compiler warnings; fix `make multi'.
+
+	* src/cff/cf2font.h: Include `cffload.h'.
+
+	* src/cff/cffload.c: Include FT_MULTIPLE_MASTERS_H and
+	FT_SERVICE_MULTIPLE_MASTERS_H.
+	(cff_vstore_load): Eliminate `vsSize'.
+	(cff_load_private_dict): Tag as `FT_LOCAL_DEF'.
+
+	* src/cff/cffload.h: Include `cffobjs.h'.
+	Provide declaration for `cff_load_private_dict'.
+
+	* src/truetype/ttgxvar.c (ft_var_load_hvar): Eliminate
+	`minorVersion' and `map_offset'.
+
+2016-12-16  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix heap buffer overflow (#49858).
+
+	* src/cff/cffparse.c (cff_parser_run): Add one more stack size
+	check.
+
+2016-12-15  Werner Lemberg  <wl@gnu.org>
+
+	Fix clang warnings.
+
+	* src/cff/cffload.c (cff_blend_doBlend): Add cast.
+	(cff_subfont_load): Set `error' correctly.
+
+	* src/sfnt/ttmtx.c (tt_face_get_metrics): Typo.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[cff] Implement CFF2 support (2/2).
+
+	The font variation code.  All parts dependent on the GX code in the
+	`truetype' module are guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT. 
+	In other words, you can still compile the `cff' module without
+	defining TT_CONFIG_OPTION_GX_VAR_SUPPORT (which brings you CFF2
+	support without font variation).
+
+	* src/cff/cf2font.c (cf2_font_setup): Add support for font
+	variation.
+	* src/cff/cf2font.h (CF2_Font): Add fields for variation data.
+
+	* src/cff/cf2ft.c (cf2_free_instance): Free blend data.
+	(cf2_getVStore, cf2_getNormalizedVector): New functions.
+	* src/cff/cf2ft.h: Updated.
+
+	* src/cff/cf2intrp.c: Include `cffload.h'.
+	(cf2_cmdRESERVED_15, cf2_cmdRESERVED_16): Replace with...
+	(cf2_cmdVSINDEX, cf2_cmdBLEND): ... this new enum values.
+	(cf2_doBlend): New function.
+	(cf2_interpT2CharString): Handle `vsindex' and `blend' opcodes.
+
+	* src/cff/cffload.c (FT_fdot14ToFixed): New macro.
+	(cff_vstore_done, cff_vstore_load): New functions.
+	(cff_blend_clear, cff_blend_doBlend, cff_blend_build_vector,
+	cff_blend_check_vector): New functions.
+	(cff_load_private_dict): Add arguments for blend vector.
+	Handle blend data.
+	(cff_subfont_load, cff_subfont_done): Updated.
+	(cff_font_load): Handle CFF2 variation store data.
+	(cff_font_done): Updated.
+	* src/cff/cffload.h: Include `cffparse.h'.
+	Updated.
+
+	* src/cff/cffobjs.c (cff_face_done): Updated.
+
+	* src/cff/cffparse.c: Include `cffload.h'.
+	(cff_parse_num): Handle internal value 255.
+	(cff_parse_vsindex, cff_parse_blend): New functions.
+	(CFF_FIELD_BLEND): New macro.
+	(cff_parser_run): Updated.
+	* src/cff/cffparse.h (cff_kind_blend): New enum value.
+
+	* src/cff/cfftoken.h: Handle `vstore', `vsindex', and `blend'
+	dictionary values.
+
+	* src/cff/cfftypes.h (CFF_VarData, CFF_AxisCoords, CFF_VarRegion,
+	CFF_VStore, CFF_Blend): New structures.
+	(CFF_FontRecDict): Add `vstore_offset' field.
+	(CFF_Private): Add `vsindex' field.
+	(CFF_SubFont): Add fields for blend data.
+	(CFF_Font): Add `vstore' field.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): `CFF2' is equal to `gvar',
+	since glyph variation data is directly embedded.
+	(TT_Set_MM_Blend): Don't load `gvar' table for CFF2 fonts.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[cff] Implement CFF2 support (1/2).
+
+	This commit does not contain the blend code for font variation
+	support, which follows in another commit.
+
+	You should ignore whitespace while inspecting this commit.
+
+	* include/freetype/internal/tttypes.h (TT_Face): Add `isCFF2'
+	member.
+
+	* src/cff/cf2font.h (CF2_Font): Add `isCFF2' member.
+
+	* src/cff/cf2ft.c (cf2_decoder_parse_charstrings): Handle `isCFF2'
+	flag.
+	(cf2_getMaxstack): New function.
+	* src/cff/cf2ft.h: Updated.
+
+	* src/cff/cf2intrp.c (cf2_escRESERVED_38): New enum.
+	(cf2_interpT2CharString): Handle CFF2 differences.
+	Add tracing message for errors.
+
+	* src/cff/cffdrivr.c (cff_get_glyph_name, cff_get_name_index):
+	Update for CFF2.
+
+	* src/cff/cffload.c (FT_FIXED_ONE): New macro.
+	(cff_index_init, cff_index_load_offsets, cff_index_access_element,
+	cff_index_get_name, cff_ft_select_get, cff_load_private_dict,
+	cff_subfont_load, cff_font_load): Handle CFF2.
+	* src/cff/cffload.h: Updated.
+
+	* src/cff/cffobjs.c (cff_face_init): Handle CFF2.
+
+	* src/cff/cffparse.c (cff_parse_maxstack): New function.
+	(CFFCODE_TOPDICT, CFFCODE_PRIVATE): Removed
+	* src/cff/cffparse.h (CFF2_MAX_STACK, CFF2_DEFAULT_STACK): New
+	macros.
+	(CFF2_CODE_TOPDICT, CFF2_CODE_FONTDICT, CFF2_CODE_PRIVATE): New
+	macros.
+
+	* src/cff/cfftoken.h: Add fields for CFF2 dictionaries (but no blend
+	stuff).
+
+	* src/cff/cfftypes.h (CFF_Index): Add `hdr_size' field.
+	(CFF_FontRecDict): Add `maxstack' field.
+	(CFF_Private): Add `subfont' field.
+	(CFF_Font): Add `top_dict_length' and `cff2' fields.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Handle `CFF2' table.
+
+2016-12-15  Werner Lemberg  <wl@gnu.org>
+	    Dave Arnold  <darnold@adobe.com>
+
+	[truetype] Provide HVAR advance width variation as a service.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/truetype/ttdriver.c (tt_service_metrics_variations): Updated.
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Prevent
+	double adjustment of advance width.
+
+	* src/sfnt/ttmtx.c: Include FT_SERVICE_METRICS_VARIATIONS_H.
+	(tt_face_get_metrics): Apply metrics variations.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Provide function to apply `HVAR' advance width variation.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/truetype/ttgxvar.c (tt_hadvance_adjust): New function.
+	* src/truetype/ttgxvar.h: Updated.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Add `HVAR' table parsing.
+
+	Note that this is not complete yet; it only handles advance width
+	variation.
+
+	Activation of the code follows in another commit.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* include/freetype/ftmm.h (FT_Var_Named_Style): Add `psid' member.
+
+	* src/truetype/ttgxvar.h (GX_HVarData, GX_AxisCoords, GX_HVarRegion,
+	GX_HVStore, GX_WidthMap): New auxiliary structures for...
+	(GX_HVarTable): ... HVAR main structure.
+	(GX_BlendRec): Add data for HVAR loading.
+
+	* src/truetype/ttgxvar.c (FT_FIXED_ONE, FT_fdot14ToFixed,
+	FT_intToFixed, FT_fixedToInt): New macros.
+	(ft_var_load_hvar): New function.
+	(TT_Get_MM_Var): Updated.
+	(tt_done_blend): Deallocate HVAR data.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Extend number parsing.
+
+	The forthcoming CFF2 support needs a dynamic parsing limit.
+
+	* src/cff/cffparse.c (cff_parse_num, do_fixed, cff_parse_fixed,
+	cff_parse_fixed_scaled, cff_parse_fixed_dynamic): Add argument for
+	parser.
+	(cff_parse_font_matrix, cff_parse_font_bbox, cff_parse_private_dict,
+	cff_parse_multiple_master, cff_parse_cid_ros, cff_parser_run): Updated.
+
+	* src/cff/cffparse.h (cff_parse_num): Export locally.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+
+	[cff] Implement dynamic stack size for Adobe engine.
+
+	This also adds `cf2_stack_setReal' and `cf2_stack_pop', needed for
+	the forthcoming CFF2 support.
+
+	* src/cff/cf2stack.c (cf2_stack_init): Add argument for stack size.
+	(cf2_stack_free): Deallocate stack.
+	(cf2_stack_count, cf2_stack_pushInt, cf2_stack_pushFixed,
+	cf2_stack_popInt, cf2_stack_popFixed, cf2_stack_getReal,
+	cf2_stack_clear): Updated.
+	(cf2_stack_setReal, cf2_stack_pop): New functions.
+
+	* src/cff/cf2stack.h (CF2_Stack): Add `stackSize' member.
+	Update function declarations.
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString): Updated.
+
+	* src/cff/cffparse.c (cff_parser_init): Add parameter for stack
+	size; return error code.
+	(cff_parser_done): New function.
+	(cff_parser_run): Updated.
+
+	* src/cff/cffparse.h (CFF_Parser): Add `stackSize' member and make
+	`stack' a pointer.
+	Update function declarations.
+
+	* src/cff/cffload.c (cff_load_private_dict, cff_subfont_load):
+	Updated.
+
+2016-12-15  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[cff] Code shuffling.
+
+	* src/cff/cfftypes.h (CFF_Font): Add `library' and `base_offset'
+	fields.
+
+	* src/cff/cffload.c (cff_subfont_load): Change last argument to
+	`CFF_Font'
+	Split off parsing of private dictionary into...
+	(cff_load_private_dict): ...this new function.
+	(cff_font_load): Updated.
+
+2016-12-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt, truetype] Add framework for Metrics Variations service.
+
+	No effect yet; service functions will be implemented later on.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* include/freetype/internal/services/svmetric.h: New file.
+
+	* include/freetype/internal/ftserv.h
+	(FT_SERVICE_METRICS_VARIATIONS_H): New macro.
+
+	* include/freetype/internal/tttypes.h (TT_Face): New field `var'.
+
+	* src/sfnt/sfobjs.c: Include FT_SERVICE_METRICS_VARIATIONS_H.
+	(sfnt_init_face): Initialize `face->var'.
+
+	* src/truetype/ttdriver.c: Include FT_SERVICE_METRICS_VARIATIONS_H.
+	(tt_service_metrics_variations): New service.
+	(tt_services): Updated.
+
+	* src/truetype/ttpic.h: Updated.
+
+2016-12-14  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Add Multiple Masters service.
+
+	The code simply uses the MM functions from the `truetype' module.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* include/freetype/internal/tttypes.h (TT_Face): New field `mm'.
+
+	* src/cff/cffdrivr.c: Include FT_SERVICE_MULTIPLE_MASTERS_H.
+	(cff_set_mm_blend, cff_get_mm_blend, cff_get_mm_var,
+	cff_set_var_design, cff_get_var_design): New functions.
+	(cff_service_multi_masters): New service.
+	(cff_services): Updated.
+
+	* src/cff/cffload.c (cff_get_var_blend, cff_done_blend): New
+	functions.
+	* src/cff/cffload.h: Updated.
+
+	* src/cff/cffpic.h (CFF_SERVICE_MULTI_MASTERS_GET): New macro.
+
+	* src/sfnt/sfobjs.c: Include FT_SERVICE_MULTIPLE_MASTERS_H.
+	(sfnt_init_face): Initialize `face->mm'.
+
+2016-12-14  Werner Lemberg  <wl@gnu.org>
+
+	Extend functionality of `ft_module_get_service'.
+
+	It can now differentiate between local and global searches.
+
+	* src/base/ftobjs.c (ft_module_get_service): Add `global' argument.
+	(FT_Get_TrueType_Engine_Type): Updated.
+
+	* src/cff/cffdrivr.c (cff_get_ps_name, cff_get_cmap_info): Updated.
+
+	* include/freetype/internal/ftobjs.h: Updated.
+	* include/freetype/internal/ftserv.h (FT_FACE_FIND_GLOBAL_SERVICE):
+	Updated.
+
+2016-12-14  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_get_var_blend): Fix compiler warning.
+
+2016-12-14  Dave Arnold  <darnold@adobe.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[sfnt, cff] Minor preparations.
+
+	* include/freetype/tttags.h (TTAG_CFF2, TTAG_HVAR, TTAG_MVAR,
+	TTAG_VVAR): New SFNT table tags.
+
+	* src/cff/cf2fixed.h (CF2_FIXED_ONE, CF2_FIXED_EPSILON): Add cast.
+
+2016-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[truetype, type1] Add `get_var_blend' to MM service.
+
+	For internal use; we want to share code between the forthcoming CFF2
+	support and TrueType.
+
+	* include/freetype/internal/services/svmm.h (FT_Get_Var_Blend_Func):
+	New typedef.
+	(MultiMasters): Add `get_var_blend'.
+	(FT_Service_MultiMasters): Updated.
+
+	* src/truetype/ttgxvar.c (tt_get_var_blend): New function.
+	* src/truetype/ttgxvar.h: Updated.
+
+	* src/truetype/ttdriver.c (tt_service_gx_multi_masters): Updated.
+	* src/type1/t1driver.c (t1_service_multi_masters): Updated.
+
+2016-12-10  Werner Lemberg  <wl@gnu.org>
+
+	[truetype, type1] Add `done_blend' to MM service.
+
+	For internal use; we want to share code between the forthcoming CFF2
+	support and TrueType.
+
+	* include/freetype/internal/services/svmm.h (FT_Done_Blend_Func):
+	New typedef.
+	(MultiMasters): Add `done_blend'.
+	(FT_Service_MultiMasters): Updated.
+
+	* src/truetype/ttgxvar.c (tt_done_blend): Use `TT_Face' as argument.
+	* src/truetype/ttgxvar.h: Updated.
+
+	* src/truetype/ttobjs.c (TT_Face_Done): Updated.
+
+	* src/truetype/ttdriver.c (tt_service_gx_multi_masters): Updated.
+	* src/type1/t1driver.c (t1_service_multi_masters): Updated.
+
+2016-12-09  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Revert change from 2016-12-08.
+
+	I missed the functionality of `ft_module_get_service', which makes
+	the change unnecessary.
+
+2016-12-08  Werner Lemberg  <wl@gnu.org>
+
+	Add framework to support services with 8 functions.
+
+	We will need this for CFF variation font support.
+
+	* include/freetype/internal/ftserv.h (FT_DEFINE_SERVICEDESCREC8):
+	New macro.
+
+2016-12-08  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Add `get_glyph_name' and `get_name_index' to SFNT interface.
+
+	CFF2 fonts will need access to those two functions.
+
+	* include/freetype/internal/sfnt.h: Include FT_SERVICE_GLYPH_DICT_H.
+	(SFNT_Interface): Add `get_glyph_name' and `get_name_index' members.
+	(FT_DEFINE_SFNT_INTERFACE): Updated.
+
+	* src/sfnt/sfdriver.c (sfnt_get_glyph_name, sfnt_get_name_index):
+	Fix signatures to exactly correspond to the glyph dict service
+	function typedefs.
+	(sfnt_interface): Updated.
+
+2016-12-06  Dave Arnold  <darnold@adobe.com>
+
+	Add `FT_Get_Var_Design_Coordinates' function.
+
+	Note that the low-level functions aren't implemented yet.
+
+	* include/freetype/ftmm.h: Declare.
+
+	* include/freetype/internal/services/svmm.h
+	(FT_Get_Var_Design_Func): New typedef.
+	(MultiMasters): New MM service function `get_var_design'.
+	(FT_DEFINE_SERVICE_MULTIMASTERSREC): Updated.
+	Update all callers.
+
+	* src/base/ftmm.c (FT_Get_Var_Design_Coordinates): Implement.
+
+	* src/truetype/ttdriver.c: Updated.
+
+	* src/truetype/ttgxvar.c (TT_Get_Var_Design): New dummy function to
+	handle `get_var_design' service.
+	* src/truetype/ttgxvar.h: Updated.
+
+	* src/type1/t1driver.c: Updated.
+
+	* src/type1/t1load.c (T1_Get_Var_Design): New dummp function to
+	handle `get_var_design' service.
+	* src/type1/t1load.h: Updated.
+
+2016-12-06  Werner Lemberg  <wl@gnu.org>
+
+	* src/type1/t1load.c (parse_subrs): Fix memory leak.
+
+	The `subrs' keyword might erroneously occur multiple times.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=231
+
 2016-12-01  Werner Lemberg  <wl@gnu.org>
 
 	[gzip] Improve building with external zlib (#49673).

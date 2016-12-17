@@ -28,6 +28,12 @@
 #include FT_SERVICE_POSTSCRIPT_CMAPS_H
 #include FT_SFNT_NAMES_H
 #include FT_GZIP_H
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+#include FT_SERVICE_MULTIPLE_MASTERS_H
+#include FT_SERVICE_METRICS_VARIATIONS_H
+#endif
+
 #include "sferrors.h"
 
 #ifdef TT_CONFIG_OPTION_BDF
@@ -798,6 +804,9 @@
       if ( FT_STREAM_READ_FIELDS( ttc_header_fields, &face->ttc_header ) )
         return error;
 
+      FT_TRACE3(( "                with %ld subfonts\n",
+                  face->ttc_header.count ));
+
       if ( face->ttc_header.count == 0 )
         return FT_THROW( Invalid_Table );
 
@@ -872,6 +881,21 @@
 
     FT_FACE_FIND_GLOBAL_SERVICE( face, face->psnames, POSTSCRIPT_CMAPS );
 
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+    if ( !face->mm )
+    {
+      /* we want the MM interface from the `truetype' module only */
+      FT_Module  tt_module = FT_Get_Module( library, "truetype" );
+
+
+      face->mm = ft_module_get_service( tt_module,
+                                        FT_SERVICE_ID_MULTI_MASTERS,
+                                        0 );
+    }
+
+    FT_FACE_FIND_GLOBAL_SERVICE( face, face->var, METRICS_VARIATIONS );
+#endif
+
     FT_TRACE2(( "SFNT driver\n" ));
 
     error = sfnt_open_font( stream, face );
@@ -943,6 +967,7 @@
       /* based on similar code in function `TT_Get_MM_Var' */
       if ( version != 0x00010000UL                    ||
            axis_size != 20                            ||
+           num_axes == 0                              ||
            num_axes > 0x3FFE                          ||
            instance_size != 4 + 4 * num_axes          ||
            num_instances > 0x7EFF                     ||
@@ -1085,12 +1110,14 @@
 
     /* do we have outlines in there? */
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-    has_outline = FT_BOOL( face->root.internal->incremental_interface != 0 ||
-                           tt_face_lookup_table( face, TTAG_glyf )    != 0 ||
-                           tt_face_lookup_table( face, TTAG_CFF )     != 0 );
+    has_outline = FT_BOOL( face->root.internal->incremental_interface      ||
+                           tt_face_lookup_table( face, TTAG_glyf ) != NULL ||
+                           tt_face_lookup_table( face, TTAG_CFF ) != NULL  ||
+                           tt_face_lookup_table( face, TTAG_CFF2 ) != NULL );
 #else
-    has_outline = FT_BOOL( tt_face_lookup_table( face, TTAG_glyf ) != 0 ||
-                           tt_face_lookup_table( face, TTAG_CFF )  != 0 );
+    has_outline = FT_BOOL( tt_face_lookup_table( face, TTAG_glyf ) != NULL ||
+                           tt_face_lookup_table( face, TTAG_CFF ) != NULL  ||
+                           tt_face_lookup_table( face, TTAG_CFF2 ) != NULL );
 #endif
 
     is_apple_sbit = 0;
@@ -1332,6 +1359,9 @@
       if ( tt_face_lookup_table( face, TTAG_glyf ) != 0 &&
            tt_face_lookup_table( face, TTAG_fvar ) != 0 &&
            tt_face_lookup_table( face, TTAG_gvar ) != 0 )
+        flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
+      if ( tt_face_lookup_table( face, TTAG_CFF2 ) != 0 &&
+           tt_face_lookup_table( face, TTAG_fvar ) != 0 )
         flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
 #endif
 
