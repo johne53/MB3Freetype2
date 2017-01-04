@@ -260,7 +260,7 @@
 
     if ( rec && convert )
     {
-      if ( rec->string == NULL )
+      if ( !rec->string )
       {
         FT_Stream  stream = face->name_table.stream;
 
@@ -905,9 +905,13 @@
     /* Stream may have changed in sfnt_open_font. */
     stream = face->root.stream;
 
-    FT_TRACE2(( "sfnt_init_face: %08p, %ld\n", face, face_instance_index ));
+    FT_TRACE2(( "sfnt_init_face: %08p, %d\n", face, face_instance_index ));
 
     face_index = FT_ABS( face_instance_index ) & 0xFFFF;
+
+    /* value -(N+1) requests information on index N */
+    if ( face_instance_index < 0 )
+      face_index--;
 
     if ( face_index >= face->ttc_header.count )
     {
@@ -925,8 +929,6 @@
     if ( error )
       return error;
 
-    face->is_default_instance = 1;
-
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
     {
       FT_ULong  fvar_len;
@@ -942,6 +944,8 @@
       FT_Int  instance_index;
 
 
+      face->is_default_instance = 1;
+
       instance_index = FT_ABS( face_instance_index ) >> 16;
 
       /* test whether current face is a GX font with named instances */
@@ -949,7 +953,7 @@
            fvar_len < 20                                          ||
            FT_READ_ULONG( version )                               ||
            FT_READ_USHORT( offset )                               ||
-           FT_STREAM_SKIP( 2 )                                    ||
+           FT_STREAM_SKIP( 2 ) /* count_size_pairs */             ||
            FT_READ_USHORT( num_axes )                             ||
            FT_READ_USHORT( axis_size )                            ||
            FT_READ_USHORT( num_instances )                        ||
@@ -963,18 +967,27 @@
         instance_size = 0;
       }
 
-      /* check that the data is bound by the table length; */
-      /* based on similar code in function `TT_Get_MM_Var' */
+      /* check that the data is bound by the table length */
       if ( version != 0x00010000UL                    ||
+#if 0
+           /* fonts like `JamRegular.ttf' have an incorrect value for   */
+           /* `count_size_pairs'; since value 2 is hard-coded in `fvar' */
+           /* version 1.0, we simply ignore it                          */
+           count_size_pairs != 2                      ||
+#endif
            axis_size != 20                            ||
            num_axes == 0                              ||
+           /* `num_axes' limit implied by 16-bit `instance_size' */
            num_axes > 0x3FFE                          ||
-           instance_size != 4 + 4 * num_axes          ||
+           !( instance_size == 4 + 4 * num_axes ||
+              instance_size == 6 + 4 * num_axes )     ||
            num_instances > 0x7EFF                     ||
            offset                          +
              axis_size * num_axes          +
              instance_size * num_instances > fvar_len )
         num_instances = 0;
+      else
+        face->variation_support |= TT_FACE_FLAG_VAR_FVAR;
 
       /* we don't support Multiple Master CFFs yet */
       if ( !face->goto_table( face, TTAG_CFF, stream, 0 ) )
@@ -1110,14 +1123,14 @@
 
     /* do we have outlines in there? */
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-    has_outline = FT_BOOL( face->root.internal->incremental_interface      ||
-                           tt_face_lookup_table( face, TTAG_glyf ) != NULL ||
-                           tt_face_lookup_table( face, TTAG_CFF ) != NULL  ||
-                           tt_face_lookup_table( face, TTAG_CFF2 ) != NULL );
+    has_outline = FT_BOOL( face->root.internal->incremental_interface ||
+                           tt_face_lookup_table( face, TTAG_glyf )    ||
+                           tt_face_lookup_table( face, TTAG_CFF )     ||
+                           tt_face_lookup_table( face, TTAG_CFF2 )    );
 #else
-    has_outline = FT_BOOL( tt_face_lookup_table( face, TTAG_glyf ) != NULL ||
-                           tt_face_lookup_table( face, TTAG_CFF ) != NULL  ||
-                           tt_face_lookup_table( face, TTAG_CFF2 ) != NULL );
+    has_outline = FT_BOOL( tt_face_lookup_table( face, TTAG_glyf ) ||
+                           tt_face_lookup_table( face, TTAG_CFF )  ||
+                           tt_face_lookup_table( face, TTAG_CFF2 ) );
 #endif
 
     is_apple_sbit = 0;
@@ -1249,30 +1262,10 @@
 
     /* embedded bitmap support */
     if ( sfnt->load_eblc )
-    {
       LOAD_( eblc );
-      if ( error )
-      {
-        /* a font which contains neither bitmaps nor outlines is */
-        /* still valid (although rather useless in most cases);  */
-        /* however, you can find such stripped fonts in PDFs     */
-        if ( FT_ERR_EQ( error, Table_Missing ) )
-          error = FT_Err_Ok;
-        else
-          goto Exit;
-      }
-    }
 
+    /* consider the pclt, kerning, and gasp tables as optional */
     LOAD_( pclt );
-    if ( error )
-    {
-      if ( FT_ERR_NEQ( error, Table_Missing ) )
-        goto Exit;
-
-      face->pclt.Version = 0;
-    }
-
-    /* consider the kerning and gasp tables as optional */
     LOAD_( gasp );
     LOAD_( kern );
 
@@ -1356,13 +1349,14 @@
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
       /* Don't bother to load the tables unless somebody asks for them. */
       /* No need to do work which will (probably) not be used.          */
-      if ( tt_face_lookup_table( face, TTAG_glyf ) != 0 &&
-           tt_face_lookup_table( face, TTAG_fvar ) != 0 &&
-           tt_face_lookup_table( face, TTAG_gvar ) != 0 )
-        flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
-      if ( tt_face_lookup_table( face, TTAG_CFF2 ) != 0 &&
-           tt_face_lookup_table( face, TTAG_fvar ) != 0 )
-        flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
+      if ( face->variation_support & TT_FACE_FLAG_VAR_FVAR )
+      {
+        if ( tt_face_lookup_table( face, TTAG_glyf ) != 0 &&
+             tt_face_lookup_table( face, TTAG_gvar ) != 0 )
+          flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
+        if ( tt_face_lookup_table( face, TTAG_CFF2 ) != 0 )
+          flags |= FT_FACE_FLAG_MULTIPLE_MASTERS;
+      }
 #endif
 
       root->face_flags = flags;
@@ -1425,7 +1419,7 @@
                                                   charmap->encoding_id );
 
 #if 0
-          if ( root->charmap     == NULL &&
+          if ( !root->charmap                           &&
                charmap->encoding == FT_ENCODING_UNICODE )
           {
             /* set 'root->charmap' to the first Unicode encoding we find */

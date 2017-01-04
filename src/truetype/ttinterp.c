@@ -129,7 +129,7 @@
 
     coderange = &exec->codeRangeTable[range - 1];
 
-    FT_ASSERT( coderange->base != NULL );
+    FT_ASSERT( coderange->base );
 
     /* NOTE: Because the last instruction of a program may be a CALL */
     /*       which will return to the first byte *after* the code    */
@@ -1613,7 +1613,7 @@
 
     range = &exc->codeRangeTable[aRange - 1];
 
-    if ( range->base == NULL )     /* invalid coderange */
+    if ( !range->base )     /* invalid coderange */
     {
       exc->error = FT_THROW( Invalid_CodeRange );
       return FAILURE;
@@ -5577,9 +5577,9 @@
     FT_Int      B1, B2;
 #endif
 #ifdef TT_SUPPORT_SUBPIXEL_HINTING_MINIMAL
-    FT_Bool     in_twilight = exc->GS.gep0 == 0 || \
-                              exc->GS.gep1 == 0 || \
-                              exc->GS.gep2 == 0;
+    FT_Bool     in_twilight = FT_BOOL( exc->GS.gep0 == 0 ||
+                                       exc->GS.gep1 == 0 ||
+                                       exc->GS.gep2 == 0 );
 #endif
 
 
@@ -6537,7 +6537,9 @@
      * Otherwise, by definition, the value of exc->twilight.orus[n] is (0,0),
      * for every n.
      */
-    twilight = exc->GS.gep0 == 0 || exc->GS.gep1 == 0 || exc->GS.gep2 == 0;
+    twilight = ( exc->GS.gep0 == 0 ||
+                 exc->GS.gep1 == 0 ||
+                 exc->GS.gep2 == 0 );
 
     if ( BOUNDS( exc->GS.rp1, exc->zp0.n_points ) )
     {
@@ -6585,7 +6587,7 @@
       cur_range = PROJECT( &exc->zp1.cur[exc->GS.rp2], cur_base );
     }
 
-    for ( ; exc->GS.loop > 0; --exc->GS.loop )
+    for ( ; exc->GS.loop > 0; exc->GS.loop-- )
     {
       FT_UInt     point = (FT_UInt)exc->stack[--exc->args];
       FT_F26Dot6  org_dist, cur_dist, new_dist;

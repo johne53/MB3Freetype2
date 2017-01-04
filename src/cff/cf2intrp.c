@@ -347,7 +347,7 @@
     vals[0] = *curX;
     vals[1] = *curY;
     index   = 0;
-    isHFlex = readFromStack[9] == FALSE;
+    isHFlex = FT_BOOL( readFromStack[9] == FALSE );
     top     = isHFlex ? 9 : 10;
 
     for ( i = 0; i < top; i++ )
@@ -659,7 +659,13 @@
           goto exit;
         }
 
-        font->vsindex = (FT_UInt)cf2_stack_popInt( opStack );
+        {
+          FT_Int  temp = cf2_stack_popInt( opStack );
+
+
+          if ( temp >= 0 )
+            font->vsindex = (FT_UInt)temp;
+        }
         break;
 
       case cf2_cmdBLEND:
@@ -671,6 +677,13 @@
 
           if ( !font->isCFF2 )
             break;    /* clear stack & ignore */
+
+          /* do we have a `blend' op in a non-variant font? */
+          if ( !font->blend.font )
+          {
+            lastError = FT_THROW( Invalid_Glyph_Format );
+            goto exit;
+          }
 
           /* check cached blend vector */
           if ( cff_blend_check_vector( &font->blend,
@@ -688,6 +701,12 @@
 
           /* do the blend */
           numBlends = (FT_UInt)cf2_stack_popInt( opStack );
+          if ( numBlends > stackSize )
+          {
+            lastError = FT_THROW( Invalid_Glyph_Format );
+            goto exit;
+          }
+
           cf2_doBlend( &font->blend, opStack, numBlends );
 
           font->blend.usedBV = TRUE;
@@ -786,7 +805,7 @@
           CF2_UInt  index;
           CF2_UInt  count = cf2_stack_count( opStack );
 
-          FT_Bool  isX = op1 == cf2_cmdHLINETO;
+          FT_Bool  isX = FT_BOOL( op1 == cf2_cmdHLINETO );
 
 
           FT_TRACE4(( isX ? " hlineto\n" : " vlineto\n" ));
@@ -1225,7 +1244,7 @@
                     idx = cf2_stack_popInt( opStack );
 
                     if ( idx >= 0 && idx < CF2_STORAGE_SIZE )
-                    cf2_stack_pushFixed( opStack, storage[idx] );
+                      cf2_stack_pushFixed( opStack, storage[idx] );
                   }
                   continue; /* do not clear the stack */
 
@@ -1632,7 +1651,7 @@
             {
               x1 = cf2_stack_getReal( opStack, index ) + curX;
 
-              ++index;
+              index++;
             }
             else
               x1 = curX;
@@ -1677,7 +1696,7 @@
             {
               y1 = cf2_stack_getReal( opStack, index ) + curY;
 
-              ++index;
+              index++;
             }
             else
               y1 = curY;
@@ -1705,7 +1724,7 @@
           CF2_UInt  count, count1 = cf2_stack_count( opStack );
           CF2_UInt  index = 0;
 
-          FT_Bool  alternate = op1 == cf2_cmdHVCURVETO;
+          FT_Bool  alternate = FT_BOOL( op1 == cf2_cmdHVCURVETO );
 
 
           /* if `cf2_stack_count' isn't of the form 8n, 8n+1, */
@@ -1734,7 +1753,7 @@
               {
                 x3 = cf2_stack_getReal( opStack, index + 4 ) + x2;
 
-                ++index;
+                index++;
               }
               else
                 x3 = x2;
@@ -1753,7 +1772,7 @@
               {
                 y3 = cf2_stack_getReal( opStack, index + 4 ) + y2;
 
-                ++index;
+                index++;
               }
               else
                 y3 = y2;
@@ -1854,7 +1873,7 @@
                              ( byte3 <<  8 ) |
                                byte4         );
 
-            FT_TRACE4(( " %.2f", v / 65536.0 ));
+            FT_TRACE4(( " %.5f", v / 65536.0 ));
 
             cf2_stack_pushFixed( opStack, v );
           }

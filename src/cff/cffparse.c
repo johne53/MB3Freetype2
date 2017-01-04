@@ -448,9 +448,21 @@
       /* 16.16 fixed point is used internally for CFF2 blend results. */
       /* Since these are trusted values, a limit check is not needed. */
 
-      /* After the 255, 4 bytes are in host order. */
-      /* Blend result is rounded to integer.       */
-      return (FT_Long)( *( (FT_UInt32 *) ( d[0] + 1 ) ) + 0x8000U ) >> 16;
+      /* After the 255, 4 bytes give the number.                 */
+      /* The blend value is converted to integer, with rounding; */
+      /* due to the right-shift we don't need the lowest byte.   */
+#if 0
+      return (FT_Short)(
+               ( ( ( (FT_UInt32)*( d[0] + 1 ) << 24 ) |
+                   ( (FT_UInt32)*( d[0] + 2 ) << 16 ) |
+                   ( (FT_UInt32)*( d[0] + 3 ) <<  8 ) |
+                     (FT_UInt32)*( d[0] + 4 )         ) + 0x8000U ) >> 16 );
+#else
+      return (FT_Short)(
+               ( ( ( (FT_UInt32)*( d[0] + 1 ) << 16 ) |
+                   ( (FT_UInt32)*( d[0] + 2 ) <<  8 ) |
+                     (FT_UInt32)*( d[0] + 3 )         ) + 0x80U ) >> 8 );
+#endif
     }
 
     else
@@ -902,11 +914,17 @@
                                       priv->vsindex,
                                       subFont->lenNDV,
                                       subFont->NDV );
-      if ( error != FT_Err_Ok )
+      if ( error )
         goto Exit;
     }
 
     numBlends = (FT_UInt)cff_parse_num( parser, parser->top - 1 );
+    if ( numBlends > parser->stackSize )
+    {
+      FT_ERROR(( "cff_parse_blend: Invalid number of blends\n" ));
+      error = FT_THROW( Invalid_File_Format );
+      goto Exit;
+    }
 
     FT_TRACE4(( "   %d values blended\n", numBlends ));
 

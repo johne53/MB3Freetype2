@@ -1119,7 +1119,7 @@
     /* See whether this property type exists yet or not. */
     /* If not, create it.                                */
     propid = ft_hash_str_lookup( name, &(font->proptbl) );
-    if ( propid == NULL )
+    if ( !propid )
     {
       error = bdf_create_property( name, BDF_ATOM, font );
       if ( error )
@@ -2301,7 +2301,7 @@
         p->font->comments[p->font->comments_len] = 0;
       }
     }
-    else if ( error == FT_Err_Ok )
+    else if ( !error )
       error = FT_THROW( Invalid_File_Format );
 
     *font = p->font;

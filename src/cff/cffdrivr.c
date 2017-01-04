@@ -211,6 +211,13 @@
 
       if ( flags & FT_LOAD_VERTICAL_LAYOUT )
       {
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+        /* no fast retrieval for blended MM fonts without VVAR table */
+        if ( !ttface->is_default_instance                               &&
+             !( ttface->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+          return FT_THROW( Unimplemented_Feature );
+#endif
+
         /* check whether we have data from the `vmtx' table at all; */
         /* otherwise we extract the info from the CFF glyphstrings  */
         /* (instead of synthesizing a global value using the `OS/2' */
@@ -236,6 +243,13 @@
       }
       else
       {
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+        /* no fast retrieval for blended MM fonts without HVAR table */
+        if ( !ttface->is_default_instance                               &&
+             !( ttface->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+          return FT_THROW( Unimplemented_Feature );
+#endif
+
         /* check whether we have data from the `hmtx' table at all */
         if ( !ttface->horizontal.number_Of_HMetrics )
           goto Missing_Table;
@@ -442,11 +456,11 @@
     FT_Error  error = FT_Err_Ok;
 
 
-    if ( cff && cff->font_info == NULL )
+    if ( cff && !cff->font_info )
     {
-      CFF_FontRecDict  dict   = &cff->top_font.font_dict;
+      CFF_FontRecDict  dict      = &cff->top_font.font_dict;
       PS_FontInfoRec  *font_info = NULL;
-      FT_Memory        memory = face->root.memory;
+      FT_Memory        memory    = face->root.memory;
 
 
       if ( FT_ALLOC( font_info, sizeof ( *font_info ) ) )
@@ -607,7 +621,7 @@
 
       if ( registry )
       {
-        if ( cff->registry == NULL )
+        if ( !cff->registry )
           cff->registry = cff_index_get_sid_string( cff,
                                                     dict->cid_registry );
         *registry = cff->registry;
@@ -615,7 +629,7 @@
 
       if ( ordering )
       {
-        if ( cff->ordering == NULL )
+        if ( !cff->ordering )
           cff->ordering = cff_index_get_sid_string( cff,
                                                     dict->cid_ordering );
         *ordering = cff->ordering;
@@ -1090,7 +1104,7 @@
 #endif
 
     result = ft_service_list_lookup( CFF_SERVICES_GET, module_interface );
-    if ( result != NULL )
+    if ( result )
       return result;
 
     /* `driver' is not yet evaluated in non-PIC mode */

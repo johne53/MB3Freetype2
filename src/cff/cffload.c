@@ -345,7 +345,7 @@
     FT_Memory  memory = stream->memory;
 
 
-    if ( idx->count > 0 && idx->offsets == NULL )
+    if ( idx->count > 0 && !idx->offsets )
     {
       FT_Byte    offsize = idx->off_size;
       FT_ULong   data_size;
@@ -417,7 +417,7 @@
 
     *table = NULL;
 
-    if ( idx->offsets == NULL )
+    if ( !idx->offsets )
     {
       error = cff_index_load_offsets( idx );
       if ( error )
@@ -751,9 +751,10 @@
   {
     FT_Byte  fd = 0;
 
+
     /* if there is no FDSelect, return zero               */
     /* Note: CFF2 with just one Font Dict has no FDSelect */
-    if ( fdselect->data == NULL )
+    if ( !fdselect->data )
       goto Exit;
 
     switch ( fdselect->format )
@@ -1112,7 +1113,7 @@
 
 
   /* convert 2.14 to Fixed */
-  #define FT_fdot14ToFixed( x )  ( ( (FT_Fixed)( (FT_Int16)(x) ) ) << 2 )
+  #define FT_fdot14ToFixed( x )  ( (FT_Fixed)( (FT_ULong)(x) << 2 ) )
 
 
   static FT_Error
@@ -1306,6 +1307,10 @@
     size = 5 * numBlends;           /* add 5 bytes per entry    */
     if ( subFont->blend_used + size > subFont->blend_alloc )
     {
+      FT_Byte*  blend_stack_old = subFont->blend_stack;
+      FT_Byte*  blend_top_old   = subFont->blend_top;
+
+
       /* increase or allocate `blend_stack' and reset `blend_top'; */
       /* prepare to append `numBlends' values to the buffer        */
       if ( FT_REALLOC( subFont->blend_stack,
@@ -1315,6 +1320,22 @@
 
       subFont->blend_top    = subFont->blend_stack + subFont->blend_used;
       subFont->blend_alloc += size;
+
+      /* iterate over the parser stack and adjust pointers */
+      /* if the reallocated buffer has a different address */
+      if ( blend_stack_old                         &&
+           subFont->blend_stack != blend_stack_old )
+      {
+        FT_PtrDist  offset = subFont->blend_stack - blend_stack_old;
+        FT_Byte**   p;
+
+
+        for ( p = parser->stack; p < parser->top; p++ )
+        {
+          if ( *p >= blend_stack_old && *p < blend_top_old )
+            *p += offset;
+        }
+      }
     }
     subFont->blend_used += size;
 
@@ -1328,24 +1349,25 @@
 
 
       /* convert inputs to 16.16 fixed point */
-      sum = cff_parse_num( parser, &parser->stack[i + base] ) << 16;
+      sum = cff_parse_num( parser, &parser->stack[i + base] ) * 65536;
 
       for ( j = 1; j < blend->lenBV; j++ )
         sum += FT_MulFix( *weight++,
                           cff_parse_num( parser,
-                                         &parser->stack[delta++] ) << 16 );
+                                         &parser->stack[delta++] ) * 65536 );
 
       /* point parser stack to new value on blend_stack */
       parser->stack[i + base] = subFont->blend_top;
 
-      /* Push blended result as Type 2 5-byte fixed point number (except   */
-      /* that host byte order is used).  This will not conflict with       */
-      /* actual DICTs because 255 is a reserved opcode in both CFF and     */
-      /* CFF2 DICTs.  See `cff_parse_num' for decode of this, which rounds */
-      /* to an integer.                                                    */
-      *subFont->blend_top++             = 255;
-      *((FT_UInt32*)subFont->blend_top) = (FT_UInt32)sum; /* write 4 bytes */
-      subFont->blend_top               += 4;
+      /* Push blended result as Type 2 5-byte fixed point number.  This */
+      /* will not conflict with actual DICTs because 255 is a reserved  */
+      /* opcode in both CFF and CFF2 DICTs.  See `cff_parse_num' for    */
+      /* decode of this, which rounds to an integer.                    */
+      *subFont->blend_top++ = 255;
+      *subFont->blend_top++ = ( (FT_UInt32)sum & 0xFF000000U ) >> 24;
+      *subFont->blend_top++ = ( (FT_UInt32)sum & 0x00FF0000U ) >> 16;
+      *subFont->blend_top++ = ( (FT_UInt32)sum & 0x0000FF00U ) >>  8;
+      *subFont->blend_top++ =   (FT_UInt32)sum & 0x000000FFU;
     }
 
     /* leave only numBlends results on parser stack */
@@ -1505,10 +1527,7 @@
       if ( FT_REALLOC( blend->lastNDV,
                        blend->lenNDV * sizeof ( *NDV ),
                        lenNDV * sizeof ( *NDV ) ) )
-      {
-        error = FT_THROW( Out_Of_Memory );
         goto Exit;
-      }
 
       blend->lenNDV = lenNDV;
       FT_MEM_COPY( blend->lastNDV,
@@ -1550,14 +1569,15 @@
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
   FT_LOCAL_DEF( FT_Error )
-  cff_get_var_blend( CFF_Face    face,
-                     FT_UInt    *num_coords,
-                     FT_Fixed*  *coords )
+  cff_get_var_blend( CFF_Face     face,
+                     FT_UInt     *num_coords,
+                     FT_Fixed*   *coords,
+                     FT_MM_Var*  *mm_var )
   {
     FT_Service_MultiMasters  mm = (FT_Service_MultiMasters)face->mm;
 
 
-    return mm->get_var_blend( FT_FACE( face ), num_coords, coords );
+    return mm->get_var_blend( FT_FACE( face ), num_coords, coords, mm_var );
   }
 
 
@@ -1926,8 +1946,8 @@
     CFF_FontRecDict  top  = &subfont->font_dict;
     CFF_Private      priv = &subfont->private_dict;
 
-    FT_Bool  cff2      = ( code == CFF2_CODE_TOPDICT  ||
-                           code == CFF2_CODE_FONTDICT );
+    FT_Bool  cff2      = FT_BOOL( code == CFF2_CODE_TOPDICT  ||
+                                  code == CFF2_CODE_FONTDICT );
     FT_UInt  stackSize = cff2 ? CFF2_DEFAULT_STACK
                               : CFF_MAX_STACK_DEPTH;
 
@@ -2113,8 +2133,15 @@
     }
     else
     {
+      FT_Byte  absolute_offset;
+
+
+      if ( FT_READ_BYTE( absolute_offset ) )
+        goto Exit;
+
       if ( font->version_major != 1 ||
-           font->header_size < 4    )
+           font->header_size < 4    ||
+           absolute_offset > 4      )
       {
         FT_TRACE2(( "  not a CFF font header\n" ));
         error = FT_THROW( Unknown_File_Format );
@@ -2124,7 +2151,17 @@
 
     /* skip the rest of the header */
     if ( FT_STREAM_SEEK( base_offset + font->header_size ) )
+    {
+      /* For pure CFFs we have read only four bytes so far.  Contrary to */
+      /* other formats like SFNT those bytes doesn't define a signature; */
+      /* it is thus possible that the font isn't a CFF at all.           */
+      if ( pure_cff )
+      {
+        FT_TRACE2(( "  not a CFF file\n" ));
+        error = FT_THROW( Unknown_File_Format );
+      }
       goto Exit;
+    }
 
     if ( cff2 )
     {
@@ -2152,8 +2189,27 @@
     {
       /* for CFF, read the name, top dict, string and global subrs index */
       if ( FT_SET_ERROR( cff_index_init( &font->name_index,
-                                         stream, 0, cff2 ) )                 ||
-           FT_SET_ERROR( cff_index_init( &font->font_dict_index,
+                                         stream, 0, cff2 ) ) )
+      {
+        if ( pure_cff )
+        {
+          FT_TRACE2(( "  not a CFF file\n" ));
+          error = FT_THROW( Unknown_File_Format );
+        }
+        goto Exit;
+      }
+
+      /* font names must not be empty */
+      if ( font->name_index.data_size < font->name_index.count )
+      {
+        /* for pure CFFs, we still haven't checked enough bytes */
+        /* to be sure that it is a CFF at all                   */
+        error = pure_cff ? FT_THROW( Unknown_File_Format )
+                         : FT_THROW( Invalid_File_Format );
+        goto Exit;
+      }
+
+      if ( FT_SET_ERROR( cff_index_init( &font->font_dict_index,
                                          stream, 0, cff2 ) )                 ||
            FT_SET_ERROR( cff_index_init( &string_index,
                                          stream, 1, cff2 ) )                 ||
@@ -2164,6 +2220,15 @@
                                                  &font->string_pool,
                                                  &font->string_pool_size ) ) )
         goto Exit;
+
+      /* there must be a Top DICT index entry for each name index entry */
+      if ( font->name_index.count > font->font_dict_index.count )
+      {
+        FT_ERROR(( "cff_font_load:"
+                   " not enough entries in Top DICT index\n" ));
+        error = FT_THROW( Invalid_File_Format );
+        goto Exit;
+      }
     }
 
     font->num_strings = string_index.count;

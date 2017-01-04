@@ -224,13 +224,20 @@
                    FT_Fixed  *advances )
   {
     FT_UInt  nn;
-    TT_Face  face = (TT_Face) ttface;
+    TT_Face  face = (TT_Face)ttface;
 
 
     /* XXX: TODO: check for sbits */
 
     if ( flags & FT_LOAD_VERTICAL_LAYOUT )
     {
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+      /* no fast retrieval for blended MM fonts without VVAR table */
+      if ( !face->is_default_instance                               &&
+           !( face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+        return FT_THROW( Unimplemented_Feature );
+#endif
+
       for ( nn = 0; nn < count; nn++ )
       {
         FT_Short   tsb;
@@ -244,6 +251,13 @@
     }
     else
     {
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+      /* no fast retrieval for blended MM fonts without HVAR table */
+      if ( !face->is_default_instance                               &&
+           !( face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+        return FT_THROW( Unimplemented_Feature );
+#endif
+
       for ( nn = 0; nn < count; nn++ )
       {
         FT_Short   lsb;
@@ -561,7 +575,7 @@
 #endif
 
     result = ft_service_list_lookup( TT_SERVICES_GET, tt_interface );
-    if ( result != NULL )
+    if ( result )
       return result;
 
 #ifndef FT_CONFIG_OPTION_PIC

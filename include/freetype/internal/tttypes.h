@@ -1060,6 +1060,75 @@ FT_BEGIN_HEADER
   } TT_SbitTableType;
 
 
+  /* OpenType 1.8 brings new tables for variation font support;  */
+  /* to make the old MM and GX fonts still work we need to check */
+  /* the presence (and validity) of the functionality provided   */
+  /* by those tables.  The following flag macros are for the     */
+  /* field `variation_support'.                                  */
+  /*                                                             */
+  /* Note that `fvar' gets checked immediately at font loading,  */
+  /* while the other features are only loaded if MM support is   */
+  /* actually requested.                                         */
+
+  /* FVAR */
+#define TT_FACE_FLAG_VAR_FVAR  ( 1 << 0 )
+
+  /* HVAR */
+#define TT_FACE_FLAG_VAR_HADVANCE  ( 1 << 1 )
+#define TT_FACE_FLAG_VAR_LSB       ( 1 << 2 )
+#define TT_FACE_FLAG_VAR_RSB       ( 1 << 3 )
+
+  /* VVAR */
+#define TT_FACE_FLAG_VAR_VADVANCE  ( 1 << 4 )
+#define TT_FACE_FLAG_VAR_TSB       ( 1 << 5 )
+#define TT_FACE_FLAG_VAR_BSB       ( 1 << 6 )
+#define TT_FACE_FLAG_VAR_VORG      ( 1 << 7 )
+
+  /* MVAR gasp data */
+#define TT_FACE_FLAG_VAR_GASP_0  ( 1 << 20 )
+#define TT_FACE_FLAG_VAR_GASP_1  ( 1 << 21 )
+#define TT_FACE_FLAG_VAR_GASP_2  ( 1 << 22 )
+#define TT_FACE_FLAG_VAR_GASP_3  ( 1 << 23 )
+#define TT_FACE_FLAG_VAR_GASP_4  ( 1 << 24 )
+#define TT_FACE_FLAG_VAR_GASP_5  ( 1 << 25 )
+#define TT_FACE_FLAG_VAR_GASP_6  ( 1 << 26 )
+#define TT_FACE_FLAG_VAR_GASP_7  ( 1 << 27 )
+#define TT_FACE_FLAG_VAR_GASP_8  ( 1 << 28 )
+#define TT_FACE_FLAG_VAR_GASP_9  ( 1 << 29 )
+
+  /* The following flag macros are for the field `mvar_support'. */
+
+  /* remaining MVAR data */
+#define TT_FACE_FLAG_VAR_CPHT  ( 1 <<  0 )
+#define TT_FACE_FLAG_VAR_HASC  ( 1 <<  1 )
+#define TT_FACE_FLAG_VAR_HCLA  ( 1 <<  2 )
+#define TT_FACE_FLAG_VAR_HCLD  ( 1 <<  3 )
+#define TT_FACE_FLAG_VAR_HCOF  ( 1 <<  4 )
+#define TT_FACE_FLAG_VAR_HCRN  ( 1 <<  5 )
+#define TT_FACE_FLAG_VAR_HCRS  ( 1 <<  6 )
+#define TT_FACE_FLAG_VAR_HDSC  ( 1 <<  7 )
+#define TT_FACE_FLAG_VAR_HLGP  ( 1 <<  8 )
+#define TT_FACE_FLAG_VAR_SBXO  ( 1 <<  9 )
+#define TT_FACE_FLAG_VAR_SBXS  ( 1 << 10 )
+#define TT_FACE_FLAG_VAR_SBYO  ( 1 << 11 )
+#define TT_FACE_FLAG_VAR_SBYS  ( 1 << 12 )
+#define TT_FACE_FLAG_VAR_SPXO  ( 1 << 13 )
+#define TT_FACE_FLAG_VAR_SPXS  ( 1 << 14 )
+#define TT_FACE_FLAG_VAR_SPYO  ( 1 << 15 )
+#define TT_FACE_FLAG_VAR_SPYS  ( 1 << 16 )
+#define TT_FACE_FLAG_VAR_STRO  ( 1 << 17 )
+#define TT_FACE_FLAG_VAR_STRS  ( 1 << 18 )
+#define TT_FACE_FLAG_VAR_UNDO  ( 1 << 19 )
+#define TT_FACE_FLAG_VAR_UNDS  ( 1 << 20 )
+#define TT_FACE_FLAG_VAR_VASC  ( 1 << 21 )
+#define TT_FACE_FLAG_VAR_VCOF  ( 1 << 22 )
+#define TT_FACE_FLAG_VAR_VCRN  ( 1 << 23 )
+#define TT_FACE_FLAG_VAR_VCRS  ( 1 << 24 )
+#define TT_FACE_FLAG_VAR_VDSC  ( 1 << 25 )
+#define TT_FACE_FLAG_VAR_VLGP  ( 1 << 26 )
+#define TT_FACE_FLAG_VAR_XHGT  ( 1 << 27 )
+
+
   /*************************************************************************/
   /*                                                                       */
   /*                         TrueType Face Type                            */
@@ -1163,6 +1232,9 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    mm                   :: A pointer to the Multiple Masters service. */
   /*                                                                       */
+  /*    var                  :: A pointer to the Metrics Variations        */
+  /*                            service.                                   */
+  /*                                                                       */
   /*    hdmx                 :: The face's horizontal device metrics       */
   /*                            (`hdmx' table).  This table is optional in */
   /*                            TrueType/OpenType fonts.                   */
@@ -1229,6 +1301,19 @@ FT_BEGIN_HEADER
   /*    blend                :: Contains the data needed to control GX     */
   /*                            variation tables (rather like Multiple     */
   /*                            Master data).                              */
+  /*                                                                       */
+  /*    is_default_instance  :: Set if the glyph outlines can be used      */
+  /*                            unmodified (i.e., without applying glyph   */
+  /*                            variation deltas).                         */
+  /*                                                                       */
+  /*    variation_support    :: Flags that indicate which OpenType         */
+  /*                            functionality related to font variation    */
+  /*                            support is present, valid, and usable.     */
+  /*                            For example, TT_FACE_FLAG_VAR_FVAR is only */
+  /*                            set if we have at least one design axis.   */
+  /*                                                                       */
+  /*    mvar_support         :: Flags that indicate which metrics          */
+  /*                            variations are supported.                  */
   /*                                                                       */
   /*    horz_metrics_size    :: The size of the `hmtx' table.              */
   /*                                                                       */
@@ -1303,10 +1388,6 @@ FT_BEGIN_HEADER
   /*                            (CBDT, bdat, etc.).                        */
   /*                                                                       */
   /*    ebdt_size            :: The size of the sbit data table.           */
-  /*                                                                       */
-  /*    is_default_instance  :: Set if the glyph outlines can be used      */
-  /*                            unmodified (i.e., without applying glyph   */
-  /*                            variation deltas).                         */
   /*                                                                       */
   typedef struct  TT_FaceRec_
   {
@@ -1424,6 +1505,10 @@ FT_BEGIN_HEADER
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
     FT_Bool               doblend;
     GX_Blend              blend;
+
+    FT_Bool               is_default_instance;   /* since 2.7.1 */
+    FT_UInt32             variation_support;     /* since 2.7.1 */
+    FT_UInt32             mvar_support;          /* since 2.7.1 */
 #endif
 
     /* since version 2.2 */
@@ -1472,9 +1557,6 @@ FT_BEGIN_HEADER
     FT_ULong              ebdt_start;  /* either `CBDT', `EBDT', or `bdat' */
     FT_ULong              ebdt_size;
 #endif
-
-    /* since 2.7.1 */
-    FT_Bool               is_default_instance;
 
   } TT_FaceRec;
 

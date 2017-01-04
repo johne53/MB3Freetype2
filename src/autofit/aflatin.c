@@ -1127,7 +1127,7 @@
                 "af_latin_metrics_scale_dim:"
                 " x height alignment (style `%s'):\n"
                 "                           "
-                " vertical scaling changed from %.4f to %.4f (by %d%%)\n"
+                " vertical scaling changed from %.5f to %.5f (by %d%%)\n"
                 "\n",
                 af_style_names[metrics->root.style_class->style],
                 scale / 65536.0,
@@ -2211,7 +2211,7 @@
                                 seg->serif->edge         &&
                                 seg->serif->edge != edge );
 
-          if ( ( seg->link && seg->link->edge != NULL ) || is_serif )
+          if ( ( seg->link && seg->link->edge ) || is_serif )
           {
             AF_Edge     edge2;
             AF_Segment  seg2;

@@ -1,3 +1,534 @@
+2017-01-04  Werner Lemberg  <wl@gnu.org>
+
+	[cff] More consistency checks for pure CFFs.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=378
+
+	* src/cff/cffload.c (cff_font_load): Check element number and size
+	of Name and Top DICT indices.
+
+2017-01-04  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Minor tracing improvement.
+
+	* src/cff/cffobjs.c (cff_face_init), src/truetype/ttobjs.c
+	(tt_face_init): Indent first tracing message from SFNT driver.
+
+2017-01-03  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Various minor fixes.
+
+	* src/truetype/ttgload.c (TT_Load_Simple_Glyph): Check instruction
+	size only if we do native hinting.
+	(TT_Load_Glyph): Trace returned error code.
+
+	* src/truetype/ttobjs.c (tt_size_run_fpgm, tt_size_run_prep): Trace
+	returned error code.
+	(tt_size_ready_bytecode): Don't run `prep' table if `fpgm' table is
+	invalid.
+
+2017-01-03  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Don't fail if PCLT, EBLC (and similar tables) are invalid.
+
+	These tables are optional.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Implement it.
+
+2017-01-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/cff/cffparse.c (cff_parse_num): Simplify.
+
+2017-01-03  Werner Lemberg  <wl@gnu.org>
+
+	Various fixes for clang's undefined behaviour sanitizer.
+
+	* src/cff/cffload.c (FT_fdot14ToFixed): Fix casting.
+	(cff_blend_doBlend): Don't left-shift negative numbers.
+	Handle 5-byte numbers byte by byte to avoid alignment issues.
+
+	* src/cff/cffparse.c (cff_parse_num): Handle 5-byte numbers byte by
+	byte to avoid alignment issues.
+
+	* src/cid/cidload (cid_read_subrs): Do nothing if we don't have any
+	subrs.
+
+	* src/psaux/t1decode.c (t1_decode_parse_charstring): Fix tracing.
+
+	* src/tools/glnames.py (main): Put `DEFINE_PSTABLES' guard around
+	definition of `ft_get_adobe_glyph_index'.
+
+	* src/psnames/pstables.h: Regenerated.
+
+	* src/psnames/psmodule.c: Inlude `pstables.h' twice to get both
+	declaration and definition.
+
+	* src/truetype/ttgxvar.c (FT_fdot14ToFixed, FT_intToFixed): Fix
+	casting.
+
+2017-01-01  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Handle multiple `blend' operators in a row correctly.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=368
+
+	* src/cff/cffload.c (cff_blend_doBlend): Adjust `parser->stack'
+	pointers into `subFont->blend_stack' after reallocation.
+
+2017-01-01  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Return correct number of named instances for TTCs.
+
+	Without this patch, requesting information for face index N returned
+	the data for face index N+1 (or index 0).
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Correctly adjust `face_index'
+	for negative `face_instance_index' values.
+
+2016-12-31  Werner Lemberg  <wl@gnu.org>
+
+	*/*: Use hex numbers for errors in tracing messages.
+
+2016-12-31  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Check axis count in HVAR table.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=362
+
+	* src/truetype/ttgxvar.c (ft_var_load_hvar): Check axis count.
+	(ft_var_load_avar): Fix tracing message.
+
+2016-12-30  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.7.1 released.
+	=========================
+
+
+	Tag sources with `VER-2-7-1'.
+
+	* docs/VERSION.TXT: Add entry for version 2.7.1.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.7/2.7.1/, s/27/271/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
+
+	* builds/unix/configure.raw (version_info): Set to 19:0:13.
+	* CMakeLists.txt (VERSION_PATCH): Set to 1.
+
+2016-12-30  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Replace `rand' with an xorshift algorithm.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Don't include `stdlib.h'.
+	(Random): Implement and use a 32bit `xorshift' algorithm.
+
+2016-12-30  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Restrict number of tested bitmap strikes.
+
+	Malformed fonts often have large values for the number of bitmap
+	strikes, and FreeType doesn't check the validity of all bitmap
+	strikes in advance.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=353
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Include `stdlib.h' for `rand'.
+	(Random): Small class to provide n randomly selected numbers
+	(without repitition) out of the value set [1,N].
+	(LLVMFuzzerTestOneInput): Use it to test only up to 10 bitmap
+	strikes.
+
+2016-12-29  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Variation font API stability issues.
+
+	Make some functions work before a call to `TT_Set_MM_Blend'.
+
+	* src/truetype/ttgxvar.c (tt_hadvance_adjust): Exit immediately if
+	we don't blend.
+	(TT_Get_MM_Blend, TT_Get_Var_Design): Return default values if we
+	don't blend.
+
+2016-12-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Check axis data.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=348
+
+2016-12-29  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Tracing fixes.
+
+	* src/truetype/ttgxvar.c (tt_hadvance_adjust): Emit correct
+	information.
+	(TT_Set_Var_Design): Fix typo.
+	(TT_Get_Var_Design): Fix typos.
+
+2016-12-29  Werner Lemberg  <wl@gnu.org>
+
+	*/*: Use `0.5f' for tracing 16.16 numbers.
+
+2016-12-29  Werner Lemberg  <wl@gnu.org>
+
+	[pcf] Protect against gzip bombs.
+
+	Fix suggested by Kostya; reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=345
+
+	* src/pcf/pcfread.c (pcf_read_TOC): Limit number of TOC entries to
+	1024.
+
+2016-12-28  Werner Lemberg  <wl@gnu.org>
+
+	[psnames] Only declare, not define, data in `pstables.h' (#49949).
+
+	Pdfium includes `pstables.h' a second time; moving the definition
+	from `pstables.h' to `psmodule.c' saves more than 60kByte data
+	segment space for this case.
+
+	* src/tools/glnames.py (StringTable::dump,
+	StringTable::dump_sublist, dump_encoding, dump_array): Emit
+	additional code to only define tables if `DEFINE_PS_TABLES' is set.
+
+	* src/psnames/pstables.h: Regenerated.
+	* src/psnames/psmodule.c (DEFINE_PS_TABLES): Define.
+
+2016-12-28  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Catch `blend' op in non-variant fonts.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=334
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString) <cf2_cmdBLEND>: Don't
+	allow `blend' op for non-variant fonts.
+
+2016-12-28  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Better check of number of blends.
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString) <cf2_cmdBLEND>,
+	src/cff/cffparse.c (cff_parse_blend): Compare number of blends with
+	stack size.
+
+2016-12-27  Werner Lemberg  <wl@gnu.org>
+
+	Documentation updates.
+
+	* docs/CHANGES: Add missing information.
+
+	* docs/formats.txt: Rewritten and updated.
+
+2016-12-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype, type1] Implement `FT_Get_Var_Design_Coordinates'.
+
+	* src/truetype/ttgxvar.c (TT_Get_Var_Design): Implement.
+	(TT_Set_Var_Design): Fix tracing.
+
+	* src/type1/t1load.c (T1_Get_Var_Design): Implement.
+
+2016-12-24  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttpload.c (tt_face_load_hdmx): Ignore `version'.
+
+	Problem reported by 張俊芝 <418092625@qq.com>.
+
+2016-12-24  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbit): Allow more version values.
+
+	Some fonts seem to have the `version' field in the wrong byte order.
+
+	Problem reported by 張俊芝 <418092625@qq.com>.
+
+2016-12-24  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttpload.c (tt_face_load_loca): Sanitize table length.
+
+	This trivial fix allows us to accept more fonts.
+
+	Problem reported by 張俊芝 <418092625@qq.com>.
+
+2016-12-24  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Fix tracing.
+
+2016-12-22  Werner Lemberg  <wl@gnu.org>
+
+	* CMakeLists.txt: Make it work with cmake 2.8.11.2 (#49909).
+
+2016-12-22  Werner Lemberg  <wl@gnu.org>
+
+	Ensure used preprocessor symbols are defined (#49790).
+
+	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
+	include/freetype/config/ftconfig.h: Check `__GNUC__', `__IBMC__',
+	and `__SUNPRO_C' correctly.
+
+2016-12-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftrfork.c (FT_Raccess_Get_DataOffsets): Check `count'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=308
+
+2016-12-22  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Protect against invalid `vsindex' and `blend' values.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=305
+
+	* src/cff/cf2intrp.c (cf2_interpT2CharString) <cf2_cmdVSINDEX,
+	cf2_cmdBLEND>: Implement it.
+
+2016-12-22  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Always use Adobe CFF engine.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (FT_Global::FT_Global): Implement
+	it.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Thinko.
+
+	I should really stop coding late in the evening...
+
+	Thanks again to Ben for checking.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Support variation fonts.
+
+	(This ChangeLog entry was added later on.)
+
+	* src/autofit/afglobal.c (af_face_globals_free): Remove useless
+	code.
+
+	* src/base/ftmm.c (FT_Set_MM_Design_Coordinates,
+	* FT_Set_Var_Design_Coordinates, FT_Set_MM_Blend_Coordinates,
+	FT_Set_Var_Blend_Coordinates): Finalize
+	auto-hinter data to enforce recomputation.  Note that this is a
+	brute-force method which should be improved.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Thinko.
+
+	Don't apply deltas twice for non-phantom points.
+
+	Spotted by Ben Wagner.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Another try for #49829.
+
+	* src/cff/cffdrivr.c: Don't include
+	`FT_SERVICE_METRICS_VARIATIONS_H'.
+	(cff_get_advances): Use `ttface->variation_support'.
+
+	* src/truetype/ttdriver.c (tt_get_advances): Use
+	`ttface->variation_support'.
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph,
+	load_truetype_glyph): Use `ttface->variation_support'.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	[truetype, sfnt] Introduce font variation flags to `TT_Face'.
+
+	* include/freetype/internal/tttypes.h (TT_FACE_FLAG_VAR_XXX):
+	New macros describing available functionality of various OpenType
+	tables related to font variation.
+	(TT_Face): New fields `variation_support' and `mvar_support',
+	replacing and extending `use_fvar'.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face, sfnt_load_face): Use
+	`variation_support'.
+
+	* src/truetype/ttgxvar.c (ft_var_load_hvar): Set `variation_support'
+	field.
+	(TT_Vary_Apply_Glyph_Deltas): Updated.
+
+2016-12-21  Werner Lemberg  <wl@gnu.org>
+
+	[base] Improve sanity check for Mac resources (#49888).
+
+	* src/base/ftobjs.c (Mac_Read_sfnt_Resource): Abort if `rlen' is not
+	positive.
+
+2016-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[base] More sanity checks for Mac resources.
+
+	We use
+
+	  https://github.com/kreativekorp/ksfl/wiki/Macintosh-Resource-File-Format
+
+	and
+
+	  https://developer.apple.com/legacy/library/documentation/mac/pdf/MoreMacintoshToolbox.pdf#page=151
+
+	as references.
+
+	* include/freetype/internal/ftrfork.h (FT_RFork_Ref): Use FT_Short
+	for `res_id'.
+
+	* src/base/ftrfork.c (FT_Raccess_Get_HeaderInfo): Extract map length
+	and use it to improve sanity checks.
+	Follow the specification more closely;in particular, all data types
+	are signed, not unsigned.
+	(FT_Raccess_Get_DataOffsets): Follow the specification more closely;
+	in particular, all data types are signed, not unsigned.
+	Add some sanity checks.
+
+2016-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve logic for getting fast advance widths.
+
+	* src/cff/cffdrivr.c (cff_get_advances), src/truetype/ttdriver.c
+	(tt_get_advances): Use `is_default_instance' for test; this gets
+	recomputed after changing blend coordinates.
+
+2016-12-20  Ben Wagner  <bungeman@google.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix linear metrics of GX variation fonts (#49829).
+
+	When asking for an unhinted non-default variations,
+	`linearVertAdvance' is currently the value from the `hmtx' table
+	instead of the actual value after applying the variation.  `HVAR'
+	support fixes this, but fonts will exist without that table and will
+	need sane fallback.
+
+	Problem also reported as
+
+	  https://bugs.chromium.org/p/skia/issues/detail?id=5917
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph,
+	load_truetype_glyph): Implement linear advance adjustments if `HVAR'
+	or `VVAR' tables are missing.
+
+2016-12-20  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Fast advance width retrieval for fonts with HVAR.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/base/ftadvanc.c (LOAD_ADVANCE_FAST_CHECK): Don't handle MM.
+
+	* src/cff/cffdrivr.c: Include FT_SERVICE_METRICS_VARIATIONS_H.
+	(cff_get_advances): Test for HVAR and VVAR.
+
+	* src/truetype/ttdriver.c (tt_get_advances): Test for HVAR and VVAR.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[base] Fix invalid mac font recursion.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=304
+
+	* src/base/ftobjs.c (FT_Open_Face): Code moved to...
+	(ft_open_face_internal): ... this function.
+	Add a parameter to control whether we try special Mac font handling
+	in case of failure.
+	(FT_Open_Face, FT_New_Face, FT_New_Memory_Face,
+	open_face_from_buffer): Use `ft_open_face_internal'.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	* src/cff/cffobjs.c (cff_face_init): Make named instances work.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype, cff] Extend `get_var_blend' function of MM service.
+
+	In particular, we need access to named instance data.
+
+	* include/freetype/internal/services/svmm.h (FT_Get_Var_Blend_Func):
+	Add argument for `FT_MM_Var'.
+
+	* src/cff/cffload.c (cff_get_var_blend): Updated.
+	* src/cff/cffload.h: Updated.
+
+	* src/cff/cf2ft.c (cf2_getNormalizedVector): Updated.
+
+	* src/truetype/ttgxvar.c (tt_get_var_blend): Updated.
+	Accept value `NULL' for arguments.
+	* src/truetype/ttgxvar.h: Updated.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Handle `fvar' with zero axes as a non-MM font.
+
+	This is better behaviour than exiting with an error.
+
+	* include/freetype/internal/tttypes.h (TT_Face): Add `use_fvar'
+	field.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Compute `use_fvar', also
+	updating the validation code.
+	Use `use_fvar' to compute FT_FACE_FLAG_MULTIPLE_MASTERS.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Remove `fvar' validation
+	code.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	Minor GX code shuffling.
+
+	* include/freetype/internal/tttypes.h (TT_Face): Move
+	`is_default_instance' into TT_CONFIG_OPTION_GX_VAR_SUPPORT
+	block.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Updated.
+	* src/truetype/ttgload.c (IS_DEFAULT_INSTANCE): New macro.
+	(TT_Load_Glyph): Use it.
+
+2016-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Better handling of non-CFF font formats.
+
+	* src/cff/cffload.c (cff_font_load): Pure CFFs don't have a
+	signature, so return `FT_Err_Unknown_File_Format' more often.
+
+2016-12-17  Werner Lemberg  <wl@gnu.org>
+
+	* src/cff/cffload.c (cff_build_blend_vector): Remove redundant code.
+
 2016-12-17  Werner Lemberg  <wl@gnu.org>
 
 	* src/truetype/ttobjs.c (tt_face_init): Simplify conditional code.

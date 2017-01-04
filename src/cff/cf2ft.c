@@ -312,7 +312,7 @@
     font = (CF2_Font)decoder->cff->cf2_instance.data;
 
     /* on first glyph, allocate instance structure */
-    if ( decoder->cff->cf2_instance.data == NULL )
+    if ( !decoder->cff->cf2_instance.data )
     {
       decoder->cff->cf2_instance.finalizer =
         (FT_Generic_Finalizer)cf2_free_instance;
@@ -450,7 +450,7 @@
     FT_ASSERT( decoder && decoder->builder.face );
     FT_ASSERT( vec && len );
 
-    return cff_get_var_blend( decoder->builder.face, len, vec );
+    return cff_get_var_blend( decoder->builder.face, len, vec, NULL );
   }
 #endif
 

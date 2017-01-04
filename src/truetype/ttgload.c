@@ -398,18 +398,18 @@
 
     FT_TRACE5(( "  Instructions size: %u\n", n_ins ));
 
-    /* check it */
-    if ( ( limit - p ) < n_ins )
-    {
-      FT_TRACE0(( "TT_Load_Simple_Glyph: instruction count mismatch\n" ));
-      error = FT_THROW( Too_Many_Hints );
-      goto Fail;
-    }
-
 #ifdef TT_USE_BYTECODE_INTERPRETER
 
     if ( IS_HINTED( load->load_flags ) )
     {
+      /* check instructions size */
+      if ( ( limit - p ) < n_ins )
+      {
+        FT_TRACE1(( "TT_Load_Simple_Glyph: instruction count mismatch\n" ));
+        error = FT_THROW( Too_Many_Hints );
+        goto Fail;
+      }
+
       /* we don't trust `maxSizeOfInstructions' in the `maxp' table */
       /* and thus update the bytecode array size by ourselves       */
 
@@ -441,7 +441,7 @@
     flag       = (FT_Byte*)outline->tags;
     flag_limit = flag + n_points;
 
-    FT_ASSERT( flag != NULL );
+    FT_ASSERT( flag );
 
     while ( flag < flag_limit )
     {
@@ -893,6 +893,16 @@
                                           loader->glyph_index,
                                           outline,
                                           (FT_UInt)n_points );
+
+      /* recalculate linear horizontal and vertical advances */
+      /* if we don't have HVAR and VVAR, respectively        */
+      if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+        loader->linear = outline->points[n_points - 3].x -
+                         outline->points[n_points - 4].x;
+      if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+        loader->vadvance = outline->points[n_points - 1].x -
+                           outline->points[n_points - 2].x;
+
       if ( error )
         return error;
     }
@@ -1607,6 +1617,14 @@
         loader->pp3.y = points[2].y;
         loader->pp4.x = points[3].x;
         loader->pp4.y = points[3].y;
+
+
+        /* recalculate linear horizontal and vertical advances */
+        /* if we don't have HVAR and VVAR, respectively        */
+        if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+          loader->linear = loader->pp2.x - loader->pp1.x;
+        if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+          loader->vadvance = loader->pp4.x - loader->pp3.x;
       }
 
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
@@ -1796,11 +1814,11 @@
 
         /* this call provides additional offsets */
         /* for each component's translation      */
-        if ( ( error = TT_Vary_Apply_Glyph_Deltas(
-                         face,
-                         glyph_index,
-                         &outline,
-                         (FT_UInt)outline.n_points ) ) != 0 )
+        if ( FT_SET_ERROR( TT_Vary_Apply_Glyph_Deltas(
+                             face,
+                             glyph_index,
+                             &outline,
+                             (FT_UInt)outline.n_points ) ) )
           goto Exit1;
 
         subglyph = gloader->current.subglyphs;
@@ -1823,6 +1841,13 @@
         loader->pp3.y = points[i + 2].y;
         loader->pp4.x = points[i + 3].x;
         loader->pp4.y = points[i + 3].y;
+
+        /* recalculate linear horizontal and vertical advances */
+        /* if we don't have HVAR and VVAR, respectively        */
+        if ( !( face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+          loader->linear = loader->pp2.x - loader->pp1.x;
+        if ( !( face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+          loader->vadvance = loader->pp4.x - loader->pp3.x;
 
       Exit1:
         FT_FREE( outline.points );
@@ -1883,6 +1908,9 @@
         {
           FT_Vector  pp[4];
 
+          FT_Int  linear_hadvance;
+          FT_Int  linear_vadvance;
+
 
           /* Each time we call load_truetype_glyph in this loop, the   */
           /* value of `gloader.base.subglyphs' can change due to table */
@@ -1894,6 +1922,9 @@
           pp[1] = loader->pp2;
           pp[2] = loader->pp3;
           pp[3] = loader->pp4;
+
+          linear_hadvance = loader->linear;
+          linear_vadvance = loader->vadvance;
 
           num_base_points = (FT_UInt)gloader->base.outline.n_points;
 
@@ -1914,6 +1945,9 @@
             loader->pp2 = pp[1];
             loader->pp3 = pp[2];
             loader->pp4 = pp[3];
+
+            loader->linear   = linear_hadvance;
+            loader->vadvance = linear_vadvance;
           }
 
           num_points = (FT_UInt)gloader->base.outline.n_points;
@@ -2566,7 +2600,12 @@
   {
     FT_Error      error;
     TT_LoaderRec  loader;
-    TT_Face       face = (TT_Face)glyph->face;
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+#define IS_DEFAULT_INSTANCE  ( ( (TT_Face)glyph->face )->is_default_instance )
+#else
+#define IS_DEFAULT_INSTANCE  1
+#endif
 
 
     FT_TRACE1(( "TT_Load_Glyph: glyph index %d\n", glyph_index ));
@@ -2576,7 +2615,7 @@
     /* try to load embedded bitmap (if any) */
     if ( size->strike_index != 0xFFFFFFFFUL      &&
          ( load_flags & FT_LOAD_NO_BITMAP ) == 0 &&
-         face->is_default_instance               )
+         IS_DEFAULT_INSTANCE                     )
     {
       error = load_sbit_image( size, glyph, glyph_index, load_flags );
       if ( !error )
@@ -2610,14 +2649,20 @@
 
     /* if FT_LOAD_NO_SCALE is not set, `ttmetrics' must be valid */
     if ( !( load_flags & FT_LOAD_NO_SCALE ) && !size->ttmetrics.valid )
-      return FT_THROW( Invalid_Size_Handle );
+    {
+      error = FT_THROW( Invalid_Size_Handle );
+      goto Exit;
+    }
 
     if ( load_flags & FT_LOAD_SBITS_ONLY )
-      return FT_THROW( Invalid_Argument );
+    {
+      error = FT_THROW( Invalid_Argument );
+      goto Exit;
+    }
 
     error = tt_loader_init( &loader, size, glyph, load_flags, FALSE );
     if ( error )
-      return error;
+      goto Exit;
 
     glyph->format        = FT_GLYPH_FORMAT_OUTLINE;
     glyph->num_subglyphs = 0;
@@ -2691,6 +2736,13 @@
     if ( !( load_flags & FT_LOAD_NO_SCALE ) &&
          size->root.metrics.y_ppem < 24     )
       glyph->outline.flags |= FT_OUTLINE_HIGH_PRECISION;
+
+  Exit:
+#ifdef FT_DEBUG_LEVEL_TRACE
+    if ( error )
+      FT_TRACE1(( "  failed (error code 0x%x)\n",
+                  error ));
+#endif
 
     return error;
   }
