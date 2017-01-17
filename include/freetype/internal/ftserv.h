@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType services (specification only).                          */
 /*                                                                         */
-/*  Copyright 2003-2016 by                                                 */
+/*  Copyright 2003-2017 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -714,6 +714,7 @@ FT_BEGIN_HEADER
   {
     FT_Pointer  service_POSTSCRIPT_FONT_NAME;
     FT_Pointer  service_MULTI_MASTERS;
+    FT_Pointer  service_METRICS_VARIATIONS;
     FT_Pointer  service_GLYPH_DICT;
     FT_Pointer  service_PFR_METRICS;
     FT_Pointer  service_WINFNT;

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType font driver implementation (body).                          */
 /*                                                                         */
-/*  Copyright 1996-2016 by                                                 */
+/*  Copyright 1996-2017 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -304,7 +304,7 @@
       /* use the scaled metrics, even when tt_size_reset fails */
       FT_Select_Metrics( size->face, strike_index );
 
-      tt_size_reset( ttsize ); /* ignore return value */
+      tt_size_reset( ttsize, 0 ); /* ignore return value */
     }
     else
     {
@@ -354,7 +354,7 @@
 
     if ( FT_IS_SCALABLE( size->face ) )
     {
-      error = tt_size_reset( ttsize );
+      error                = tt_size_reset( ttsize, 0 );
       ttsize->root.metrics = ttsize->metrics;
 
 #ifdef TT_USE_BYTECODE_INTERPRETER
@@ -507,7 +507,7 @@
     (FT_BSB_Adjust_Func)     NULL,                   /* bsb_adjust      */
     (FT_VOrg_Adjust_Func)    NULL,                   /* vorg_adjust     */
 
-    (FT_Metrics_Adjust_Func) NULL                    /* metrics_adjust  */
+    (FT_Metrics_Adjust_Func) tt_apply_mvar           /* metrics_adjust  */
   )
 
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
