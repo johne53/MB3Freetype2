@@ -1,3 +1,132 @@
+2017-01-27  Werner Lemberg  <wl@gnu.org>
+
+	s/GB2312/PRC/.
+
+	* include/freetype/freetype.h (FT_ENCODING_PRC): New enum value.
+	(FT_ENCODING_GB2312): Deprecated.
+
+	* include/freetype/ttnameid.h (TT_MS_ID_PRC): New macro.
+	(TT_MS_ID_GB2312): Deprecated.
+
+	* src/sfnt/sfobjs.c (sfnt_find_encoding): Updated.
+
+	* docs/CHANGES: Updated.
+
+2017-01-26  Werner Lemberg  <wl@gnu.org>
+
+	[base] Add `FT_Get_Sfnt_LangTag' function.
+
+	* include/freetype/ftsnames.h (FT_SfntLangTag): New structure.
+	(FT_Get_Sfnt_LangTag): New declaration.
+
+	* src/base/ftsnames.c (FT_Get_Sfnt_LangTag): New funtion.
+
+	* docs/CHANGES: Updated.
+
+2017-01-26  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Support `name' table format 1.
+
+	* include/freetype/internal/tttypes.h (TT_LangTagRec): New
+	structure.
+	(TT_NameTableRec): Add fields `numLangTagRecords' and `langTags'.
+
+	* src/sfnt/ttload.c (tt_face_load_name): Add support for language
+	tags.
+	Reduce array size of name strings in case of invalid entries.
+	(tt_face_free_name): Updated.
+
+	* docs/CHANGES: Updated.
+
+2017-01-25  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] s/TT_NameEntry/TT_Name/.
+
+	* include/freetype/internal/tttypes.h (TT_NameEntryRec): Renamed
+	to...
+	(TT_NameRec): This.
+	(TT_NameTableRec): Updated.
+
+	* src/base/ftsnames.c (FT_Get_Sfnt_Name): Updated.
+
+	* src/sfnt/sfdriver.c (sfnt_get_ps_name): Updated.
+
+	* src/sfnt/sfobjs.c (tt_name_entry_ascii_from_utf16,
+	tt_name_entry_ascii_from_other): Renamed to...
+	(tt_name_ascii_from_utf16, tt_name_entry_ascii_from_other): This,
+	respectively.
+	(TT_NameEntry_ConvertFunc): Renamed to...
+	(TT_Name_ConvertFunc): This.
+	(tt_face_get_name): Updated.
+
+	* src/sfnt/ttload.c (tt_face_load_name, tt_face_free_names):
+	Updated.
+
+2017-01-24  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix Postscript name service for symbol fonts.
+
+	* src/sfnt/sfdriver.c (sfnt_get_ps_name): Accept PID/EID=3/0
+	entries also.
+
+2017-01-24  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] For OpenType 1.7: s/preferred/typographic/ (sub)family.
+
+	* include/freetype/ftsnames.h
+	(FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY,
+	FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY): New macros.
+	(FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY,
+	FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY): Deprecated.
+
+	* include/freetype/ttnameid.h (TT_NAME_ID_TYPOGRAPHIC_FAMILY,
+	TT_NAME_ID_TYPOGRAPHIC_SUBFAMILY): New macros.
+	(TT_NAME_ID_PREFERRED_FAMILY, TT_NAME_ID_PREFERRED_SUBFAMILY):
+	Deprecated.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Updated.
+
+	* docs/CHANGES: Updated.
+
+2017-01-23  Werner Lemberg  <wl@gnu.org>
+
+	[base] Add `FT_Set_Default_Properties' (#49187).
+
+	* include/freetype/ftmodapi.h: Add declaration.
+
+	* src/base/ftinit.c (ft_set_default_properties): Renamed to...
+	(FT_Set_Default_Properties): ... this.
+	(FT_Init_FreeType): Updated.
+
+	* docs/CHANGES: Updated.
+
+2017-01-23  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Minor updates for OpenType 1.8.1.
+
+	* src/truetype/ttgxvar.h (GX_MVarTable): `axisCount' has been
+	removed from the specification; it is now reserved.
+
+	* src/truetype/ttgxvar.c (ft_var_load_mvar): Updated.
+	(GX_FVar_Head): Remove `countSizePairs'; the corresponding data
+	field in the `MVAR' table is now reserved.
+	(fvar_fields): Updated.
+
+2017-01-23  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Avoid segfault for invalid variation data.
+
+	* src/truetype/ttgxvar.c (ft_var_load_item_variation_store): Assure
+	`itemCount' is not zero.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=441
+
+2017-01-20  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (TT_RunIns): Adjust loop detector limits.
+
 2017-01-17  Werner Lemberg  <wl@gnu.org>
 
 	* include/freetype/ttnameid.h: Updated to OpenType 1.8.1.
@@ -143,7 +272,7 @@
 	FT_PCF_DRIVER_H.
 	(pcf_property_set, pcf_property_get): New functions.
 	(pcf_service_properties): New service.
-	(pcf_servives): Updated.
+	(pcf_services): Updated.
 	(pcf_driver_init) [PCF_CONFIG_OPTION_LONG_FAMILY_NAMES]: Handle
 	`no_long_family_names'.
 
@@ -340,7 +469,7 @@
 
 	* src/psnames/pstables.h: Regenerated.
 
-	* src/psnames/psmodule.c: Inlude `pstables.h' twice to get both
+	* src/psnames/psmodule.c: Include `pstables.h' twice to get both
 	declaration and definition.
 
 	* src/truetype/ttgxvar.c (FT_fdot14ToFixed, FT_intToFixed): Fix
@@ -435,7 +564,7 @@
 
 	* src/tools/ftfuzzer/ftfuzzer.cc: Include `stdlib.h' for `rand'.
 	(Random): Small class to provide n randomly selected numbers
-	(without repitition) out of the value set [1,N].
+	(without repetition) out of the value set [1,N].
 	(LLVMFuzzerTestOneInput): Use it to test only up to 10 bitmap
 	strikes.
 
@@ -1275,7 +1404,7 @@
 
 	* src/type1/t1driver.c: Updated.
 
-	* src/type1/t1load.c (T1_Get_Var_Design): New dummp function to
+	* src/type1/t1load.c (T1_Get_Var_Design): New dump function to
 	handle `get_var_design' service.
 	* src/type1/t1load.h: Updated.
 
@@ -1878,7 +2007,7 @@
 
 2016-09-07  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
-	* src/smooth/ftgrays.c (gray_hline): Microptimize.
+	* src/smooth/ftgrays.c (gray_hline): Micro-optimize.
 
 2016-09-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
@@ -2054,7 +2183,7 @@
 	[smooth] Simplify span rendering more.
 
 	It turns out that there is significant cost associated with `FT_Span'
-	creation and calls to `gray_render_span' because it happerns so
+	creation and calls to `gray_render_span' because it happens so
 	frequently. This removes these steps from our internal use but leaves
 	it alone for `FT_RASTER_FLAG_DIRECT" to preserve API. The speed gain
 	is about 5%.
@@ -2454,7 +2583,7 @@
 
 	[sfnt] Fix `face_index' value in `FT_Face' for named instances.
 
-	* src/sfnt/sfobjc.s (sfnt_init_face): Don't strip off higher 16bits.
+	* src/sfnt/sfobjs.c (sfnt_init_face): Don't strip off higher 16bits.
 
 2016-07-14  Werner Lemberg  <wl@gnu.org>
 

@@ -324,7 +324,7 @@
 
 2016-06-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
-	[smooth] Sanitize memory managenent.
+	[smooth] Sanitize memory management.
 
 	* src/smooth/ftgrays.c (gray_convert_glyph): Cleaned up.
 
@@ -434,7 +434,7 @@
 	* src/truetype/ttinterp.c (Ins_SHPIX): Allow SHPIX to move points in
 	the twilight zone.  Otherwise, treat SHPIX the same as DELTAP.
 	Unbreaks various fonts such as older versions of Rokkitt and DTL
-	Argo T Light that would glitch severly after calling ALIGNRP after a
+	Argo T Light that would glitch severely after calling ALIGNRP after a
 	blocked SHPIX.
 
 2016-05-30  Werner Lemberg  <wl@gnu.org>
@@ -460,7 +460,7 @@
 	[smooth] Shrink bisection stack.
 
 	The convergence of Bézier flatteners is fast with the deviation
-	from straight line being assymptotically cut 4-fold on each bisection.
+	from straight line being asymptotically cut 4-fold on each bisection.
 	This justifies smaller bisection stack size.
 
 	* src/smooth/ftgrays.c (gray_TWorker): Remove common `bez_stack'.
@@ -979,7 +979,7 @@
 	* src/smooth/ftgrays.c (gray_render_conic, gray_render_cubic): Move
 	band clipping from here.
 	(gray_conic_to, gray_cubic_to): ... to here.
-	(gray_rander_line, gray_render_scanline): Initialize variables closer
+	(gray_render_line, gray_render_scanline): Initialize variables closer
 	to their use.
 
 2016-03-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
@@ -5447,7 +5447,7 @@
 	[raster] Remove 5-level gray AA mode from monochrome rasterizer.
 
 	It was off by default and couldn't be turned on at runtime.  And the
-	smooth rasterizer superceded it over ten years ago.  No point in
+	smooth rasterizer superseded it over ten years ago.  No point in
 	keeping.  Comments suggested that it was there for compatibility
 	with FreeType 1.
 

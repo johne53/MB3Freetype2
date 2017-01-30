@@ -5693,8 +5693,8 @@
         /* Special case: allow SHPIX to move points in the twilight zone.  */
         /* Otherwise, treat SHPIX the same as DELTAP.  Unbreaks various    */
         /* fonts such as older versions of Rokkitt and DTL Argo T Light    */
-        /* that would glitch severly after calling ALIGNRP after a blocked */
-        /* SHPIX.                                                          */
+        /* that would glitch severely after calling ALIGNRP after a        */
+        /* blocked SHPIX.                                                  */
         if ( in_twilight                                                ||
              ( !( exc->iupx_called && exc->iupy_called )              &&
                ( ( exc->is_composite && exc->GS.freeVector.y != 0 ) ||
@@ -7611,15 +7611,21 @@
     /* the number of points in the current glyph (if applicable).        */
     /*                                                                   */
     /* The idea is that in real-world bytecode you either iterate over   */
-    /* all CVT entries, or over all points (or contours) of a glyph, and */
-    /* such iterations don't happen very often.                          */
+    /* all CVT entries (in the `prep' table), or over all points (or     */
+    /* contours, in the `glyf' table) of a glyph, and such iterations    */
+    /* don't happen very often.                                          */
     exc->loopcall_counter = 0;
     exc->neg_jump_counter = 0;
 
     /* The maximum values are heuristic. */
-    exc->loopcall_counter_max = FT_MAX( 100,
-                                        10 * ( exc->pts.n_points +
-                                               exc->cvtSize ) );
+    if ( exc->pts.n_points )
+      exc->loopcall_counter_max = FT_MAX( 50,
+                                          10 * exc->pts.n_points ) +
+                                  FT_MAX( 50,
+                                          exc->cvtSize / 10 );
+    else
+      exc->loopcall_counter_max = FT_MAX( 100,
+                                          5 * exc->cvtSize );
     FT_TRACE5(( "TT_RunIns: Limiting total number of loops in LOOPCALL"
                 " to %d\n", exc->loopcall_counter_max ));
 

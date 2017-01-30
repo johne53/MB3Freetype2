@@ -15,6 +15,39 @@ CHANGES BETWEEN 2.7.1 and 2.7.2
     - Variations font support now takes care of the `MVAR' table also.
 
 
+  II. MISCELLANEOUS
+
+    - A  new function  `FT_Set_Default_Properties' has  been added  to
+      parse    the    `FREETYPE_PROPERTIES'    environment    variable
+      (previously, it  was internal only).   `FT_Init_FreeType' always
+      call this  function, but  `FT_New_Library' does not  (similar to
+      `FT_Add_Default_Modules').
+
+    - To be in sync with OpenType version 1.7 and newer, macros
+
+        FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY,
+        FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY,
+        TT_NAME_ID_PREFERRED_FAMILY
+        TT_NAME_ID_PREFERRED_SUBFAMILY
+
+      are renamed to
+
+        FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY,
+        FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY,
+        TT_NAME_ID_TYPOGRAPHIC_FAMILY
+        TT_NAME_ID_TYPOGRAPHIC_SUBFAMILY
+
+      The old macro names are deprecated (but still available).
+
+    - Support for SFNT `name' tables has been improved.
+
+      . Format  1 `name' tables  are now supported.  Use  new function
+        `FT_Get_Sfnt_LangTag' to access associated language tags.
+
+      . Language, encoding, and name IDs have been updated to OpenType
+        version 1.8.1.
+
+
 ======================================================================
 
 CHANGES BETWEEN 2.7 and 2.7.1
@@ -213,7 +246,7 @@ CHANGES BETWEEN 2.6.3 and 2.6.4
 
     - Type 42 fonts as created by LilyPond are now supported.
 
-    - Minor rendering improvments in the auto-hinter.
+    - Minor rendering improvements in the auto-hinter.
 
     - For experimental  reasons, the old  CFF engine now  supports all
       CFF operators except `random', including the deprecated Multiple
@@ -2162,7 +2195,7 @@ CHANGES BETWEEN 2.1.10 and 2.1.9
       probably using a different pitch, and to further manipulate it.
 
     - A new  API `FT_Outline_Embolden'  (in FT_OUTLINE_H) gives  finer
-      control how  outlines are embolded.
+      control how outlines are emboldened.
 
     - `FT_GlyphSlot_Embolden' (in FT_SYNTHESIS_H)  now handles bitmaps
       also (code contributed  by Chia I Wu).  Note that this  function
@@ -2572,7 +2605,7 @@ CHANGES BETWEEN 2.1.5 and 2.1.4
 
     - FT_ENCODING_MS_{SJIS,GB2312,BIG5,WANSUNG,JOHAB}      are     now
       deprecated               in               favour              of
-      FT_ENCODING_{SJIS,GB2312,GIB5,WANSONG,JOHAB}  -- those encodings
+      FT_ENCODING_{SJIS,GB2312,BIG5,WANSUNG,JOHAB}  -- those encodings
       are not specific to Microsoft.
 
 

@@ -22,10 +22,6 @@
   /*                                                                       */
   /*   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6[fgca]var.html */
   /*                                                                       */
-  /* The documentation for `fvar' is inconsistent.  At one point it says   */
-  /* that `countSizePairs' should be 3, at another point 2.  It should     */
-  /* be 2.                                                                 */
-  /*                                                                       */
   /* The documentation for `gvar' is not intelligible; `cvar' refers you   */
   /* to `gvar' and is thus also incomprehensible.                          */
   /*                                                                       */
@@ -431,7 +427,8 @@
 
     if ( format != 1 )
     {
-      FT_TRACE2(( "bad store format %d\n", format ));
+      FT_TRACE2(( "ft_var_load_item_variation_store: bad store format %d\n",
+                  format ));
       error = FT_THROW( Invalid_Table );
       goto Exit;
     }
@@ -440,6 +437,14 @@
     if ( FT_READ_ULONG( region_offset )         ||
          FT_READ_USHORT( itemStore->dataCount ) )
       goto Exit;
+
+    /* we need at least one entry in `itemStore->varData' */
+    if ( !itemStore->dataCount )
+    {
+      FT_TRACE2(( "ft_var_load_item_variation_store: missing varData\n" ));
+      error = FT_THROW( Invalid_Table );
+      goto Exit;
+    }
 
     /* make temporary copy of item variation data offsets; */
     /* we will parse region list first, then come back     */
@@ -928,7 +933,7 @@
     }
 
     /* advance width adjustments are always present in an `HVAR' table, */
-    /* so need to test for this capability                              */
+    /* no need to test for this capability                              */
 
     if ( face->blend->hvar_table->widthMap.innerIndex )
     {
@@ -1110,9 +1115,8 @@
     if ( FT_NEW( blend->mvar_table ) )
       return;
 
-    /* skip value record size */
-    if ( FT_READ_USHORT( blend->mvar_table->axisCount )  ||
-         FT_STREAM_SKIP( 2 )                             ||
+    /* skip reserved entry and value record size */
+    if ( FT_STREAM_SKIP( 4 )                             ||
          FT_READ_USHORT( blend->mvar_table->valueCount ) ||
          FT_READ_USHORT( store_offset )                  )
       return;
@@ -1604,7 +1608,6 @@
   {
     FT_Long    version;
     FT_UShort  offsetToData;
-    FT_UShort  countSizePairs;
     FT_UShort  axisCount;
     FT_UShort  axisSize;
     FT_UShort  instanceCount;
@@ -1671,13 +1674,13 @@
 #define FT_STRUCTURE  GX_FVar_Head
 
       FT_FRAME_START( 16 ),
-        FT_FRAME_LONG  ( version ),
-        FT_FRAME_USHORT( offsetToData ),
-        FT_FRAME_USHORT( countSizePairs ),
-        FT_FRAME_USHORT( axisCount ),
-        FT_FRAME_USHORT( axisSize ),
-        FT_FRAME_USHORT( instanceCount ),
-        FT_FRAME_USHORT( instanceSize ),
+        FT_FRAME_LONG      ( version ),
+        FT_FRAME_USHORT    ( offsetToData ),
+        FT_FRAME_SKIP_SHORT,
+        FT_FRAME_USHORT    ( axisCount ),
+        FT_FRAME_USHORT    ( axisSize ),
+        FT_FRAME_USHORT    ( instanceCount ),
+        FT_FRAME_USHORT    ( instanceSize ),
       FT_FRAME_END
     };
 

@@ -54,8 +54,8 @@
 
   /* convert a UTF-16 name entry to ASCII */
   static FT_String*
-  tt_name_entry_ascii_from_utf16( TT_NameEntry  entry,
-                                  FT_Memory     memory )
+  tt_name_ascii_from_utf16( TT_Name    entry,
+                            FT_Memory  memory )
   {
     FT_String*  string = NULL;
     FT_UInt     len, code, n;
@@ -89,8 +89,8 @@
 
   /* convert an Apple Roman or symbol name entry to ASCII */
   static FT_String*
-  tt_name_entry_ascii_from_other( TT_NameEntry  entry,
-                                  FT_Memory     memory )
+  tt_name_ascii_from_other( TT_Name    entry,
+                            FT_Memory  memory )
   {
     FT_String*  string = NULL;
     FT_UInt     len, code, n;
@@ -122,8 +122,8 @@
   }
 
 
-  typedef FT_String*  (*TT_NameEntry_ConvertFunc)( TT_NameEntry  entry,
-                                                   FT_Memory     memory );
+  typedef FT_String*  (*TT_Name_ConvertFunc)( TT_Name    entry,
+                                              FT_Memory  memory );
 
 
   /* documentation is in sfnt.h */
@@ -133,20 +133,21 @@
                     FT_UShort    nameid,
                     FT_String**  name )
   {
-    FT_Memory         memory = face->root.memory;
-    FT_Error          error  = FT_Err_Ok;
-    FT_String*        result = NULL;
-    FT_UShort         n;
-    TT_NameEntryRec*  rec;
-    FT_Int            found_apple         = -1;
-    FT_Int            found_apple_roman   = -1;
-    FT_Int            found_apple_english = -1;
-    FT_Int            found_win           = -1;
-    FT_Int            found_unicode       = -1;
+    FT_Memory   memory = face->root.memory;
+    FT_Error    error  = FT_Err_Ok;
+    FT_String*  result = NULL;
+    FT_UShort   n;
+    TT_Name     rec;
 
-    FT_Bool           is_english = 0;
+    FT_Int  found_apple         = -1;
+    FT_Int  found_apple_roman   = -1;
+    FT_Int  found_apple_english = -1;
+    FT_Int  found_win           = -1;
+    FT_Int  found_unicode       = -1;
 
-    TT_NameEntry_ConvertFunc  convert;
+    FT_Bool  is_english = 0;
+
+    TT_Name_ConvertFunc  convert;
 
 
     FT_ASSERT( name );
@@ -231,7 +232,7 @@
         /* all Unicode strings are encoded using UTF-16BE */
       case TT_MS_ID_UNICODE_CS:
       case TT_MS_ID_SYMBOL_CS:
-        convert = tt_name_entry_ascii_from_utf16;
+        convert = tt_name_ascii_from_utf16;
         break;
 
       case TT_MS_ID_UCS_4:
@@ -240,7 +241,7 @@
         /* MsGothic font shipped with Windows Vista shows that this really */
         /* means UTF-16 encoded names (UCS-4 values are only used within   */
         /* charmaps).                                                      */
-        convert = tt_name_entry_ascii_from_utf16;
+        convert = tt_name_ascii_from_utf16;
         break;
 
       default:
@@ -250,12 +251,12 @@
     else if ( found_apple >= 0 )
     {
       rec     = face->name_table.names + found_apple;
-      convert = tt_name_entry_ascii_from_other;
+      convert = tt_name_ascii_from_other;
     }
     else if ( found_unicode >= 0 )
     {
       rec     = face->name_table.names + found_unicode;
-      convert = tt_name_entry_ascii_from_utf16;
+      convert = tt_name_ascii_from_utf16;
     }
 
     if ( rec && convert )
@@ -310,7 +311,7 @@
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_UCS_4,      FT_ENCODING_UNICODE },
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_UNICODE_CS, FT_ENCODING_UNICODE },
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_SJIS,       FT_ENCODING_SJIS },
-      { TT_PLATFORM_MICROSOFT,     TT_MS_ID_GB2312,     FT_ENCODING_GB2312 },
+      { TT_PLATFORM_MICROSOFT,     TT_MS_ID_PRC,        FT_ENCODING_PRC },
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_BIG_5,      FT_ENCODING_BIG5 },
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_WANSUNG,    FT_ENCODING_WANSUNG },
       { TT_PLATFORM_MICROSOFT,     TT_MS_ID_JOHAB,      FT_ENCODING_JOHAB }
@@ -1079,8 +1080,8 @@
     FT_Bool       has_outline;
     FT_Bool       is_apple_sbit;
     FT_Bool       is_apple_sbix;
-    FT_Bool       ignore_preferred_family    = FALSE;
-    FT_Bool       ignore_preferred_subfamily = FALSE;
+    FT_Bool       ignore_typographic_family    = FALSE;
+    FT_Bool       ignore_typographic_subfamily = FALSE;
 
     SFNT_Service  sfnt = (SFNT_Service)face->sfnt;
 
@@ -1095,10 +1096,10 @@
 
       for ( i = 0; i < num_params; i++ )
       {
-        if ( params[i].tag == FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY )
-          ignore_preferred_family = TRUE;
-        else if ( params[i].tag == FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY )
-          ignore_preferred_subfamily = TRUE;
+        if ( params[i].tag == FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY )
+          ignore_typographic_family = TRUE;
+        else if ( params[i].tag == FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY )
+          ignore_typographic_subfamily = TRUE;
       }
     }
 
@@ -1281,27 +1282,27 @@
     face->root.style_name  = NULL;
     if ( face->os2.version != 0xFFFFU && face->os2.fsSelection & 256 )
     {
-      if ( !ignore_preferred_family )
-        GET_NAME( PREFERRED_FAMILY, &face->root.family_name );
+      if ( !ignore_typographic_family )
+        GET_NAME( TYPOGRAPHIC_FAMILY, &face->root.family_name );
       if ( !face->root.family_name )
         GET_NAME( FONT_FAMILY, &face->root.family_name );
 
-      if ( !ignore_preferred_subfamily )
-        GET_NAME( PREFERRED_SUBFAMILY, &face->root.style_name );
+      if ( !ignore_typographic_subfamily )
+        GET_NAME( TYPOGRAPHIC_SUBFAMILY, &face->root.style_name );
       if ( !face->root.style_name )
         GET_NAME( FONT_SUBFAMILY, &face->root.style_name );
     }
     else
     {
       GET_NAME( WWS_FAMILY, &face->root.family_name );
-      if ( !face->root.family_name && !ignore_preferred_family )
-        GET_NAME( PREFERRED_FAMILY, &face->root.family_name );
+      if ( !face->root.family_name && !ignore_typographic_family )
+        GET_NAME( TYPOGRAPHIC_FAMILY, &face->root.family_name );
       if ( !face->root.family_name )
         GET_NAME( FONT_FAMILY, &face->root.family_name );
 
       GET_NAME( WWS_SUBFAMILY, &face->root.style_name );
-      if ( !face->root.style_name && !ignore_preferred_subfamily )
-        GET_NAME( PREFERRED_SUBFAMILY, &face->root.style_name );
+      if ( !face->root.style_name && !ignore_typographic_subfamily )
+        GET_NAME( TYPOGRAPHIC_SUBFAMILY, &face->root.style_name );
       if ( !face->root.style_name )
         GET_NAME( FONT_SUBFAMILY, &face->root.style_name );
     }

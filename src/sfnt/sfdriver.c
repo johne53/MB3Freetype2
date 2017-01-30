@@ -238,14 +238,15 @@
 
     for ( n = 0; n < face->num_names; n++ )
     {
-      TT_NameEntryRec*  name = face->name_table.names + n;
+      TT_Name  name = face->name_table.names + n;
 
 
       if ( name->nameID == 6 && name->stringLength > 0 )
       {
-        if ( name->platformID == 3     &&
-             name->encodingID == 1     &&
-             name->languageID == 0x409 )
+        /* handling of PID/EID 3/0 and 3/1 is the same */
+        if ( name->platformID == 3                              &&
+             ( name->encodingID == 1 || name->encodingID == 0 ) &&
+             name->languageID == 0x409                          )
           found_win = n;
 
         if ( name->platformID == 1 &&
@@ -257,10 +258,10 @@
 
     if ( found_win != -1 )
     {
-      FT_Memory         memory = face->root.memory;
-      TT_NameEntryRec*  name   = face->name_table.names + found_win;
-      FT_UInt           len    = name->stringLength / 2;
-      FT_Error          error  = FT_Err_Ok;
+      FT_Memory  memory = face->root.memory;
+      TT_Name    name   = face->name_table.names + found_win;
+      FT_UInt    len    = name->stringLength / 2;
+      FT_Error   error  = FT_Err_Ok;
 
       FT_UNUSED( error );
 
@@ -299,10 +300,10 @@
 
     if ( found_apple != -1 )
     {
-      FT_Memory         memory = face->root.memory;
-      TT_NameEntryRec*  name   = face->name_table.names + found_apple;
-      FT_UInt           len    = name->stringLength;
-      FT_Error          error  = FT_Err_Ok;
+      FT_Memory  memory = face->root.memory;
+      TT_Name    name   = face->name_table.names + found_apple;
+      FT_UInt    len    = name->stringLength;
+      FT_Error   error  = FT_Err_Ok;
 
       FT_UNUSED( error );
 
