@@ -1,3 +1,197 @@
+2017-02-13  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Prevent overlapping blue zones.
+
+	Problem reported as
+
+	  https://github.com/google/fonts/issues/632
+
+	The font in question (Nunito) has values 705 and 713 for the
+	reference and overshoot values, respectively, of the first blue
+	zone.  Blue zone 2, however, has value 710 for both the reference
+	and overshoot.  At 12ppem, reference and overshoot of blue zone 0
+	becomes 8px, while blue zone 2 becomes 9px.
+
+	A peculiarity of this font is that the tops of isolated vertical
+	stems like `N' have a slight overshoot also.  The auto-hinter tries
+	to find the nearest blue zone using the *original* coordinates.  For
+	vertical stems, this is value 713.  For normal horizontal tops like
+	in character `E', this is value 710.  Since value 713 is mapped to
+	8px but value 710 to 9px, `N' and similar characters are one pixel
+	higher than `E', which looks very bad.
+
+	This commit sanitizes blue zones to avoid such a behaviour.
+
+	* src/autofit/aflatin.c (af_latin_sort_blue): New function.
+	(af_latin_metrics_init_blues): Sort blue values and remove overlaps.
+
+2017-02-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_sweep): Improve code.
+
+2017-02-06  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Implement `VVAR' table support.
+
+	* src/truetype/ttgxvar.h (GX_HVarTable): Renamed to...
+	(GX_HVVarTable): ...This.
+	(GX_Blend): Add fields for `VVAR' table handling.
+	Other minor updates.
+
+	* src/truetype/ttgxvar.c (ft_var_load_hvar): Renamed to...
+	(ft_var_load_hvvar): ...This.
+	Handle VVAR loading also (controlled by an additional parameter).
+	(tt_hadvance_adjust): Renamed to...
+	(tt_hvadvance_adjust): ...This.
+	Handle application of advance height also (controlled by an
+	additional parameter).
+	(tt_hadvance_adjust, tt_vadvance_adjust): Wrappers for
+	`tt_hvadvance_adjust'.
+
+	* src/truetype/ttdriver.c (tt_service_metrics_variations): Updated.
+
+2017-02-05  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Use better blue zone characters for lowercase latin.
+
+	The number of lowercase characters for computing the top flat blue
+	zone value was too small (in most cases only `x' and `z').  If one
+	of the two characters has a large serif, say, it can happen that
+	FreeType must select between two different values, having a 50%
+	chance to use the wrong one.  As a result, rendering at larger PPEM
+	values could yield uneven lowercase glyph heights.
+
+	Problem reported by Christoph Koeberlin <christoph@koe.berlin>.
+
+	* src/autofit/afblue.dat (AF_BLUE_STRING_LATIN_SMALL): Replaced
+	with...
+	(AF_BLUE_STRING_LATIN_SMALL_TOP, AF_BLUE_STRING_LATIN_SMALL_BOTTOM):
+	... New, extended sets.
+	(AF_BLUE_STRINGSET_LATN): Updated.
+
+	* src/autofit/afblue.c, scr/autofit/afblue.h: Regenerated.
+
+2017-02-04  Werner Lemberg  <wl@gnu.org>
+
+	Make `freetype-config' a wrapper of `pkg-config' if possible.
+
+	Based on ideas taken from
+
+	  http://pkgs.fedoraproject.org/cgit/rpms/freetype.git/tree/freetype-multilib.patch
+	  http://pkgs.fedoraproject.org/cgit/rpms/freetype.git/tree/freetype-2.5.3-freetype-config-prefix.patch
+
+	* builds/unix/freetype-config.in: Rewritten.  Use `pkg-config' to
+	set output variables if program is available.
+
+	* docs/CHANGES, docs/freetype-config.1: Updated.
+
+2017-02-04  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/unix-def.in (freetype-config): Fix permissions.
+
+2017-02-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afglobal.c (af_face_globals_free): Erase useless code.
+
+2017-02-03  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/ftgasp.h (FT_GASP_SYMMETRIC_GRIDFIT): Fix value.
+
+	Reported by Behdad.
+
+2017-02-02  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix MVAR post-action handling.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=509
+
+	* src/truetype/ttobjs.c (tt_size_reset): Do nothing for CFF2.  This
+	is important to make `tt_size_reset_iterator' (called in
+	`tt_apply_mvar') always work.
+
+2017-02-02  Werner Lemberg  <wl@gnu.org>
+
+	Make compilation with FT_CONFIG_OPTION_PIC work again.
+
+	All code committed here is guarded with `FT_CONFIG_OPTION_PIC'.
+
+	* include/freetype/internal/services/svmetric.h
+	(FT_DEFINE_SERVICE_METRICSVARIATIONSREC): Remove trailing semicolon.
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_edges,
+	af_latin_hint_edges): Provide `globals' variable.
+
+	* src/autofit/afloader.c (af_loader_load_glyph): Remove shadowing
+	variable.
+
+	* src/autofit/afmodule.c (AF_SCRIPT_CLASSES_GET,
+	AF_STYLE_CLASSES_GET): Redefine.
+
+	* src/autofit/aftypes.h (AF_DEFINE_WRITING_SYSTEM_CLASS): Fix typo.
+
+	* src/cff/cffparse.c (CFF_FIELD_BLEND): Provide it.
+
+	* src/cff/cffpic.h (CffModulePIC): Fix typo.
+
+2017-01-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_render_scanline): Improve code.
+
+2017-01-31  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Provide metrics variation service interface (#50196).
+
+	Only now I've got an OTF with an HVAR table for testing...
+
+	The code in `ftmm.c' uses `FT_FACE_LOOKUP_SERVICE' to get the
+	metrics variations interface.  However, this didn't work with
+	`FT_FACE_FIND_GLOBAL_SERVICE' used in `sfnt_init_face'.
+
+	* src/cff/cffdrivr.c: Include FT_SERVICE_METRICS_VARIATIONS_H.
+	(cff_hadvance_adjust, cff_metrics_adjust): Wrapper functions for
+	metric service functions from the `truetype' module.
+	(cff_service_metrics_variations): New service.
+	(cff_services): Updated.
+
+	* src/cff/cffpic.h (CFF_SERVICE_METRICS_VAR_GET): New macro.
+	[FT_CONFIG_OPTION_PIC]: Synchronize code.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Replace call to
+	FT_FACE_FIND_GLOBAL_SERVICE with `ft_module_get_service' to always
+	load the service from the `truetype' module.
+
+2017-01-31  Werner Lemberg  <wl@gnu.org>
+
+	Add framework to support services with 9 functions.
+
+	* include/freetype/internal/ftserv.h (FT_DEFINE_SERVICEDESCREC9):
+	New macro.
+
+2017-01-31  Werner Lemberg  <wl@gnu.org>
+
+	[base] Fix error handing in MM functions.
+
+	* src/base/ftmm.c (FT_Set_Var_Design_Coordinates,
+	FT_Set_MM_Blend_Coordinates, FT_Set_Var_Blend_Coordinates):
+	Implement it.
+
+2017-01-31  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix sanity check for `gvar' table (#50184).
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): There might be missing
+	variation data for some glyphs.
+
+2017-01-31  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Avoid uninitialized jumps (#50191).
+
+	* src/autofit/afcjk.c (af_cjk_metrics_check_digits),
+	src/autofit/aflatin.c (af_latin_metrics_check_digits): Initialize
+	`advance'.
+
 2017-01-27  Werner Lemberg  <wl@gnu.org>
 
 	s/GB2312/PRC/.
