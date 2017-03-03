@@ -1,3 +1,189 @@
+2017-02-23  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Further generalize `sfnt_get_ps_name'; report invalid data.
+
+	* src/sfnt/sfdriver.c (sfnt_ps_map): New array.
+	(sfnt_is_postscript): New function.
+	(char_type_func): New typedef.
+	(get_win_string, get_apple_string): Add argument to specify
+	character checking function.
+	Add argument whether argument checking failures should be reported.
+	Update callers.
+	(search_name_id): Fix return value.
+
+2017-02-23  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Split off another bit of `sfnt_get_ps_name'.
+
+	* src/sfnt/sfdriver.c (sfnt_get_ps_name): Split off some
+	functionality into...
+	(search_name_id): ... New function.
+
+2017-02-23  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Modularize `sfnt_get_ps_name'.
+
+	* src/sfnt/sfdriver.c (sfnt_get_ps_name): Split off some
+	functionality into...
+	(IS_WIN, IS_APPLE): ... New macros.
+	(get_win_string, get_apple_string): ... New functions.
+
+2017-02-23  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Minor improvement.
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph,
+	load_truetype_glyph): Remove unnecessary tests.
+
+2017-02-23  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/internal/tttypes.h (TT_Face): s/isCFF2/is_cff2/.
+
+	For orthogonality with other structure field names.
+
+	Update all users.
+
+2017-02-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_hline): Improve code.
+
+2017-02-20  Dominik Röttsches  <drott@google.com>
+
+	Fix some `ttnameid.h' entries (#50313).
+
+	* include/freetype/ttnameid.h:
+	s/TT_MS_LANGID_SPANISH_INTERNATIONAL_SORT/TT_MS_LANGID_SPANISH_SPAIN_INTERNATIONAL_SORT/,
+	s/TT_MS_LANGID_MONGOLIAN_MONGOLIA_MONGOLIA/TT_MS_LANGID_MONGOLIAN_MONGOLIA_MONGOLIAN/.
+
+2017-02-20  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Finish support for `random' operator.
+
+	* src/cff/cfftypes.h (CFF_SubFontRec): Add `random' field.
+
+	* src/cff/cffobjs.c: Updated.
+	(cff_driver_init): Initialize random seed value.
+
+	* src/cff/cffload.c (cff_random): New function.
+	(cff_subfont_load): Add `face' argument.
+	Update all callers.
+	Initialize random number generator with a proper seed value.
+	(cff_font_load): Add `face' argument.
+	Update all callers.
+
+	* src/cff/cffload.h: Updated.
+
+	* src/cff/cf2intrp.c (CF2_FIXME): Removed.
+	(cf2_interpT2CharString) <cf2_escRANDOM>: Implement opcode.
+
+	* src/cff/cffgload.c (cff_decoder_parse_charstrings): Don't
+	initialize random seed value.
+	<cff_op_random>: Use new random seed framework.
+
+2017-02-20  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Sanitize `initialRandomSeed'.
+
+	* src/cff/cffload.c (cff_load_private_dict): Make
+	`initial_random_seed' value always positive.
+
+2017-02-20  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Introduce `random-seed' property (2/2).
+
+	* src/base/ftobjs.c: Include `FT_CFF_DRIVER_H'.
+	(open_face): Initialize `face->internal->random_seed'.
+	(FT_Face_Properties): Handle `FT_PARAM_TAG_RANDOM_SEED'.
+
+	* src/cff/cffdrivr.c (cff_property_set): Handle `random-seed'
+	property.
+
+2017-02-20  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Introduce `random-seed' property (1/2).
+
+	We need this for support of the `random' operator.
+
+	* include/freetype/ftcffdrv.h (FT_PARAM_TAG_RANDOM_SEED): New macro.
+
+	* include/freetype/internal/ftobjs.h (FT_Face_InternalRec): New
+	field `random_seed'.
+
+	* src/cff/cffobjs.h (CFF_DriverRec): New field `random_seed'.
+
+2017-02-17  Werner Lemberg  <wl@gnu.org>
+
+	Remove clang warnings.
+
+	* src/autofit/aflatin.c (af_latin_sort_blue): Add missing `static'
+	keyword.
+
+	* src/base/ftmm.c (FT_Set_Var_Design_Coordinates,
+	FT_Set_MM_Blend_Coordinates, FT_Set_Var_Blend_Coordinates):
+	Initialize some variables.
+
+2017-02-16  Nikolaus Waxweiler  <madigens@gmail.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	Add face property for stem darkening.
+
+	* include/freetype/ftautoh.h (FT_PARAM_TAG_STEM_DARKENING): New
+	macro.
+
+	* include/freetype/internal/ftobjs.h (FT_Face_InternalRec): Add
+	`no_stem_darkening' field.
+
+	* src/autofit/afloader.c (af_loader_load_glyph),
+	src/autofit/afmodule.c (af_property_set): Updated.
+
+	* src/base/ftobjs.c: Include FT_AUTOHINTER_H.
+	(ft_open_face_internal): Updated.
+	(FT_Face_Properties): Handle FT_PARAM_TAG_STEM_DARKENING.
+
+	* src/cff/cf2ft.c (cf2_decoder_parse_charstrings): Updated.
+
+	* src/cff/cffdrivr.c (cff_property_set): Updated.
+
+2017-02-16  Nikolaus Waxweiler  <madigens@gmail.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	Add face property for LCD filter weights.
+
+	* include/freetype/ftlcdfil.h (FT_PARAM_TAG_LCD_FILTER_WEIGHTS,
+	FT_LCD_FILTER_FIVE_TAPS): New macros.
+	(FT_LcdFiveTapFilter): New typedef.
+
+	* include/freetype/ftobjs.h (FT_Face_InternalRec)
+	[FT_CONFIG_OPTION_SUBPIXEL_RENDERING]: Add `lcd_weights' field.
+	(FT_Bitmap_LcdFilterFunc): Change third argument to weights array.
+	(ft_lcd_filter_fir): New prototype.
+	(FT_LibraryRec): Updated.
+
+	* src/base/ftlcdfil.c (_ft_lcd_filter_fir): Renamed to...
+	(ft_lcd_filter_dir): ... this base function.
+	Updated.
+	(_ft_lcd_filter_legacy): Updated.
+	(FT_Library_SetLcdFilterWeights, FT_Library_SetLcdFilter): Updated.
+
+	* src/base/ftobjs.c (ft_open_face_internal): Updated.
+	(FT_Face_Properties): Handle FT_PARAM_TAG_LCD_FILTER_WEIGHTS.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic)
+	[FT_CONFIG_OPTION_SUBPIXEL_RENDERING: Handle LCD weights from
+	`FT_Face_Internal'.
+
+2017-02-14  Nikolaus Waxweiler  <madigens@gmail.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	Add new function `FT_Face_Properties'.
+
+	This commit provides the framework, to be filled with something
+	useful in the next commits.
+
+	* include/freetype/freetype.h (FT_Face_Properties): Declare.
+
+	* src/base/ftobjs.c (FT_Face_Properties): New function.
+
 2017-02-13  Werner Lemberg  <wl@gnu.org>
 
 	[autofit] Prevent overlapping blue zones.
