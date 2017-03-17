@@ -677,7 +677,7 @@ FT_BEGIN_HEADER
   /*    FT_ENCODING_JOHAB ::                                               */
   /*      The Korean standard character set (KS~C 5601-1992), which        */
   /*      corresponds to MS Windows code page 1361.  This character set    */
-  /*      includes all possible Hangeul character combinations.            */
+  /*      includes all possible Hangul character combinations.             */
   /*                                                                       */
   /*    FT_ENCODING_ADOBE_LATIN_1 ::                                       */
   /*      Corresponds to a Latin-1 encoding as defined in a Type~1         */
@@ -891,7 +891,7 @@ FT_BEGIN_HEADER
   /*                           variation fonts only, holding the named     */
   /*                           instance index for the current face index   */
   /*                           (starting with value~1; value~0 indicates   */
-  /*                           font access without variation data).  For   */
+  /*                           font access without a named instance).  For */
   /*                           non-variation fonts, bits 16-30 are         */
   /*                           ignored.  If we have the third named        */
   /*                           instance of face~4, say, `face_index' is    */
@@ -911,7 +911,10 @@ FT_BEGIN_HEADER
   /*                           available for the current face if we have a */
   /*                           GX or OpenType variation (sub)font.  Bit 31 */
   /*                           is always zero (this is, `style_flags' is   */
-  /*                           always a positive value).                   */
+  /*                           always a positive value).  Note that a      */
+  /*                           variation font has always at least one      */
+  /*                           named instance, namely the default          */
+  /*                           instance.                                   */
   /*                                                                       */
   /*    num_glyphs          :: The number of glyphs in the face.  If the   */
   /*                           face is scalable and has sbits (see         */
@@ -3399,6 +3402,13 @@ FT_BEGIN_HEADER
   /* <Note>                                                                */
   /*    The returned pointer is owned by the face and is destroyed with    */
   /*    it.                                                                */
+  /*                                                                       */
+  /*    For variation fonts, this string changes if you select a different */
+  /*    instance, and you have to call `FT_Get_PostScript_Name' again to   */
+  /*    retrieve it.  FreeType follows Adobe TechNote #5902, `Generating   */
+  /*    PostScript Names for Fonts Using OpenType Font Variations'.        */
+  /*                                                                       */
+  /*      http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/font/pdfs/5902.AdobePSNameGeneration.html */
   /*                                                                       */
   FT_EXPORT( const char* )
   FT_Get_Postscript_Name( FT_Face  face );

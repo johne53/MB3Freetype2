@@ -1,4 +1,254 @@
-2017-02-23  Werner Lemberg  <wl@gnu.org>
+2017-03-17  Werner Lemberg  <wl@gnu.org>
+
+	`make multi' fixes; compiler warnings.
+
+	* src/base/ftsnames.c: Include FT_INTERNAL_DEBUG_H.
+
+	* src/cff/cffobjs.c [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Include
+	FT_MULTIPLE_MASTERS_H and FT_SERVICE_MULTIPLE_MASTERS_H.
+
+	* src/sfnt/sfdriver.c [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Include
+	FT_MULTIPLE_MASTERS_H and FT_SERVICE_MULTIPLE_MASTERS_H.
+	(get_win_string, get_apple_string): Initialize `result'.
+
+2017-03-17  Dave Arnold <darnold@adobe.com>
+
+	[cff] Fix potential bugs in default NDV for CFF2.
+
+	* src/cff/cffload.c (cff_blend_build_vector): Explicitly build blend
+	vector when `lenNDV' is zero; don't rely on zero-init.
+	Save `lenNDV' as part of cache key even when `lenNDV' is zero.
+
+2017-03-17  Dave Arnold <darnold@adobe.com>
+
+	[cff] Fix CFF2 stack allocation.
+
+	* src/cff/cffparse.c (cff_parser_init) add 1 for operator.
+
+2017-03-16  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_done_blend): Free `vvar_table'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=883
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	Remove clang compiler warnings (#50548).
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Make
+	`var_postscript_prefix_len' unsigned.
+
+	* src/autofit/afwarp.c (af_warper_compute_line_best): Remove
+	redundant assignment.
+
+	* src/cff/cffload.c (cff_subfont_load): Add casts.
+
+	* src/cff/cffparse.c (cff_parse_blend): Remove redundant assignment.
+
+	* src/sfnt/sfdriver.c (fmix32, murmur_hash_3_128): Add `static'
+	keyword.
+	Add casts.
+	(fixed2float): Add cast.
+	(sfnt_get_var_ps_name): Make `p' always initialized.
+	Add casts.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Add casts.
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Limit number of tested faces and instances.
+
+	This is inspired by the discussion in and analysis of
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=859
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (LLVMFuzzerTestOneInput): Use only
+	up to 20 face indices.
+	Use only up to 20 instance indices.
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Improve readability; formatting.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [3/3].
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): New fields
+	`var_postscript_prefix' and `var_postscript_prefix_len'.
+
+	* src/sfnt/sfdriver.c: Include FT_TRUETYPE_IDS_H.
+	(sfnt_is_alphanumeric): New wrapperfunction for `ft_isalnum'.
+	(get_win_string, get_apple_string): Remove `const' from return
+	value.
+	(MAX_VALUE_DESCRIPTOR_LEN, MAX_PS_NAME_LEN): New macros.
+	(hexdigits): New array.
+	(sfnt_get_var_ps_name): New function, implementing Adobe TechNote
+	5902 to construct a PS name for a variation font instance.
+	(sfnt_get_ps_name): Call `sfnt_get_var_ps_name' for font instances.
+
+	* src/sfnt/sfobjs.c (sfnt_done_face): Updated.
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Reset
+	`face->postscript_name' to trigger recalculation for new instance
+	parameters.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [2/3].
+
+	* src/sfnt/sfdriver.c (fix2float) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]:
+	New function to find the shortest representation of a 16.16
+	fractional number.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [1/3].
+
+	Add 128bit MurmurHash 3 function.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/sfnt/sfdriver.c (ROTL32): New macro.
+	(fmix32, murmur_hash_3_128): New functions.
+
+2017-03-13  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Ignore invalid MVAR tags.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=838
+
+	* src/truetype/ttgxvar.c (ft_var_load_mvar): Ignore value and emit
+	warning for invalid tags.
+	(tt_apply_mvar): Ignore invalid tags.
+
+2017-03-12  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Store and use design coordinates also.
+
+	* include/freetype/internal/services/svmm.h (FT_Get_Var_Blend_Func):
+	Add `normalizedcoords' argument.
+
+	* src/truetype/ttgxvar.h (GX_BlendRec): Add `coords' field to store
+	the design coordinates of the current instance.
+	Updated.
+
+	* src/truetype/ttgxvar.c (TT_Set_MM_Blend): Move functionality to...
+	(tt_set_mm_blend): ... New function.
+	Convert data in `normalizedcoords' array to `coords' array on
+	demand.
+	(TT_Set_Var_Design): Store argument data in `coords' array.
+	(TT_Get_Var_Design): Get data from `coords' array.
+	(tt_get_var_blend): Updated.
+	(tt_done_blend): Updated.
+
+	* src/cff/cffload.c, src/cff/cffload.h (cff_get_var_blend): Updated.
+
+	* src/cff/cf2ft.c (cf2_getNormalizedVector): Updated.
+
+	* src/cff/cffobjs.c (cff_face_init): Updated.
+
+2017-03-12  Werner Lemberg  <wl@gnu.org>
+
+	src/truetype/ttgxvar.[ch]: s/avar_checked/avar_loaded/.
+
+2017-03-08  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Another fix for buggy variation fonts.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=759
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): While setting number of
+	instances to zero for `CFF' fonts table, ensure that there is no
+	`CFF2' present also (which gets priority).
+
+2017-03-07  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Improve handling for buggy variation fonts.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=738
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): While setting number of
+	instances to zero for `CFF' fonts table, ensure that there is no
+	`glyf' table present also (which gets priority).
+
+2017-03-06  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt, truetype] Always provide default instance.
+
+	As documented in the OpenType specification, an entry for the
+	default instance may be omitted in the named instance table.  In
+	particular this means that even if there is no named instance table
+	in the font we actually do have a named instance, namely the default
+	instance.
+
+	For consistency, we always want the default instance in our list of
+	named instances.  If it is missing, we try to synthesize it.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Check whether the default
+	instance is in the table of named instances.  Otherwise adjust
+	number of instances.
+
+	* src/truetype/ttgxvar.c: Include FT_TRUETYPE_IDS_H.
+	(TT_Get_MM_Var): Use `face->root.style_flags' as the number of named
+	instances.
+	Sythesize a named instance entry if necessary.
+	(tt_done_blend): Free `normalized_stylecoords'.
+
+2017-03-05  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Remove redundant code.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Remove second test for
+	`num_instances', which will always succeed.
+
+2017-03-04  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Add `get_name_id' service.
+
+	* include/freetype/internal/sfnt.h (TT_Get_Name_ID_Func): New
+	typedef.
+	(SFNT_Interface): Add `get_name_id' field.
+	(FT_DEFINE_SFNT_INTERFACE): Updated.
+
+	* src/sfnt/sfdriver.c (search_name_id): Rename to...
+	(sfnt_get_name_id): ... this.
+	(sfnt_get_ps_name, sfnt_interface): Udpated.
+
+2017-03-04  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Make `TT_Set_MM_Blend' set named instance index.
+
+	* src/truetype/ttgxvar.h (GX_Blend): New array
+	`normalized_stylecoords'.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Allocate and fill
+	`normalized_stylecoords'.
+	(TT_Set_MM_Blend): Check instance tuple and adjust `face_index'
+	accordingly.
+
+2017-03-02  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Split off designer/normalized conversion routines.
+
+	* src/truetype/ttgxvar.c (TT_Set_Var_Design): Split off conversion
+	code designer->normalized coordinates to...
+	(ft_var_to_normalized): ... New function.
+	(TT_Get_Var_Design): Split off conversion code normalized->designer
+	coordinates to...
+	(ft_var_to_design): ... New function.
+
+2017-02-28  Werner Lemberg  <wl@gnu.org>
 
 	[sfnt] Further generalize `sfnt_get_ps_name'; report invalid data.
 
@@ -169,7 +419,7 @@
 	(FT_Face_Properties): Handle FT_PARAM_TAG_LCD_FILTER_WEIGHTS.
 
 	* src/smooth/ftsmooth.c (ft_smooth_render_generic)
-	[FT_CONFIG_OPTION_SUBPIXEL_RENDERING: Handle LCD weights from
+	[FT_CONFIG_OPTION_SUBPIXEL_RENDERING]: Handle LCD weights from
 	`FT_Face_Internal'.
 
 2017-02-14  Nikolaus Waxweiler  <madigens@gmail.com>
@@ -2132,7 +2382,7 @@
 
 2016-09-29  Werner Lemberg  <wl@gnu.org>
 
-	[truetype] Disallow bitmap strokes for non-default instances.
+	[truetype] Disallow bitmap strikes for non-default instances.
 
 	Also speed up access of default instances if GX variations are
 	active.
@@ -2519,12 +2769,12 @@
 
 2016-09-03  Werner Lemberg  <wl@gnu.org>
 
-	[base] Avoid negative bitmap stroke dimensions (#48985).
+	[base] Avoid negative bitmap strike dimensions (#48985).
 
 	* src/base/ftobjs.c (FT_Open_Face): Check whether negation was
 	actually successful.  For example, this can fail for value
 	-32768 if the type is `signed short'.  If there are problems,
-	disable the stroke.
+	disable the strike.
 
 2016-09-03  Werner Lemberg  <wl@gnu.org>
 
