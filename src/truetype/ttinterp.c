@@ -3564,6 +3564,13 @@
 #endif /* TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY */
 
 
+    /* FDEF is only allowed in `prep' or `fpgm' */
+    if ( exc->curRange == tt_coderange_glyph )
+    {
+      exc->error = FT_THROW( DEF_In_Glyf_Bytecode );
+      return;
+    }
+
     /* some font programs are broken enough to redefine functions! */
     /* We will then parse the current table.                       */
 
@@ -3989,6 +3996,13 @@
     TT_DefRecord*  def;
     TT_DefRecord*  limit;
 
+
+    /* we enable IDEF only in `prep' or `fpgm' */
+    if ( exc->curRange == tt_coderange_glyph )
+    {
+      exc->error = FT_THROW( DEF_In_Glyf_Bytecode );
+      return;
+    }
 
     /*  First of all, look for the same function in our table */
 
@@ -7605,15 +7619,16 @@
       exc->twilight.n_points = (FT_UShort)num_twilight_points;
     }
 
-    /* Set up loop detectors.  We restrict the number of LOOPCALL loops  */
-    /* and the number of JMPR, JROT, and JROF calls with a negative      */
-    /* argument to values that depend on the size of the CVT table and   */
-    /* the number of points in the current glyph (if applicable).        */
-    /*                                                                   */
-    /* The idea is that in real-world bytecode you either iterate over   */
-    /* all CVT entries (in the `prep' table), or over all points (or     */
-    /* contours, in the `glyf' table) of a glyph, and such iterations    */
-    /* don't happen very often.                                          */
+    /* Set up loop detectors.  We restrict the number of LOOPCALL loops */
+    /* and the number of JMPR, JROT, and JROF calls with a negative     */
+    /* argument to values that depend on various parameters like the    */
+    /* size of the CVT table or the number of points in the current     */
+    /* glyph (if applicable).                                           */
+    /*                                                                  */
+    /* The idea is that in real-world bytecode you either iterate over  */
+    /* all CVT entries (in the `prep' table), or over all points (or    */
+    /* contours, in the `glyf' table) of a glyph, and such iterations   */
+    /* don't happen very often.                                         */
     exc->loopcall_counter = 0;
     exc->neg_jump_counter = 0;
 
@@ -7625,7 +7640,14 @@
                                           exc->cvtSize / 10 );
     else
       exc->loopcall_counter_max = FT_MAX( 100,
-                                          5 * exc->cvtSize );
+                                          10 * exc->cvtSize );
+
+    /* as a protection against an unreasonable number of CVT entries  */
+    /* we assume at most 100 control values per glyph for the counter */
+    if ( exc->loopcall_counter_max >
+         100 * (FT_ULong)exc->face->root.num_glyphs )
+      exc->loopcall_counter_max = 100 * (FT_ULong)exc->face->root.num_glyphs;
+
     FT_TRACE5(( "TT_RunIns: Limiting total number of loops in LOOPCALL"
                 " to %d\n", exc->loopcall_counter_max ));
 
@@ -8400,23 +8422,18 @@
     exc->error = FT_THROW( Code_Overflow );
 
   LErrorLabel_:
-    /* If any errors have occurred, function tables may be broken. */
-    /* Force a re-execution of `prep' and `fpgm' tables if no      */
-    /* bytecode debugger is run.                                   */
-    if ( exc->error                          &&
-         !exc->instruction_trap              &&
-         exc->curRange == tt_coderange_glyph )
-    {
+    if ( exc->error && !exc->instruction_trap )
       FT_TRACE1(( "  The interpreter returned error 0x%x\n", exc->error ));
-      exc->size->bytecode_ready = -1;
-      exc->size->cvt_ready      = -1;
-    }
 
     return exc->error;
   }
 
+#else /* !TT_USE_BYTECODE_INTERPRETER */
 
-#endif /* TT_USE_BYTECODE_INTERPRETER */
+  /* ANSI C doesn't like empty source files */
+  typedef int  _tt_interp_dummy;
+
+#endif /* !TT_USE_BYTECODE_INTERPRETER */
 
 
 /* END */

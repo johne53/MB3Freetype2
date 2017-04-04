@@ -1007,16 +1007,15 @@
 
     if ( table->widthMap.innerIndex )
     {
-      if ( gindex >= table->widthMap.mapCount )
-      {
-        FT_TRACE2(( "gindex %d out of range\n", gindex ));
-        error = FT_THROW( Invalid_Argument );
-        goto Exit;
-      }
+      FT_UInt  idx = gindex;
+
+
+      if ( idx >= table->widthMap.mapCount )
+        idx = table->widthMap.mapCount - 1;
 
       /* trust that HVAR parser has checked indices */
-      outerIndex = table->widthMap.outerIndex[gindex];
-      innerIndex = table->widthMap.innerIndex[gindex];
+      outerIndex = table->widthMap.outerIndex[idx];
+      innerIndex = table->widthMap.innerIndex[idx];
     }
     else
     {
@@ -2171,42 +2170,43 @@
       {
         SFNT_Service  sfnt = (SFNT_Service)face->sfnt;
 
-        FT_Int  found, win, apple;
+        FT_Int   found, dummy1, dummy2;
+        FT_UInt  strid = 0xFFFFFFFFUL;
 
 
         /* the default instance is missing in array the   */
         /* of named instances; try to synthesize an entry */
         found = sfnt->get_name_id( face,
                                    TT_NAME_ID_TYPOGRAPHIC_SUBFAMILY,
-                                   &win,
-                                   &apple );
-        if ( !found )
+                                   &dummy1,
+                                   &dummy2 );
+        if ( found )
+          strid = TT_NAME_ID_TYPOGRAPHIC_SUBFAMILY;
+        else
+        {
           found = sfnt->get_name_id( face,
                                      TT_NAME_ID_FONT_SUBFAMILY,
-                                     &win,
-                                     &apple );
+                                     &dummy1,
+                                     &dummy2 );
+          if ( found )
+            strid = TT_NAME_ID_FONT_SUBFAMILY;
+        }
 
         if ( found )
         {
-          FT_Int  strid = win >= 0 ? win : apple;
-
-
           found = sfnt->get_name_id( face,
                                      TT_NAME_ID_PS_NAME,
-                                     &win,
-                                     &apple );
+                                     &dummy1,
+                                     &dummy2 );
           if ( found )
           {
-            FT_Int  psid = win >= 0 ? win : apple;
-
-
             FT_TRACE5(( "TT_Get_MM_Var:"
                         " Adding default instance to named instances\n" ));
 
             ns = &mmvar->namedstyle[fvar_head.instanceCount];
 
-            ns->strid = (FT_UInt)strid;
-            ns->psid  = (FT_UInt)psid;
+            ns->strid = strid;
+            ns->psid  = TT_NAME_ID_PS_NAME;
 
             a = mmvar->axis;
             c = ns->coords;
@@ -3721,7 +3721,12 @@
     }
   }
 
-#endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
+#else /* !TT_CONFIG_OPTION_GX_VAR_SUPPORT */
+
+  /* ANSI C doesn't like empty source files */
+  typedef int  _tt_gxvar_dummy;
+
+#endif /* !TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 
 
 /* END */
