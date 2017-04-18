@@ -1,3 +1,171 @@
+2017-04-16  Hin-Tak Leung  <htl10@users.sourceforge.net>
+
+	Fix tracing messages.
+
+	* src/base/ftobjs.c (FT_Face_GetCharVariantIndex,
+	FT_Face_GetCharVariantIsDefault, FT_Face_GetVariantsOfChar): Print
+	correct function name.
+
+2017-04-08  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Old Turkic script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Old Turkic.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Old Turkic standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Old Turkic data.
+
+2017-04-08  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Gothic script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Gothic.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Gothic standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Gothic data.
+
+2017-04-08  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Cypriot script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Cypriot.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Cypriot standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Cypriot data.
+
+2017-04-08  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Deseret script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Deseret.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Deseret standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Deseret data.
+
+2017-04-07  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Fix invalid character range description (#50745).
+
+	Also reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1034
+
+	* src/autofit/afranges.c (af_glag_nonbase_uniranges): Fix typo in
+	recent commit.
+
+2017-04-07  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Fix clang warnings.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (LLVMFuzzerTestOneInput): Add
+	casts.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Lisu script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Lisu.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Lisu standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Lisu data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Osage script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Osage.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Osage standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Osage data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Glagolitic script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Glagolitic.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Glagolitic standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Glagolitic data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Tai Viet script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Tai Viet.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Tai Viet standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Tai Viet data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Tifinagh script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Tifinagh.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Tifinagh standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Tifinagh data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+	    Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for N'Ko script.
+
+	* src/autofit/afblue.dat: Add blue zone data for N'Ko.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add N'Ko standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add N'Ko data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+
+	[autofit] Add support for Adlam script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Adlam.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Adlam standard characters.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Adlam data.
+
+2017-04-06  Sascha Brawer  <sascha@google.com>
+
+	[autofit] Add support for Ol Chiki script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Ol Chiki.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Ol Chiki standard character.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Ol Chiki data.
+
 2017-04-03  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Avoid reexecution of `fpgm' and `prep' in case of error.

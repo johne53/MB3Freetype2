@@ -30,6 +30,12 @@
   /* use `HB_SCRIPT_INVALID' as the HarfBuzz script name tag for      */
   /* them.                                                            */
 
+  SCRIPT( adlm, ADLM,
+          "Adlam",
+          HB_SCRIPT_ADLAM,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x9E\xA4\x8C \xF0\x9E\xA4\xAE" ) /* 𞤌 𞤮 */
+
   SCRIPT( arab, ARAB,
           "Arabic",
           HB_SCRIPT_ARABIC,
@@ -55,6 +61,12 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE1\x8E\xA4 \xE1\x8F\x85 \xEA\xAE\x95" ) /* Ꭴ Ꮕ ꮕ */
 
+  SCRIPT( cprt, CPRT,
+          "Cypriot",
+          HB_SCRIPT_CYPRIOT,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\xA0\x85 \xF0\x90\xA0\xA3" ) /* 𐠅 𐠣 */
+
   SCRIPT( cyrl, CYRL,
           "Cyrillic",
           HB_SCRIPT_CYRILLIC,
@@ -66,6 +78,12 @@
           HB_SCRIPT_DEVANAGARI,
           HINTING_TOP_TO_BOTTOM,
           "\xE0\xA4\xA0 \xE0\xA4\xB5 \xE0\xA4\x9F" ) /* ठ व ट */
+
+  SCRIPT( dsrt, DSRT,
+          "Deseret",
+          HB_SCRIPT_DESERET,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\x90\x84 \xF0\x90\x90\xAC") /* 𐐄 𐐬 */
 
   SCRIPT( ethi, ETHI,
           "Ethiopic",
@@ -84,6 +102,18 @@
           HB_SCRIPT_INVALID,
           HINTING_BOTTOM_TO_TOP,
           "\xE1\x82\xB6 \xE1\x82\xB1 \xE2\xB4\x99" ) /* Ⴖ Ⴑ ⴙ */
+
+  SCRIPT( glag, GLAG,
+          "Glagolitic",
+          HB_SCRIPT_GLAGOLITIC,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE2\xB0\x95 \xE2\xB1\x85" ) /* Ⱅ ⱅ */
+
+  SCRIPT( goth, GOTH,
+          "Gothic",
+          HB_SCRIPT_GOTHIC,
+          HINTING_TOP_TO_BOTTOM,
+          "\xF0\x90\x8C\xB4 \xF0\x90\x8C\xBE \xF0\x90\x8D\x83") /* 𐌴 𐌾 𐍃 */
 
   SCRIPT( grek, GREK,
           "Greek",
@@ -153,6 +183,12 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE1\xB5\x92 \xE1\xB4\xBC \xE2\x81\xB0" ) /* ᵒ ᴼ ⁰ */
 
+  SCRIPT( lisu, LISU,
+          "Lisu",
+          HB_SCRIPT_LISU,
+          HINTING_BOTTOM_TO_TOP,
+          "\xEA\x93\xB3" ) /* ꓳ */
+
   SCRIPT( mlym, MLYM,
           "Malayalam",
           HB_SCRIPT_MALAYALAM,
@@ -165,11 +201,35 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE1\x80\x9D \xE1\x80\x84 \xE1\x80\x82" ) /* ဝ င ဂ */
 
+  SCRIPT( nkoo, NKOO,
+          "N'Ko",
+          HB_SCRIPT_NKO,
+          HINTING_BOTTOM_TO_TOP,
+          "\xDF\x8B \xDF\x80" ) /* ߋ ߀ */
+
   SCRIPT( none, NONE,
           "no script",
           HB_SCRIPT_INVALID,
           HINTING_BOTTOM_TO_TOP,
           "" )
+
+  SCRIPT( olck, OLCK,
+          "Ol Chiki",
+          HB_SCRIPT_OL_CHIKI,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\xB1\x9B" ) /* ᱛ */
+
+  SCRIPT( orkh, ORKH,
+          "Old Turkic",
+          HB_SCRIPT_OLD_TURKIC,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\xB0\x97" ) /* 𐰗 */
+
+  SCRIPT( osge, OSGE,
+          "Osage",
+          HB_SCRIPT_OSAGE,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\x93\x82 \xF0\x90\x93\xAA" ) /* 𐓂 𐓪 */
 
   SCRIPT( sinh, SINH,
           "Sinhala",
@@ -184,6 +244,12 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xAF\xA6" ) /* ௦ */
 
+  SCRIPT( tavt, TAVT,
+          "Tai Viet",
+          HB_SCRIPT_TAI_VIET,
+          HINTING_BOTTOM_TO_TOP,
+          "\xEA\xAA\x92 \xEA\xAA\xAB" ) /* ꪒ ꪫ */
+
   /* there are no simple forms for letters; we thus use two digit shapes */
   SCRIPT( telu, TELU,
           "Telugu",
@@ -196,6 +262,12 @@
           HB_SCRIPT_THAI,
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xB8\xB2 \xE0\xB9\x85 \xE0\xB9\x90" ) /* า ๅ ๐ */
+
+  SCRIPT( tfng, TFNG,
+          "Tifinagh",
+          HB_SCRIPT_TIFINAGH,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE2\xB5\x94" ) /* ⵔ */
 
 #ifdef AF_CONFIG_OPTION_INDIC
 
