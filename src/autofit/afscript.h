@@ -48,6 +48,18 @@
           HINTING_BOTTOM_TO_TOP,
           "\xD5\xBD \xD5\x8D" ) /* ս Ս */
 
+  SCRIPT( avst, AVST,
+          "Avestan",
+          HB_SCRIPT_AVESTAN,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\xAC\x9A" ) /* 𐬚 */
+
+  SCRIPT( bamu, BAMU,
+          "Bamum",
+          HB_SCRIPT_BAMUM,
+          HINTING_BOTTOM_TO_TOP,
+          "\xEA\x9B\x81 \xEA\x9B\xAF" ) /* ꛁ ꛯ */
+
   /* there are no simple forms for letters; we thus use two digit shapes */
   SCRIPT( beng, BENG,
           "Bengali",
@@ -55,11 +67,41 @@
           HINTING_TOP_TO_BOTTOM,
           "\xE0\xA7\xA6 \xE0\xA7\xAA" ) /* ০ ৪ */
 
+  SCRIPT( buhd, BUHD,
+          "Buhid",
+          HB_SCRIPT_BUHID,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\x9D\x8B \xE1\x9D\x8F" ) /* ᝋ ᝏ */
+
+  SCRIPT( cakm, CAKM,
+          "Chakma",
+          HB_SCRIPT_CHAKMA,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x91\x84\xA4 \xF0\x91\x84\x89 \xF0\x91\x84\x9B" ) /* 𑄤 𑄉 𑄛 */
+
+  SCRIPT( cans, CANS,
+          "Canadian Syllabics",
+          HB_SCRIPT_CANADIAN_SYLLABICS,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\x91\x8C \xE1\x93\x9A" ) /* ᑌ ᓚ */
+
+  SCRIPT( cari, CARI,
+          "Carian",
+          HB_SCRIPT_CARIAN,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\x8A\xAB \xF0\x90\x8B\x89" ) /* 𐊫 𐋉 */
+
   SCRIPT( cher, CHER,
           "Cherokee",
           HB_SCRIPT_CHEROKEE,
           HINTING_BOTTOM_TO_TOP,
           "\xE1\x8E\xA4 \xE1\x8F\x85 \xEA\xAE\x95" ) /* Ꭴ Ꮕ ꮕ */
+
+  SCRIPT( copt, COPT,
+          "Coptic",
+          HB_SCRIPT_COPTIC,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE2\xB2\x9E \xE2\xB2\x9F" ) /* Ⲟ ⲟ */
 
   SCRIPT( cprt, CPRT,
           "Cypriot",
@@ -83,7 +125,7 @@
           "Deseret",
           HB_SCRIPT_DESERET,
           HINTING_BOTTOM_TO_TOP,
-          "\xF0\x90\x90\x84 \xF0\x90\x90\xAC") /* 𐐄 𐐬 */
+          "\xF0\x90\x90\x84 \xF0\x90\x90\xAC" ) /* 𐐄 𐐬 */
 
   SCRIPT( ethi, ETHI,
           "Ethiopic",
@@ -113,7 +155,7 @@
           "Gothic",
           HB_SCRIPT_GOTHIC,
           HINTING_TOP_TO_BOTTOM,
-          "\xF0\x90\x8C\xB4 \xF0\x90\x8C\xBE \xF0\x90\x8D\x83") /* 𐌴 𐌾 𐍃 */
+          "\xF0\x90\x8C\xB4 \xF0\x90\x8C\xBE \xF0\x90\x8D\x83" ) /* 𐌴 𐌾 𐍃 */
 
   SCRIPT( grek, GREK,
           "Greek",
@@ -139,11 +181,11 @@
           HINTING_BOTTOM_TO_TOP,
           "\xD7\x9D" ) /* ם */
 
-  SCRIPT( knda, KNDA,
-          "Kannada",
-          HB_SCRIPT_KANNADA,
+  SCRIPT( kali, KALI,
+          "Kayah Li",
+          HB_SCRIPT_KAYAH_LI,
           HINTING_BOTTOM_TO_TOP,
-          "\xE0\xB3\xA6 \xE0\xB2\xAC" ) /* ೦ ಬ */
+          "\xEA\xA4\x8D \xEA\xA4\x80" ) /* ꤍ ꤀ */
 
   /* only digit zero has a simple shape in the Khmer script */
   SCRIPT( khmr, KHMR,
@@ -157,6 +199,12 @@
           HB_SCRIPT_INVALID,
           HINTING_BOTTOM_TO_TOP,
           "\xE1\xA7\xA1 \xE1\xA7\xAA" ) /* ᧡ ᧪ */
+
+  SCRIPT( knda, KNDA,
+          "Kannada",
+          HB_SCRIPT_KANNADA,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE0\xB3\xA6 \xE0\xB2\xAC" ) /* ೦ ಬ */
 
   /* only digit zero has a simple shape in the Lao script */
   SCRIPT( lao, LAO,
@@ -231,11 +279,36 @@
           HINTING_BOTTOM_TO_TOP,
           "\xF0\x90\x93\x82 \xF0\x90\x93\xAA" ) /* 𐓂 𐓪 */
 
+  SCRIPT( osma, OSMA,
+          "Osmanya",
+          HB_SCRIPT_OSMANYA,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\x92\x86 \xF0\x90\x92\xA0" ) /* 𐒆 𐒠 */
+
+  SCRIPT( saur, SAUR,
+          "Saurashtra",
+          HB_SCRIPT_SAURASHTRA,
+          HINTING_BOTTOM_TO_TOP,
+          "\xEA\xA2\x9D \xEA\xA3\x90" ) /* ꢝ ꣐ */
+
+  SCRIPT( shaw, SHAW,
+          "Shavian",
+          HB_SCRIPT_SHAVIAN,
+          HINTING_BOTTOM_TO_TOP,
+          "\xF0\x90\x91\xB4" ) /* 𐑴 */
+
   SCRIPT( sinh, SINH,
           "Sinhala",
           HB_SCRIPT_SINHALA,
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xB6\xA7" ) /* ට */
+
+  /* only digit zero has a simple (round) shape in the Sundanese script */
+  SCRIPT( sund, SUND,
+          "Sundanese",
+          HB_SCRIPT_SUNDANESE,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE1\xAE\xB0" ) /* ᮰ */
 
   /* only digit zero has a simple (round) shape in the Tamil script */
   SCRIPT( taml, TAML,
@@ -257,17 +330,23 @@
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xB1\xA6 \xE0\xB1\xA7" ) /* ౦ ౧ */
 
+  SCRIPT( tfng, TFNG,
+          "Tifinagh",
+          HB_SCRIPT_TIFINAGH,
+          HINTING_BOTTOM_TO_TOP,
+          "\xE2\xB5\x94" ) /* ⵔ */
+
   SCRIPT( thai, THAI,
           "Thai",
           HB_SCRIPT_THAI,
           HINTING_BOTTOM_TO_TOP,
           "\xE0\xB8\xB2 \xE0\xB9\x85 \xE0\xB9\x90" ) /* า ๅ ๐ */
 
-  SCRIPT( tfng, TFNG,
-          "Tifinagh",
-          HB_SCRIPT_TIFINAGH,
+  SCRIPT( vaii, VAII,
+          "Vai",
+          HB_SCRIPT_VAI,
           HINTING_BOTTOM_TO_TOP,
-          "\xE2\xB5\x94" ) /* ⵔ */
+          "\xEA\x98\x93 \xEA\x96\x9C \xEA\x96\xB4" ) /* ꘓ ꖜ ꖴ */
 
 #ifdef AF_CONFIG_OPTION_INDIC
 
@@ -280,12 +359,6 @@
   SCRIPT( orya, ORYA,
           "Oriya",
           HB_SCRIPT_ORIYA,
-          HINTING_BOTTOM_TO_TOP,
-          "o" ) /* XXX */
-
-  SCRIPT( sund, SUND,
-          "Sundanese",
-          HB_SCRIPT_SUNDANESE,
           HINTING_BOTTOM_TO_TOP,
           "o" ) /* XXX */
 

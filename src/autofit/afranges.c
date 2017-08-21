@@ -52,8 +52,8 @@
   /* not be affected by blue zones, regardless of whether this is a       */
   /* spacing or no-spacing glyph                                          */
 
-  /* the `ta_xxxx_nonbase_uniranges' ranges must be strict subsets */
-  /* of the corresponding `ta_xxxx_uniranges' ranges               */
+  /* the `af_xxxx_nonbase_uniranges' ranges must be strict subsets */
+  /* of the corresponding `af_xxxx_uniranges' ranges               */
 
 
   const AF_Script_UniRangeRec  af_adlm_uniranges[] =
@@ -119,6 +119,37 @@
   };
 
 
+  const AF_Script_UniRangeRec  af_avst_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x10B00,  0x10B3F ),  /* Avestan */
+    AF_UNIRANGE_REC(       0,        0 )
+  };
+
+  const AF_Script_UniRangeRec  af_avst_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x10B39,  0x10B3F ),
+    AF_UNIRANGE_REC(       0,        0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_bamu_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0xA6A0,   0xA6FF ),   /* Bamum */
+#if 0
+    /* The characters in the Bamum supplement are pictograms, */
+    /* not (directly) related to the syllabic Bamum script    */
+    AF_UNIRANGE_REC( 0x16800, 0x16A3F ),   /* Bamum Supplement */
+#endif
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_bamu_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA6F0,  0xA6F1 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
   const AF_Script_UniRangeRec  af_beng_uniranges[] =
   {
     AF_UNIRANGE_REC(  0x0980,  0x09FF ),  /* Bengali */
@@ -136,6 +167,58 @@
   };
 
 
+  const AF_Script_UniRangeRec  af_buhd_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1740,  0x175F ),   /* Buhid */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_buhd_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1752,  0x1753 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_cakm_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x11100, 0x1114F ),   /* Chakma */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_cakm_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x11100, 0x11102 ),
+    AF_UNIRANGE_REC( 0x11127, 0x11134 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_cans_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1400,  0x167F ), /* Unified Canadian Aboriginal Syllabics          */
+    AF_UNIRANGE_REC(  0x18B0,  0x18FF ), /* Unified Canadian Aboriginal Syllabics Extended */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_cans_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_cari_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x102A0, 0x102DF ),   /* Carian */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_cari_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
   const AF_Script_UniRangeRec  af_cher_uniranges[] =
   {
     AF_UNIRANGE_REC(  0x13A0,  0x13FF ),  /* Cherokee            */
@@ -146,6 +229,19 @@
   const AF_Script_UniRangeRec  af_cher_nonbase_uniranges[] =
   {
     AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_copt_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x2C80,  0x2CFF ),   /* Coptic */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_copt_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x2CEF,  0x2CF1 ),
+    AF_UNIRANGE_REC(       0,       0 )
   };
 
 
@@ -364,6 +460,19 @@
     AF_UNIRANGE_REC(  0x05C4,  0x05C5 ),
     AF_UNIRANGE_REC(  0x05C7,  0x05C7 ),
     AF_UNIRANGE_REC(  0xFB1E,  0xFB1E ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_kali_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA900,  0xA92F ),   /* Kayah Li */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_kali_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA926,  0xA92D ),
     AF_UNIRANGE_REC(       0,       0 )
   };
 
@@ -639,6 +748,44 @@
   };
 
 
+  const AF_Script_UniRangeRec  af_osma_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x10480, 0x104AF ),   /* Osmanya */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_osma_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_saur_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA880,  0xA8DF ),   /* Saurashtra */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_saur_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA880,  0xA881 ),
+    AF_UNIRANGE_REC(  0xA8B4,  0xA8C5 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_shaw_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0x10450, 0x1047F ),   /* Shavian */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_shaw_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
   const AF_Script_UniRangeRec  af_sinh_uniranges[] =
   {
     AF_UNIRANGE_REC(  0x0D80,  0x0DFF ),  /* Sinhala */
@@ -649,6 +796,21 @@
   {
     AF_UNIRANGE_REC(  0x0DCA,  0x0DCA ),
     AF_UNIRANGE_REC(  0x0DD2,  0x0DD6 ),
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_sund_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1B80,  0x1BBF ), /* Sundanese            */
+    AF_UNIRANGE_REC(  0x1CC0,  0x1CCF ), /* Sundanese Supplement */
+    AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_sund_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0x1B80,  0x1B82 ),
+    AF_UNIRANGE_REC(  0x1BA1,  0x1BAD ),
     AF_UNIRANGE_REC(       0,       0 )
   };
 
@@ -724,7 +886,19 @@
 
   const AF_Script_UniRangeRec  af_tfng_nonbase_uniranges[] =
   {
+    AF_UNIRANGE_REC( 0, 0 )
+  };
+
+
+  const AF_Script_UniRangeRec  af_vaii_uniranges[] =
+  {
+    AF_UNIRANGE_REC(  0xA500,  0xA63F ),   /* Vai */
     AF_UNIRANGE_REC(       0,       0 )
+  };
+
+  const AF_Script_UniRangeRec  af_vaii_nonbase_uniranges[] =
+  {
+    AF_UNIRANGE_REC( 0, 0 )
   };
 
 
@@ -759,21 +933,6 @@
     AF_UNIRANGE_REC(  0x0B41,  0x0B44 ),
     AF_UNIRANGE_REC(  0x0B4D,  0x0B56 ),
     AF_UNIRANGE_REC(  0x0B62,  0x0B63 ),
-    AF_UNIRANGE_REC(       0,       0 )
-  };
-
-
-  const AF_Script_UniRangeRec  af_sund_uniranges[] =
-  {
-    AF_UNIRANGE_REC(  0x1B80,  0x1BBF ),  /* Sundanese            */
-    AF_UNIRANGE_REC(  0x1CC0,  0x1CCF ),  /* Sundanese Supplement */
-    AF_UNIRANGE_REC(       0,       0 )
-  };
-
-  const AF_Script_UniRangeRec  af_sund_nonbase_uniranges[] =
-  {
-    AF_UNIRANGE_REC(  0x1B80,  0x1B82 ),
-    AF_UNIRANGE_REC(  0x1BA1,  0x1BAD ),
     AF_UNIRANGE_REC(       0,       0 )
   };
 
