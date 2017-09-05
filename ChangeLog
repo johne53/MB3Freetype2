@@ -1,3 +1,40 @@
+2017-08-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Swap `ALLOC_MULT' arguments (#51833).
+
+	* src/base/ftbitmap.c (ft_bitmap_assure_buffer): Updated.
+	* src/winfonts/winfnt.c (FNT_Load_Glyph): Updated.
+	* src/raster/ftrend1.c (ft_raster1_render): Updated.
+
+2017-08-23  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix clang compilation (#51788).
+
+	* src/sfnt/pngshim.c (premultiply_data): Use vectors instead of
+	scalars.
+	(vector_shuffle): New macro to take care of a different built-in
+	function name on clang.
+
+2017-08-22  Werner Lemberg  <wl@gnu.org>
+
+	[base] Don't zero out allocated memory twice (#51816).
+
+	Patch applied from bug report.
+
+	* src/base/ftutil.c (ft_mem_qrealloc): Use low-level allocation to
+	avoid unnecessary overhead.
+
+2017-08-22  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Integer overflow.
+
+	Changes triggered by
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3107
+
+	* src/truetype/ttinterp.c (Ins_MDRP, Ins_MIRP, Ins_ALIGNPTS): Use
+	NEG_LONG.
+
 2017-08-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[sfnt] Avoid synthetic unicode for symbol fonts with PUA.
