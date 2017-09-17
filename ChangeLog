@@ -1,3 +1,168 @@
+2017-09-16  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.8.1 released.
+	=========================
+
+
+	Tag sources with `VER-2-8-1'.
+
+	* docs/VERSION.TXT: Add entry for version 2.8.1.
+	* docs/CHANGES: Updated.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.8/2.8.1/, s/28/281/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
+
+	* builds/unix/configure.raw (version_info): Set to 21:0:15.
+	* CMakeLists.txt (VERSION_PATCH): Set to 1.
+
+2017-09-13  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[sfnt] lowest gcc for vectors (e1d0249e) is changed to 4.7.
+
+	__builtin_shuffle() was introduced in gcc-4.7.  The lowest
+	gcc to enable vector operation is delayed from 4.6 to 4.7.
+
+	* src/sfnt/pngshim.c (premultiply_data): Fix cpp-macro to
+	enable the vector operation, to change the lowest gcc version
+	from 4.6 to 4.7.
+
+2017-09-13  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[cache] Fix a possible overflow by signed integer comparison.
+
+	Improve the code by 5d3ff05615dda6d1325ed612381a17a0df04c975 ,
+	issues are found by Behdad Esfahbod and Werner Lemberg.
+
+	* src/cache/ftcbasic.c (FTC_ImageCache_Lookup): Replace
+	a subtraction to check higher bit by a bit operation,
+	and cpp-conditionalize for appropriate systems.  Add better
+	documentation to the comment.
+	(FTC_ImageCache_LookupScaler): Ditto.
+	(FTC_SBitCache_Lookup): Ditto.
+	(FTC_SBitCache_LookupScaler): Ditto.
+
+2017-09-13  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Really fix #41334 (#52000).
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_segments): Set
+	`segment->delta' everywhere.
+
+2017-09-12  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[autofit, sfnt] Fix for `make multi'.
+
+	* src/autofit/afshaper.c: Include FT_ADVANCE_H, to use
+	FT_Get_Advance() in it.
+	* src/sfnt/ttcmap.c: Include FT_SERVICE_POSTSCRIPT_CMAPS_H
+	to use PS_Unicodes in it, also include `ttpost.h' to use
+	tt_face_get_ps_name() in it.
+
+2017-09-11  Azzuro  <azzuro@team-mediaportal.com>
+
+	[build] Improve builds with different MS Visual Studio versions.
+
+	* builds/windows/vc2010/freetype.vcxproj: Switch platform toolset
+	according to the Visual Studio version.
+
+2017-09-11  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttkern.c (tt_face_load_kern): Reject format 2 tables.
+
+	Reported by Behdad.
+
+2017-09-09  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Improve communication with ftgrid.
+
+	* src/autofit/afhints.c (af_glyph_hints_get_segment_offset):
+	Provide values in font units.
+
+2017-09-08  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[base] Remove a check for resource ID in the resource fork driver.
+
+	LastResort.dfont has a marginal resource ID 0xFFFF for sfnt
+	resource.  Inside Macintosh: More Macintosh Toolbox, `Resource IDs'
+	(1-46), tells that some IDs are reserved and should not be used.
+	FreeType2 just uses resource ID to sort the fragmented resource.
+	To accept the marginal fonts, the checking is removed.
+
+	* src/base/ftrfork.c (FT_Raccess_Get_DataOffsets): Remove res_id
+	validity check, fix a trace message format.
+
+2017-09-08  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[sfnt, truetype] Register the tags for marginal fonts.
+
+	The first 32bit of standard TrueType variants is 0x00010000,
+	`OTTO', `ttcf', `true' or `typ1'.  2 marginal dfonts on legacy Mac
+	OS X, Keyboard.dfont and LastResort.dfont, have the sfnt resources
+	starting 0xA5 followed by `kbd' or `lst'.  Considering the following
+	data could be parsed as conventional TrueType fonts, the header
+	checking is updated to allow these tags.  It seems that recent Mac
+	OS X has already switched to normal TTF for these fonts.
+
+	See the discussion at
+	http://u88.n24.queensu.ca/exiftool/forum/index.php?topic=3931.0
+
+	* include/freetype/tttags.h (TTAG_0xA5kbd, TTAG_0xA5lst): New header
+	tags for Keyboard.dfont and LastResort.dfont.
+	* src/sfnt/sfobjs.c (sfnt_open_font): Accept the sfnt resource
+	starts with TTAG_0xA5kbd or TTAG_0xA5lst.
+	* src/truetype/ttobjs.c (tt_face_init): Accept the face with the
+	format tag is TTAG_0xA5kbd or TTAG_0xA5lst.
+
+2017-09-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix multiple calls of `FT_Bitmap_Convert'.
+
+	The documentation of `FT_Bitmap_Convert' says that multiple calls do
+	proper reallocation of the target FT_Bitmap object.  However, this
+	failed for the sequence
+
+	  non-empty bitmap
+	  empty bitmap
+	  non-empty bitmap
+
+	Reason was that `FT_Bitmap_Convert' only reallocated the bitmap
+	buffer if it became too small; it didn't make the buffer smaller.
+	For an empty bitmap following a non-empty one, only the buffer
+	dimension got set to zero, without deallocation.  If the next call
+	was a non-empty buffer again, an assertion in `ft_mem_qrealloc' was
+	triggered.
+
+	* src/base/ftbitmap.c (FT_Bitmap_Convert): Always reallocate target
+	buffer to the correct size.
+
+	* docs/CHANGES: Document it.
+
+2017-09-05  Werner Lemberg  <wl@gnu.org>
+
+	[bdf] Fix size and resolution handling.
+
+	* src/bdf/bdfdrivr.c (BDF_Face_Init): Use `SIZE' values if
+	`POINT_SIZE', `RESOLUTION_X', or `RESOLUTION_Y' properties are
+	missing.
+
+	* docs/CHANGES: Document it.
+
 2017-08-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	Swap `ALLOC_MULT' arguments (#51833).
@@ -133,7 +298,7 @@
 
 2017-08-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
-	* src/sftnt/ttpost.c (format): Use otspec-compliant versions. 
+	* src/sfnt/ttpost.c (format): Use otspec-compliant versions.
 
 2017-08-05  Werner Lemberg  <wl@gnu.org>
 
@@ -880,7 +1045,7 @@
 	due to rounding.  In order to optimize the padding, we now expand
 	CBox for the given filter weights before rounding.
 
-	This change breakes current Skia (and Firefox).
+	This change breaks current Skia (and Firefox).
 
 	* include/freetype/internal/ftobjs.h (FT_LibraryRec)
 	[FT_CONFIG_OPTION_SUBPIXEL_RENDERING]: Remove `lcd_extra' field.
@@ -1265,7 +1430,7 @@
 
 	[truetype] Do linear scaling for FT_LOAD_NO_HINTING (#50470).
 
-	* src/truetype/ttobs.h (TT_SizeRec): Add field `hinted_metrics' to
+	* src/truetype/ttobjs.h (TT_SizeRec): Add field `hinted_metrics' to
 	hold hinted metrics.
 	Make `metrics' a pointer so that `tt_glyph_load' can easily switch
 	between metrics.
@@ -2034,7 +2199,7 @@
 
 	* src/sfnt/sfdriver.c (search_name_id): Rename to...
 	(sfnt_get_name_id): ... this.
-	(sfnt_get_ps_name, sfnt_interface): Udpated.
+	(sfnt_get_ps_name, sfnt_interface): Updated.
 
 2017-03-04  Werner Lemberg  <wl@gnu.org>
 
@@ -2460,7 +2625,7 @@
 	* include/freetype/ftsnames.h (FT_SfntLangTag): New structure.
 	(FT_Get_Sfnt_LangTag): New declaration.
 
-	* src/base/ftsnames.c (FT_Get_Sfnt_LangTag): New funtion.
+	* src/base/ftsnames.c (FT_Get_Sfnt_LangTag): New function.
 
 	* docs/CHANGES: Updated.
 
@@ -4483,7 +4648,7 @@
 
 	  https://bugzilla.mozilla.org/show_bug.cgi?id=1270288
 
-	* src/cff/cf2interp.c (cf2_interpT2CharString): Initialize `storage'
+	* src/cff/cf2intrp.c (cf2_interpT2CharString): Initialize `storage'
 	array to handle a `get' opcode without a previous `put'.
 
 2016-09-05  Alexei Podtelezhnikov  <apodtele@gmail.com>
