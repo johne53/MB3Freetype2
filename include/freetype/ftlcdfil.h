@@ -292,6 +292,9 @@ FT_BEGIN_HEADER
    *   the global default values or the values set up with
    *   @FT_Library_SetLcdFilterWeights.
    *
+   * @since:
+   *   2.8
+   *
    */
 #define FT_PARAM_TAG_LCD_FILTER_WEIGHTS \
           FT_MAKE_TAG( 'l', 'c', 'd', 'f' )
@@ -305,10 +308,34 @@ FT_BEGIN_HEADER
    *   A typedef for passing the five LCD filter weights to
    *   @FT_Face_Properties within an @FT_Parameter structure.
    *
+   * @since:
+   *   2.8
+   *
    */
 #define FT_LCD_FILTER_FIVE_TAPS  5
 
   typedef FT_Byte  FT_LcdFiveTapFilter[FT_LCD_FILTER_FIVE_TAPS];
+
+
+  FT_BASE( void )
+  ft_lcd_padding( FT_Pos*       Min,
+                  FT_Pos*       Max,
+                  FT_GlyphSlot  slot );
+
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+
+  typedef void  (*FT_Bitmap_LcdFilterFunc)( FT_Bitmap*      bitmap,
+                                            FT_Render_Mode  render_mode,
+                                            FT_Byte*        weights );
+
+
+  /* This is the default LCD filter, an in-place, 5-tap FIR filter. */
+  FT_BASE( void )
+  ft_lcd_filter_fir( FT_Bitmap*           bitmap,
+                     FT_Render_Mode       mode,
+                     FT_LcdFiveTapFilter  weights );
+
+#endif /* FT_CONFIG_OPTION_SUBPIXEL_RENDERING */
 
 
   /* */

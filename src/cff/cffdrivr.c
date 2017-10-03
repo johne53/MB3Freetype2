@@ -21,16 +21,19 @@
 #include FT_INTERNAL_DEBUG_H
 #include FT_INTERNAL_STREAM_H
 #include FT_INTERNAL_SFNT_H
+#include FT_INTERNAL_POSTSCRIPT_AUX_H
 #include FT_SERVICE_CID_H
 #include FT_SERVICE_POSTSCRIPT_INFO_H
 #include FT_SERVICE_POSTSCRIPT_NAME_H
 #include FT_SERVICE_TT_CMAP_H
+#include FT_SERVICE_CFF_TABLE_LOAD_H
 
 #include "cffdrivr.h"
 #include "cffgload.h"
 #include "cffload.h"
 #include "cffcmap.h"
 #include "cffparse.h"
+#include "cffobjs.h"
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 #include FT_SERVICE_MULTIPLE_MASTERS_H
@@ -741,8 +744,8 @@
                     const void*  value,
                     FT_Bool      value_is_string )
   {
-    FT_Error    error  = FT_Err_Ok;
-    CFF_Driver  driver = (CFF_Driver)module;
+    FT_Error   error  = FT_Err_Ok;
+    PS_Driver  driver = (PS_Driver)module;
 
 #ifndef FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES
     FT_UNUSED( value_is_string );
@@ -907,8 +910,8 @@
                     const char*  property_name,
                     const void*  value )
   {
-    FT_Error    error  = FT_Err_Ok;
-    CFF_Driver  driver = (CFF_Driver)module;
+    FT_Error   error  = FT_Err_Ok;
+    PS_Driver  driver = (PS_Driver)module;
 
 
     if ( !ft_strcmp( property_name, "darkening-parameters" ) )
@@ -1088,6 +1091,22 @@
 #endif
 
 
+  /*
+   *  CFFLOAD SERVICE
+   *
+   */
+
+  FT_DEFINE_SERVICE_CFFLOADREC(
+    cff_service_cff_load,
+
+    (FT_Get_Standard_Encoding_Func)cff_get_standard_encoding,
+    (FT_Load_Private_Dict_Func)    cff_load_private_dict,
+    (FT_FD_Select_Get_Func)        cff_fd_select_get,
+    (FT_Blend_Check_Vector_Func)   cff_blend_check_vector,
+    (FT_Blend_Build_Vector_Func)   cff_blend_build_vector
+  )
+
+
   /*************************************************************************/
   /*************************************************************************/
   /*************************************************************************/
@@ -1102,6 +1121,34 @@
 
 #if !defined FT_CONFIG_OPTION_NO_GLYPH_NAMES && \
      defined TT_CONFIG_OPTION_GX_VAR_SUPPORT
+  FT_DEFINE_SERVICEDESCREC10(
+    cff_services,
+
+    FT_SERVICE_ID_FONT_FORMAT,          FT_FONT_FORMAT_CFF,
+    FT_SERVICE_ID_MULTI_MASTERS,        &CFF_SERVICE_MULTI_MASTERS_GET,
+    FT_SERVICE_ID_METRICS_VARIATIONS,   &CFF_SERVICE_METRICS_VAR_GET,
+    FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
+    FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
+    FT_SERVICE_ID_GLYPH_DICT,           &CFF_SERVICE_GLYPH_DICT_GET,
+    FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
+    FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
+    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET,
+    FT_SERVICE_ID_CFF_LOAD,             &CFF_SERVICE_CFF_LOAD_GET
+  )
+#elif !defined FT_CONFIG_OPTION_NO_GLYPH_NAMES
+  FT_DEFINE_SERVICEDESCREC8(
+    cff_services,
+
+    FT_SERVICE_ID_FONT_FORMAT,          FT_FONT_FORMAT_CFF,
+    FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
+    FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
+    FT_SERVICE_ID_GLYPH_DICT,           &CFF_SERVICE_GLYPH_DICT_GET,
+    FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
+    FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
+    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET,
+    FT_SERVICE_ID_CFF_LOAD,             &CFF_SERVICE_CFF_LOAD_GET
+  )
+#elif defined TT_CONFIG_OPTION_GX_VAR_SUPPORT
   FT_DEFINE_SERVICEDESCREC9(
     cff_services,
 
@@ -1110,46 +1157,22 @@
     FT_SERVICE_ID_METRICS_VARIATIONS,   &CFF_SERVICE_METRICS_VAR_GET,
     FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
     FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
-    FT_SERVICE_ID_GLYPH_DICT,           &CFF_SERVICE_GLYPH_DICT_GET,
     FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
     FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
-    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET
+    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET,
+    FT_SERVICE_ID_CFF_LOAD,             &CFF_SERVICE_CFF_LOAD_GET
   )
-#elif !defined FT_CONFIG_OPTION_NO_GLYPH_NAMES
+#else
   FT_DEFINE_SERVICEDESCREC7(
     cff_services,
 
     FT_SERVICE_ID_FONT_FORMAT,          FT_FONT_FORMAT_CFF,
     FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
     FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
-    FT_SERVICE_ID_GLYPH_DICT,           &CFF_SERVICE_GLYPH_DICT_GET,
     FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
     FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
-    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET
-  )
-#elif defined TT_CONFIG_OPTION_GX_VAR_SUPPORT
-  FT_DEFINE_SERVICEDESCREC8(
-    cff_services,
-
-    FT_SERVICE_ID_FONT_FORMAT,          FT_FONT_FORMAT_CFF,
-    FT_SERVICE_ID_MULTI_MASTERS,        &CFF_SERVICE_MULTI_MASTERS_GET,
-    FT_SERVICE_ID_METRICS_VARIATIONS,   &CFF_SERVICE_METRICS_VAR_GET,
-    FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
-    FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
-    FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
-    FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
-    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET
-  )
-#else
-  FT_DEFINE_SERVICEDESCREC6(
-    cff_services,
-
-    FT_SERVICE_ID_FONT_FORMAT,          FT_FONT_FORMAT_CFF,
-    FT_SERVICE_ID_POSTSCRIPT_INFO,      &CFF_SERVICE_PS_INFO_GET,
-    FT_SERVICE_ID_POSTSCRIPT_FONT_NAME, &CFF_SERVICE_PS_NAME_GET,
-    FT_SERVICE_ID_TT_CMAP,              &CFF_SERVICE_GET_CMAP_INFO_GET,
-    FT_SERVICE_ID_CID,                  &CFF_SERVICE_CID_INFO_GET,
-    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET
+    FT_SERVICE_ID_PROPERTIES,           &CFF_SERVICE_PROPERTIES_GET,
+    FT_SERVICE_ID_CFF_LOAD,             &CFF_SERVICE_CFF_LOAD_GET
   )
 #endif
 
@@ -1208,7 +1231,7 @@
       FT_MODULE_DRIVER_HAS_HINTER    |
       FT_MODULE_DRIVER_HINTS_LIGHTLY,
 
-      sizeof ( CFF_DriverRec ),
+      sizeof ( PS_DriverRec ),
       "cff",
       0x10000L,
       0x20000L,
