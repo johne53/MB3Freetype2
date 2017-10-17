@@ -372,29 +372,29 @@
       if ( cbox.xMax - cbox.xMin < 64 )
       {
         cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
-        cbox.xMax = FT_PIX_CEIL( cbox.xMax );
+        cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
       }
       else
       {
-        cbox.xMin = FT_PIX_ROUND( cbox.xMin );
-        cbox.xMax = FT_PIX_ROUND( cbox.xMax );
+        cbox.xMin = FT_PIX_ROUND_LONG( cbox.xMin );
+        cbox.xMax = FT_PIX_ROUND_LONG( cbox.xMax );
       }
 
       if ( cbox.yMax - cbox.yMin < 64 )
       {
         cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-        cbox.yMax = FT_PIX_CEIL( cbox.yMax );
+        cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
       }
       else
       {
-        cbox.yMin = FT_PIX_ROUND( cbox.yMin );
-        cbox.yMax = FT_PIX_ROUND( cbox.yMax );
+        cbox.yMin = FT_PIX_ROUND_LONG( cbox.yMin );
+        cbox.yMax = FT_PIX_ROUND_LONG( cbox.yMax );
       }
 #else
       cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
       cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-      cbox.xMax = FT_PIX_CEIL( cbox.xMax );
-      cbox.yMax = FT_PIX_CEIL( cbox.yMax );
+      cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
+      cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
 #endif
       break;
 
@@ -415,12 +415,12 @@
     Round:
       cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
       cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-      cbox.xMax = FT_PIX_CEIL( cbox.xMax );
-      cbox.yMax = FT_PIX_CEIL( cbox.yMax );
+      cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
+      cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
     }
 
-    x_shift -= cbox.xMin;
-    y_shift -= cbox.yMin;
+    x_shift = SUB_LONG( x_shift, cbox.xMin );
+    y_shift = SUB_LONG( y_shift, cbox.yMin );
 
     x_left = cbox.xMin >> 6;
     y_top  = cbox.yMax >> 6;
@@ -451,7 +451,7 @@
     slot->bitmap_left = (FT_Int)x_left;
     slot->bitmap_top  = (FT_Int)y_top;
 
-    bitmap->pixel_mode = pixel_mode;
+    bitmap->pixel_mode = (unsigned char)pixel_mode;
     bitmap->num_grays  = 256;
     bitmap->width      = (unsigned int)width;
     bitmap->rows       = (unsigned int)height;
@@ -1003,6 +1003,10 @@
       else if ( ( load_flags & FT_LOAD_NO_SCALE ) == 0 )
         ft_glyphslot_preset_bitmap( slot, mode, NULL );
     }
+
+    FT_TRACE5(( "  bitmap pixel_mode: %d\n" ,    slot->bitmap.pixel_mode ));
+    FT_TRACE5(( "  bitmap dimensions: %dx%d\n" , slot->bitmap.width,
+                                                 slot->bitmap.rows  ));
 
   Exit:
     return error;
@@ -4583,6 +4587,51 @@
       }
     }
 
+    /*
+     * Dump bitmap in Netpbm format (PBM or PGM).
+     */
+
+    /* we use FT_TRACE2 in this block */
+    if ( ft_trace_levels[trace_bitmap] >= 2 &&
+         !error                             &&
+         slot->bitmap.rows  < 128U          &&
+         slot->bitmap.width < 128U          )
+    {
+      int  rows  = (int)slot->bitmap.rows;
+      int  width = (int)slot->bitmap.width;
+      int  pitch =      slot->bitmap.pitch;
+      int  i, j, m;
+      unsigned char*  topleft = slot->bitmap.buffer;
+
+      if ( pitch < 0 )
+        topleft -= pitch * ( rows - 1 );
+
+      FT_TRACE2(( "Netpbm image: start\n" ));
+      switch ( slot->bitmap.pixel_mode )
+      {
+      case FT_PIXEL_MODE_MONO:
+        FT_TRACE2(( "P1 %d %d\n", width, rows ));
+        for ( i = 0; i < rows; i++ )
+        {
+          for ( j = 0; j < width; )
+            for ( m = 128; m > 0 && j < width; m >>= 1, j++ )
+              FT_TRACE2(( " %d", ( topleft[i * pitch + j / 8] & m ) != 0 ));
+          FT_TRACE2(( "\n" ));
+        }
+        break;
+
+      default:
+        FT_TRACE2(( "P2 %d %d 255\n", width, rows ));
+        for ( i = 0; i < rows; i++ )
+        {
+          for ( j = 0; j < width; j += 1 )
+            FT_TRACE2(( " %3u", topleft[i * pitch + j] ));
+          FT_TRACE2(( "\n" ));
+        }
+      }
+      FT_TRACE2(( "Netpbm image: end\n" ));
+    }
+
 #undef  FT_COMPONENT
 #define FT_COMPONENT  trace_objs
 
@@ -5125,9 +5174,9 @@
 #ifdef FT_CONFIG_OPTION_PIC
   Fail:
     ft_pic_container_destroy( library );
-#endif
     FT_FREE( library );
     return error;
+#endif
   }
 
 

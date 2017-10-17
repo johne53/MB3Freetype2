@@ -1,3 +1,251 @@
+2017-10-12  Ewald Hew  <ewaldhew@gmail.com>
+
+	[cff] Fix segfault on missing `psaux' (#52218)
+
+	* src/cff/cffload.c (cff_done_blend): Add a check for possible nullptr.
+
+	* modules.cfg: Update dependency list.
+
+2017-10-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base, cff] Fix MSVC warnings.
+
+	* src/base/ftobjs.c (FT_New_Library): C4702: unreachable code.
+	(ft_glyphslot_preset_bitmap): C4244: possible loss of data.
+	* src/cff/cffload.c (cff_blend_doBlend): C4244: possible loss of data.
+	Turn `sum' into unsigned.
+
+2017-10-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Netpbm image tracing.
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Trace bitmap size.
+	(FT_Render_Glyph_Internal): Trace bitmap in Netpbm format.
+
+	* src/smooth/ftgrays.c (gray_sweep): Sweep remnants of span tracing.
+
+2017-10-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/windows/ftdebug.c (FT_Message): Print to stderr.
+        * builds/wince/ftdebug.c (FT_Message): Ditto.
+
+2017-10-14  Behdad Esfahbod  <behdad@behdad.org>
+
+	[afshaper] Delay creating `hb_set' objects until needed.
+
+	In runs on Noto Naskh Arabic, this results in 89 sets created
+	instead of 340 before.  Makes auto-hinter setup with HarfBuzz
+	enabled 20% to 30% faster.
+
+	* src/autofit/afshaper.c (af_shaper_get_coverage): Implement it.
+
+2017-10-12  Ewald Hew  <ewaldhew@gmail.com>
+
+	[type1, cid] Add hinting engine switch.
+
+	Implement property service in `type1' and `cid' drivers to allow
+	switching between FreeType or Adobe hinting engine when both are
+	available.
+
+	* src/cid/cidriver.c (cid_property_{set,get}, cid_services),
+	src/type1/t1driver.c (t1_property_{set,get}, t1_services): Add
+	Properties service.
+
+	* src/cid/cidobjs.c (cid_driver_init), src/type1/t1objs.c
+	(T1_Driver_Init): Add default property values.
+
+2017-10-12  Ewald Hew  <ewaldhew@gmail.com>
+
+	Add T1_CONFIG_OPTION_OLD_ENGINE configuration option.
+
+	This controls whether the old Type 1 engine gets compiled into FreeType.
+	It is disabled by default.
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h
+	(T1_CONFIG_OPTION_OLD_ENGINE): New macro.
+
+	* include/freetype/internal/psaux.h (PS_Decoder): Remove unused field.
+	* include/freetype/internal/psaux.h, src/cid/cidgload.c
+	(cid_load_glyph), src/psaux/psauxmod.c, src/psaux/psobjs.c
+	(ps_builder_add_point), src/psaux/t1decode.c
+	(t1_lookup_glyph_by_stdcharcode, t1_decoder_parse_glyph,
+	t1operator_seac, t1_decoder_parse_charstrings), src/psaux/t1decode.h,
+	src/type1/t1gload.c (T1_Parse_Glyph_And_Get_Char_String): Surround
+	relevant code with macro.
+	Minor code changes.
+
+2017-10-12  Ewald Hew  <ewaldhew@gmail.com>
+
+	Extract width parsing from Type 1 parser.
+
+	Duplicate the fast advance width calculations from the old parser.
+	This is to facilitate adding options for compiling out the old parser.
+
+	* src/psaux/t1decode.{c,h} (t1_decoder_parse_metrics): New function.
+	* include/freetype/internal/psaux.h (T1_Decoder_Funcs): New entry
+	`parse_metrics'.
+	* src/psaux/psauxmod.c: Set the new entry.
+
+	* src/type1/t1gload.c (T1_Parse_Glyph_And_Get_Char_String),
+	src/cid/cidgload.c (cid_load_glyph): Separate
+	conditional for selecting engine.
+
+2017-10-09  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftoutln.c (FT_Outline_Translate): Fix integer overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/chromium/issues/detail?id=772775
+
+2017-10-08  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bitmap): Integer overflows.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3579
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Adjust behaviour of PS font names for variation fonts.
+
+	* src/sfnt/sfdriver.c (sfnt_get_var_ps_name): Use a named instance's
+	PS name only if no variation is applied.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	[cff, truetype] Adjust behaviour of named instances.
+
+	This commit completely separates the interaction between named
+	instances and variation functions.  In particular, resetting the
+	variation returns to the current named instance (if set) and not to
+	the base font.
+
+	As a side effect, variation functions no longer change the named
+	instance index.
+
+	* src/cff/cffobjs.c (cff_face_init): Use MM service's `set_instance'
+	function.
+	Also apply `MVAR' table to named instances.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Add cast.
+	(tt_set_mm_blend): No longer check whether requested variation
+	coincides with a named instance.
+	(TT_Set_Var_Design): Use current named instance for default
+	coordinates.
+	* src/truetype/ttobjs.c (tt_face_init): Use `TT_Set_Named_Instance'.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	Make `FT_Set_Named_Instance' work.
+
+	* src/cff/cffdrivr.c (cff_set_instance): New function.
+	(cff_service_multi_masters): Register it.
+
+	* src/truetype/ttgxvar.c (TT_Set_Named_Instance): New function.
+	* src/truetype/ttgxvar.h: Updated.
+	* src/truetype/ttdriver.c (tt_service_gx_multi_masters): Register
+	it.
+
+	* src/type1/t1load.c (T1_Reset_MM_Blend): New function.
+	* src/type1/t1load.h: Updated.
+	* src/type1/t1driver.c (t1_service_multi_masters): Register it.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	Make `FT_FACE_FLAG_VARIATION' work.
+
+	* include/freetype/internal/tttypes.h (TT_Face): Remove
+	`is_default_instance'; this can be replaced with a combination of
+	`FT_IS_VARIATION' and `FT_IS_INSTANCE'.
+
+	* src/cff/cffdrivr.c (cff_get_advances): Updated.
+
+	* src/sfnt/sfdriver.c (sfnt_get_ps_name), src/sfnt/sfobjs.c
+	(sfnt_init_face): Updated.
+
+	* src/truetype/ttdriver.c (tt_get_advances), src/truetype/ttgload.c
+	(TT_Process_Simple_Glyph, load_truetype_glyph, IS_DEFAULT_INSTANCE),
+	src/truetype/ttgxvar.c (tt_set_mm_blend): Updated.
+	* src/truetype/ttgxvar.c (TT_Set_MM_Blend, TT_Set_Var_Design):
+	Handle `FT_FACE_FLAG_VARIATION'.
+
+	* src/type1/t1load.c (T1_Set_MM_Blend, T1_Set_MM_Design): Handle
+	`FT_FACE_FLAG_VARIATION'.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	New function `FT_Set_Named_Instance'.
+
+	No effect yet.
+
+	* src/base/ftmm.c (FT_Set_Named_Instance): New function.
+
+	* include/freetype/ftmm.h: Updated.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	Add macros for checking whether a font variation is active.
+
+	* include/freetype/freetype.h (FT_FACE_FLAG_VARIATION,
+	FT_IS_VARIATION): New macros.
+	No effect yet.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	Add framework for setting named instance in MM service.
+
+	* include/freetype/internal/services/svmm.h (FT_Set_Instance_Func):
+	New function typedef.
+	(MultiMasters): Add `set_instance' member.
+	(FT_DEFINE_SERVICE_MULTIMASTERSREC): Updated.
+
+	* src/cff/cffdrivr.c (cff_service_multi_masters),
+	src/truetype/ttdriver (tt_service_gx_multi_masters),
+	src/type1/t1driver.c (t1_service_multi_masters): Updated.
+
+2017-10-07  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Minor code shuffling.
+
+	* src/type1/t1load.c (T1_Set_MM_Blend): Make it a wrapper of...
+	(t1_set_mm_blend): ...this new function.
+	(T1_Set_MM_Design): Use `t1_set_mm_blend'.
+
+2017-10-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bitmap): Fix integer
+	overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3539
+
+2017-10-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix compiler warnings.
+
+	* src/cff/cffdrivr.c (cff_ps_get_font_extra): Avoid code that relies
+	on numeric overflow.
+	Add cast.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Fix variable
+	types, add cast.
+
+2017-10-04  John Tytgat  <John.Tytgat@esko.com>
+
+	[cff] Add support for `FSType'.
+
+	* include/freetype/internal/cfftypes.h (CFF_FontRec): Add
+	`font_extra' entry.
+
+	* src/cff/cffdrivr.c (cff_ps_get_font_extra): New function to
+	retrieve FSType info from the embedded PostScript data.
+	(cff_service_ps_info): Register function.
+
+	* src/cff/cffload.c (cff_font_done): Free `font_extra'.
+
 2017-09-30  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	Signedness fixes in bitmap presetting.

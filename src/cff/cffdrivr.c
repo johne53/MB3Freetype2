@@ -217,8 +217,8 @@
       {
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
         /* no fast retrieval for blended MM fonts without VVAR table */
-        if ( !ttface->is_default_instance                               &&
-             !( ttface->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
+        if ( ( FT_IS_NAMED_INSTANCE( face ) || FT_IS_VARIATION( face ) ) &&
+             !( ttface->variation_support & TT_FACE_FLAG_VAR_VADVANCE )  )
           return FT_THROW( Unimplemented_Feature );
 #endif
 
@@ -249,8 +249,8 @@
       {
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
         /* no fast retrieval for blended MM fonts without HVAR table */
-        if ( !ttface->is_default_instance                               &&
-             !( ttface->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
+        if ( ( FT_IS_NAMED_INSTANCE( face ) || FT_IS_VARIATION( face ) ) &&
+             !( ttface->variation_support & TT_FACE_FLAG_VAR_HADVANCE )  )
           return FT_THROW( Unimplemented_Feature );
 #endif
 
@@ -496,11 +496,89 @@
   }
 
 
+  static FT_Error
+  cff_ps_get_font_extra( CFF_Face          face,
+                         PS_FontExtraRec*  afont_extra )
+  {
+    CFF_Font  cff   = (CFF_Font)face->extra.data;
+    FT_Error  error = FT_Err_Ok;
+
+
+    if ( cff && cff->font_extra == NULL )
+    {
+      CFF_FontRecDict   dict       = &cff->top_font.font_dict;
+      PS_FontExtraRec*  font_extra = NULL;
+      FT_Memory         memory     = face->root.memory;
+      FT_String*        embedded_postscript;
+
+
+      if ( FT_ALLOC( font_extra, sizeof ( *font_extra ) ) )
+        goto Fail;
+
+      font_extra->fs_type = 0U;
+
+      embedded_postscript = cff_index_get_sid_string(
+                              cff,
+                              dict->embedded_postscript );
+      if ( embedded_postscript )
+      {
+        FT_String*  start_fstype;
+        FT_String*  start_def;
+
+
+        /* Identify the XYZ integer in `/FSType XYZ def' substring. */
+        if ( ( start_fstype = ft_strstr( embedded_postscript,
+                                         "/FSType" ) ) != NULL    &&
+             ( start_def = ft_strstr( start_fstype +
+                                        sizeof ( "/FSType" ) - 1,
+                                      "def" ) ) != NULL           )
+        {
+          FT_String*  s;
+
+
+          for ( s = start_fstype + sizeof ( "/FSType" ) - 1;
+                s != start_def;
+                s++ )
+          {
+            if ( *s >= '0' && *s <= '9' )
+            {
+              if ( font_extra->fs_type >= ( FT_USHORT_MAX - 9 ) / 10 )
+              {
+                /* Overflow - ignore the FSType value.  */
+                font_extra->fs_type = 0U;
+                break;
+              }
+
+              font_extra->fs_type *= 10;
+              font_extra->fs_type += (FT_UShort)( *s - '0' );
+            }
+            else if ( *s != ' ' && *s != '\n' && *s != '\r' )
+            {
+              /* Non-whitespace character between `/FSType' and next `def' */
+              /* - ignore the FSType value.                                */
+              font_extra->fs_type = 0U;
+              break;
+            }
+          }
+        }
+      }
+
+      cff->font_extra = font_extra;
+    }
+
+    if ( cff )
+      *afont_extra = *cff->font_extra;
+
+  Fail:
+    return error;
+  }
+
+
   FT_DEFINE_SERVICE_PSINFOREC(
     cff_service_ps_info,
 
     (PS_GetFontInfoFunc)   cff_ps_get_font_info,    /* ps_get_font_info    */
-    (PS_GetFontExtraFunc)  NULL,                    /* ps_get_font_extra   */
+    (PS_GetFontExtraFunc)  cff_ps_get_font_extra,   /* ps_get_font_extra   */
     (PS_HasGlyphNamesFunc) cff_ps_has_glyph_names,  /* ps_has_glyph_names  */
     /* unsupported with CFF fonts */
     (PS_GetFontPrivateFunc)NULL,                    /* ps_get_font_private */
@@ -1031,6 +1109,17 @@
   }
 
 
+  static FT_Error
+  cff_set_instance( CFF_Face  face,
+                    FT_UInt   instance_index )
+  {
+    FT_Service_MultiMasters  mm = (FT_Service_MultiMasters)face->mm;
+
+
+    return mm->set_instance( FT_FACE( face ), instance_index );
+  }
+
+
   FT_DEFINE_SERVICE_MULTIMASTERSREC(
     cff_service_multi_masters,
 
@@ -1041,6 +1130,7 @@
     (FT_Get_MM_Var_Func)    cff_get_mm_var,         /* get_mm_var     */
     (FT_Set_Var_Design_Func)cff_set_var_design,     /* set_var_design */
     (FT_Get_Var_Design_Func)cff_get_var_design,     /* get_var_design */
+    (FT_Set_Instance_Func)  cff_set_instance,       /* set_instance   */
 
     (FT_Get_Var_Blend_Func) cff_get_var_blend,      /* get_var_blend  */
     (FT_Done_Blend_Func)    cff_done_blend          /* done_blend     */
