@@ -1,4 +1,72 @@
-2017-10-12  Ewald Hew  <ewaldhew@gmail.com>
+2017-11-03  Ewald Hew  <ewaldhew@gmail.com>
+
+	[psaux] Fix PostScript interpreter rewinding in Type 1 mode. (#52251)
+
+	The interpreter in Type 1 mode rewinds the charstring after collecting
+	all hints for building the initial hintmap (commit d52dd7f). However,
+	some charstrings use `endchar' in a final subroutine call, rewinding to
+	the start of that subroutine, and only a small section of the actual
+	glyph is drawn.
+
+	* src/psaux/psintrp.c (cf2_interpT2CharString) <cf2_cmdENDCHAR>:
+	Ensure we are on the top level charstring before rewinding.
+
+2017-11-03  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	[truetype] Add more tricky fonts.
+
+	See the report by Yang Yinsen.
+	https://lists.gnu.org/archive/html/freetype-devel/2017-11/msg00000.html
+
+	* src/truetype/ttobjs.c (trick_names): Add `DFGothic-EB',
+	`DFGyoSho-Lt', `DFHSGothic-W5', `DFHSMincho-W3' and `DFHSMincho-W7'.
+	(tt_check_trickyness_sfnt_ids): Add checksums for DFGothic-EB,
+	DFGyoSho-Lt, DFHSGothic-W5, DFHSMincho-W3 and DFHSMincho-W7.  Also
+	add checksums for DLCLiShu and DLCHayBold which their family names
+	were already listed but their checksums were previously unknown.
+
+2017-11-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Fix complex rendering at high ppem.
+
+	We used to split large glyphs into horizontal bands and continue
+	bisecting them still horizontally if that was not enough.  This is
+	guaranteed to fail when a single scanline cannot fit into the
+	rendering memory pool.  Now we bisect the bands vertically so that
+	the smallest unit is a column of the band height, which is guranteed
+	to fit into memory.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Implement it.
+
+2017-10-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Improve complex rendering at high ppem.
+
+	At large sizes almost but not exactly horizontal segments can quickly
+	drain the rendering pool. This patch at least avoids filling the pool
+	with trivial cells. Beyond this, we can only increase the pool size.
+
+	Reported, analyzed, and tested by Colin Fahey.
+
+	* src/smooth/ftgrays.c (gray_set_cell): Do not record trivial cells.
+
+2017-10-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Improve tracing in FT_Load_Glyph, FT_*_Size.
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Tag tracing messages with
+	function name, glyph index, and load flags.
+	(FT_Select_Metrics, FT_Request_Metrics): Remove all tracing.
+	(FT_Select_Size, FT_Request_Size): Improve tracing.
+
+2017-10-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Improve tracing in FT_Render_Glyph.
+
+	* src/base/ftobjs.c (FT_Render_Glyph_Internal): Add total coverage
+	calculations and downgrade Netpbm dump to bitmap:7.
+
+2017-10-15  Ewald Hew  <ewaldhew@gmail.com>
 
 	[cff] Fix segfault on missing `psaux' (#52218)
 
@@ -27,7 +95,7 @@
 2017-10-14  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* builds/windows/ftdebug.c (FT_Message): Print to stderr.
-        * builds/wince/ftdebug.c (FT_Message): Ditto.
+	* builds/wince/ftdebug.c (FT_Message): Ditto.
 
 2017-10-14  Behdad Esfahbod  <behdad@behdad.org>
 

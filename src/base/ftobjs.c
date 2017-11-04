@@ -863,8 +863,8 @@
       /* XXX: This is really a temporary hack that should disappear */
       /*      promptly with FreeType 2.1!                           */
       /*                                                            */
-      if ( FT_HAS_FIXED_SIZES( face )             &&
-          ( load_flags & FT_LOAD_NO_BITMAP ) == 0 )
+      if ( FT_HAS_FIXED_SIZES( face )              &&
+           ( load_flags & FT_LOAD_NO_BITMAP ) == 0 )
       {
         error = driver->clazz->load_glyph( slot, face->size,
                                            glyph_index,
@@ -932,7 +932,7 @@
 
     /* compute the linear advance in 16.16 pixels */
     if ( ( load_flags & FT_LOAD_LINEAR_DESIGN ) == 0 &&
-         ( FT_IS_SCALABLE( face ) )                  )
+         FT_IS_SCALABLE( face )                      )
     {
       FT_Size_Metrics*  metrics = &face->size->metrics;
 
@@ -980,12 +980,6 @@
       }
     }
 
-    FT_TRACE5(( "  x advance: %d\n" , slot->advance.x ));
-    FT_TRACE5(( "  y advance: %d\n" , slot->advance.y ));
-
-    FT_TRACE5(( "  linear x advance: %d\n" , slot->linearHoriAdvance ));
-    FT_TRACE5(( "  linear y advance: %d\n" , slot->linearVertAdvance ));
-
     /* do we need to render the image or preset the bitmap now? */
     if ( !error                                    &&
          slot->format != FT_GLYPH_FORMAT_BITMAP    &&
@@ -1004,9 +998,17 @@
         ft_glyphslot_preset_bitmap( slot, mode, NULL );
     }
 
-    FT_TRACE5(( "  bitmap pixel_mode: %d\n" ,    slot->bitmap.pixel_mode ));
-    FT_TRACE5(( "  bitmap dimensions: %dx%d\n" , slot->bitmap.width,
-                                                 slot->bitmap.rows  ));
+    FT_TRACE5(( "FT_Load_Glyph: index %d, flags %x\n",
+                glyph_index, load_flags               ));
+    FT_TRACE5(( "  x advance: %f\n", slot->advance.x / 64.0 ));
+    FT_TRACE5(( "  y advance: %f\n", slot->advance.y / 64.0 ));
+    FT_TRACE5(( "  linear x advance: %f\n",
+                slot->linearHoriAdvance / 65536.0 ));
+    FT_TRACE5(( "  linear y advance: %f\n",
+                slot->linearVertAdvance / 65536.0 ));
+    FT_TRACE5(( "  bitmap %dx%d, mode %d\n",
+                slot->bitmap.width, slot->bitmap.rows,
+                slot->bitmap.pixel_mode               ));
 
   Exit:
     return error;
@@ -3003,18 +3005,6 @@
       metrics->height      = bsize->height << 6;
       metrics->max_advance = bsize->x_ppem;
     }
-
-    FT_TRACE5(( "FT_Select_Metrics:\n" ));
-    FT_TRACE5(( "  x scale: %d (%f)\n",
-                metrics->x_scale, metrics->x_scale / 65536.0 ));
-    FT_TRACE5(( "  y scale: %d (%f)\n",
-                metrics->y_scale, metrics->y_scale / 65536.0 ));
-    FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-    FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-    FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-    FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-    FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-    FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
   }
 
 
@@ -3123,18 +3113,6 @@
       metrics->x_scale = 1L << 16;
       metrics->y_scale = 1L << 16;
     }
-
-    FT_TRACE5(( "FT_Request_Metrics:\n" ));
-    FT_TRACE5(( "  x scale: %d (%f)\n",
-                metrics->x_scale, metrics->x_scale / 65536.0 ));
-    FT_TRACE5(( "  y scale: %d (%f)\n",
-                metrics->y_scale, metrics->y_scale / 65536.0 ));
-    FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-    FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-    FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-    FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-    FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-    FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
   }
 
 
@@ -3144,6 +3122,7 @@
   FT_Select_Size( FT_Face  face,
                   FT_Int   strike_index )
   {
+    FT_Error         error = FT_Err_Ok;
     FT_Driver_Class  clazz;
 
 
@@ -3157,36 +3136,37 @@
 
     if ( clazz->select_size )
     {
-      FT_Error  error;
-
-
       error = clazz->select_size( face->size, (FT_ULong)strike_index );
 
-#ifdef FT_DEBUG_LEVEL_TRACE
-      {
-        FT_Size_Metrics*  metrics = &face->size->metrics;
+      FT_TRACE5(( "FT_Select_Size (%s driver):\n",
+                  face->driver->root.clazz->module_name ));
+    }
+    else
+    {
+      FT_Select_Metrics( face, (FT_ULong)strike_index );
 
-
-        FT_TRACE5(( "FT_Select_Size (font driver's `select_size'):\n" ));
-        FT_TRACE5(( "  x scale: %d (%f)\n",
-                    metrics->x_scale, metrics->x_scale / 65536.0 ));
-        FT_TRACE5(( "  y scale: %d (%f)\n",
-                    metrics->y_scale, metrics->y_scale / 65536.0 ));
-        FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-        FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-        FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-        FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-        FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-        FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
-      }
-#endif
-
-      return error;
+      FT_TRACE5(( "FT_Select_Size:\n" ));
     }
 
-    FT_Select_Metrics( face, (FT_ULong)strike_index );
+#ifdef FT_DEBUG_LEVEL_TRACE
+    {
+      FT_Size_Metrics*  metrics = &face->size->metrics;
 
-    return FT_Err_Ok;
+
+      FT_TRACE5(( "  x scale: %d (%f)\n",
+                  metrics->x_scale, metrics->x_scale / 65536.0 ));
+      FT_TRACE5(( "  y scale: %d (%f)\n",
+                  metrics->y_scale, metrics->y_scale / 65536.0 ));
+      FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
+      FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
+      FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
+      FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
+      FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
+      FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
+    }
+#endif
+
+    return error;
   }
 
 
@@ -3196,6 +3176,7 @@
   FT_Request_Size( FT_Face          face,
                    FT_Size_Request  req )
   {
+    FT_Error         error = FT_Err_Ok;
     FT_Driver_Class  clazz;
     FT_ULong         strike_index;
 
@@ -3215,55 +3196,52 @@
 
     if ( clazz->request_size )
     {
-      FT_Error  error;
-
-
       error = clazz->request_size( face->size, req );
 
-#ifdef FT_DEBUG_LEVEL_TRACE
-      {
-        FT_Size_Metrics*  metrics = &face->size->metrics;
-
-
-        FT_TRACE5(( "FT_Request_Size (font driver's `request_size'):\n" ));
-        FT_TRACE5(( "  x scale: %d (%f)\n",
-                    metrics->x_scale, metrics->x_scale / 65536.0 ));
-        FT_TRACE5(( "  y scale: %d (%f)\n",
-                    metrics->y_scale, metrics->y_scale / 65536.0 ));
-        FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-        FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-        FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-        FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-        FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-        FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
-      }
-#endif
-
-      return error;
+      FT_TRACE5(( "FT_Request_Size (%s driver):\n",
+                  face->driver->root.clazz->module_name ));
     }
-
-    /*
-     * The reason that a driver doesn't have `request_size' defined is
-     * either that the scaling here suffices or that the supported formats
-     * are bitmap-only and size matching is not implemented.
-     *
-     * In the latter case, a simple size matching is done.
-     */
-    if ( !FT_IS_SCALABLE( face ) && FT_HAS_FIXED_SIZES( face ) )
+    else if ( !FT_IS_SCALABLE( face ) && FT_HAS_FIXED_SIZES( face ) )
     {
-      FT_Error  error;
-
-
+      /*
+       * The reason that a driver doesn't have `request_size' defined is
+       * either that the scaling here suffices or that the supported formats
+       * are bitmap-only and size matching is not implemented.
+       *
+       * In the latter case, a simple size matching is done.
+       */
       error = FT_Match_Size( face, req, 0, &strike_index );
       if ( error )
         return error;
 
       return FT_Select_Size( face, (FT_Int)strike_index );
     }
+    else
+    {
+      FT_Request_Metrics( face, req );
 
-    FT_Request_Metrics( face, req );
+      FT_TRACE5(( "FT_Request_Size:\n" ));
+    }
 
-    return FT_Err_Ok;
+#ifdef FT_DEBUG_LEVEL_TRACE
+    {
+      FT_Size_Metrics*  metrics = &face->size->metrics;
+
+
+      FT_TRACE5(( "  x scale: %d (%f)\n",
+                  metrics->x_scale, metrics->x_scale / 65536.0 ));
+      FT_TRACE5(( "  y scale: %d (%f)\n",
+                  metrics->y_scale, metrics->y_scale / 65536.0 ));
+      FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
+      FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
+      FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
+      FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
+      FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
+      FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
+    }
+#endif
+
+    return error;
   }
 
 
@@ -4548,54 +4526,63 @@
      */
 
     /* we use FT_TRACE3 in this block */
-    if ( ft_trace_levels[trace_bitmap] >= 3 )
+    if ( !error                             &&
+         ft_trace_levels[trace_bitmap] >= 3 &&
+         slot->bitmap.buffer                )
     {
+      FT_Bitmap  bitmap;
+      FT_Error   err;
+
+
+      FT_Bitmap_Init( &bitmap );
+
       /* we convert to a single bitmap format for computing the checksum */
-      if ( !error && slot->bitmap.buffer )
+      /* this also converts the bitmap flow to `down' (i.e., pitch > 0)  */
+      err = FT_Bitmap_Convert( library, &slot->bitmap, &bitmap, 1 );
+      if ( !err )
       {
-        FT_Bitmap  bitmap;
-        FT_Error   err;
+        MD5_CTX        ctx;
+        unsigned char  md5[16];
+        unsigned long  coverage = 0;
+        int            i, j;
+        int            rows  = (int)bitmap.rows;
+        int            pitch = bitmap.pitch;
 
 
-        FT_Bitmap_Init( &bitmap );
+        FT_TRACE3(( "FT_Render_Glyph: bitmap %dx%d, mode %d\n",
+                    rows, pitch, slot->bitmap.pixel_mode ));
 
-        /* this also converts the bitmap flow to `down' (i.e., pitch > 0) */
-        err = FT_Bitmap_Convert( library, &slot->bitmap, &bitmap, 1 );
-        if ( !err )
-        {
-          MD5_CTX        ctx;
-          unsigned char  md5[16];
-          int            i;
-          unsigned int   rows  = bitmap.rows;
-          unsigned int   pitch = (unsigned int)bitmap.pitch;
+        for ( i = 0; i < rows; i++ )
+          for ( j = 0; j < pitch; j++ )
+            coverage += bitmap.buffer[i * pitch + j];
 
+        FT_TRACE3(( "  Total coverage: %lu\n", coverage ));
 
-          MD5_Init( &ctx );
-          if ( bitmap.buffer )
-            MD5_Update( &ctx, bitmap.buffer, rows * pitch );
-          MD5_Final( md5, &ctx );
+        MD5_Init( &ctx );
+        if ( bitmap.buffer )
+          MD5_Update( &ctx, bitmap.buffer,
+                      (unsigned long)rows * (unsigned long)pitch );
+        MD5_Final( md5, &ctx );
 
-          FT_TRACE3(( "MD5 checksum for %dx%d bitmap:\n"
-                      "  ",
-                      rows, pitch ));
-          for ( i = 0; i < 16; i++ )
-            FT_TRACE3(( "%02X", md5[i] ));
-          FT_TRACE3(( "\n" ));
-        }
-
-        FT_Bitmap_Done( library, &bitmap );
+        FT_TRACE3(( "  MD5 checksum: " ));
+        for ( i = 0; i < 16; i++ )
+          FT_TRACE3(( "%02X", md5[i] ));
+        FT_TRACE3(( "\n" ));
       }
+
+      FT_Bitmap_Done( library, &bitmap );
     }
 
     /*
      * Dump bitmap in Netpbm format (PBM or PGM).
      */
 
-    /* we use FT_TRACE2 in this block */
-    if ( ft_trace_levels[trace_bitmap] >= 2 &&
-         !error                             &&
+    /* we use FT_TRACE7 in this block */
+    if ( !error                             &&
+         ft_trace_levels[trace_bitmap] >= 7 &&
          slot->bitmap.rows  < 128U          &&
-         slot->bitmap.width < 128U          )
+         slot->bitmap.width < 128U          &&
+         slot->bitmap.buffer                )
     {
       int  rows  = (int)slot->bitmap.rows;
       int  width = (int)slot->bitmap.width;
@@ -4606,30 +4593,30 @@
       if ( pitch < 0 )
         topleft -= pitch * ( rows - 1 );
 
-      FT_TRACE2(( "Netpbm image: start\n" ));
+      FT_TRACE7(( "Netpbm image: start\n" ));
       switch ( slot->bitmap.pixel_mode )
       {
       case FT_PIXEL_MODE_MONO:
-        FT_TRACE2(( "P1 %d %d\n", width, rows ));
+        FT_TRACE7(( "P1 %d %d\n", width, rows ));
         for ( i = 0; i < rows; i++ )
         {
           for ( j = 0; j < width; )
             for ( m = 128; m > 0 && j < width; m >>= 1, j++ )
-              FT_TRACE2(( " %d", ( topleft[i * pitch + j / 8] & m ) != 0 ));
-          FT_TRACE2(( "\n" ));
+              FT_TRACE7(( " %d", ( topleft[i * pitch + j / 8] & m ) != 0 ));
+          FT_TRACE7(( "\n" ));
         }
         break;
 
       default:
-        FT_TRACE2(( "P2 %d %d 255\n", width, rows ));
+        FT_TRACE7(( "P2 %d %d 255\n", width, rows ));
         for ( i = 0; i < rows; i++ )
         {
           for ( j = 0; j < width; j += 1 )
-            FT_TRACE2(( " %3u", topleft[i * pitch + j] ));
-          FT_TRACE2(( "\n" ));
+            FT_TRACE7(( " %3u", topleft[i * pitch + j] ));
+          FT_TRACE7(( "\n" ));
         }
       }
-      FT_TRACE2(( "Netpbm image: end\n" ));
+      FT_TRACE7(( "Netpbm image: end\n" ));
     }
 
 #undef  FT_COMPONENT
