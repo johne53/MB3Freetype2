@@ -1,3 +1,38 @@
+2017-11-15  Vlad Tsyrklevich  <vtsyrklevich@google.com>
+
+	* include/freetype/ftrender.h: Fix `FT_Renderer_RenderFunc' type.
+
+2017-11-14  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	Use Adobe hinting engine for `light' hinting of both CFF and Type 1.
+
+	Since Ewald Hew factored the Adobe hinting engine out of the CFF
+	driver code, we can now use it on Type 1 (and CID) font formats, as
+	both have the same hinting philosophy.
+
+	This change activates the Adobe hinter when in LIGHT mode, and
+	therefore always unless explicitly asking for the auto-hinter.  This
+	makes LIGHT behavior consistent with CFF fonts.  As of this commit,
+	the hinting engine table looks as follows.
+
+	             LIGHT  NORMAL
+	  -------------------------
+	   TrueType  Auto   v40
+	   CFF       Adobe  Adobe
+	   Type 1    Adobe  Adobe
+
+2017-11-10  Yuri Levchenko  <yuri_levchenko@boolat.com>
+
+	* CMakeLists.txt: Add `DISABLE_FORCE_DEBUG_PREFIX' option.
+
+2017-11-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Relocate condition.
+
+2017-11-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/smooth/ftgrays.c (gray_set_cell): Fix uninitialized variables.
+
 2017-11-03  Ewald Hew  <ewaldhew@gmail.com>
 
 	[psaux] Fix PostScript interpreter rewinding in Type 1 mode. (#52251)
