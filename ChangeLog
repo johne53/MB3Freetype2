@@ -1,3 +1,93 @@
+2017-12-04  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Allow shared points in `cvar' table (#52532).
+
+	* src/truetype/ttgxvar.c (tt_face_vary_cvt): Implement it by copying
+	and adjusting the corresponding code from
+	`TT_Vary_Apply_Glyph_Deltas'.
+
+2017-11-28  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improving tracing of composite glyphs.
+
+	* src/truetype/ttgload.c (TT_Load_Composite_Glyph)
+	[FT_DEBUG_LEVEL_TRACE]: Show composite glyph information.
+
+2017-11-27  Werner Lemberg  <wl@gnu.org>
+
+	[type1] Allow (again) `/Encoding' with >256 elements (#52464).
+
+	In version 2.6.1, this has been disallowed to better reject
+	malformed fonts; however, this restriction was too strong.  This
+	time, we only take the first 256 elements into account, since
+	encoding arrays are always accessed with a 8bit integer, according
+	to the PostScript Language Reference.
+
+	* src/type1/t1load.c (parse_encoding): Implement it.
+
+2017-11-27  Jan Alexander Steffens (heftig)  <jan.steffens@gmail.com>
+
+	Fix last commit (#52522).
+
+	* builds/freetype.mk: Set `FT_OPTION_H' and `FTOPTION_FLAG'
+	properly if we have `ftoption.h' in `BUILD_DIR'.
+
+2017-11-24  Werner Lemberg  <wl@gnu.org>
+
+	[unix] Install a massaged `ftoption.h' file (#51780).
+
+	* builds/unix/configure.raw (ftoption_set, ftoption_unset): New
+	auxiliary functions to construct...
+	(FTOPTION_H_SED): ... this new variable.
+	Apply it as a sed argument while copying `ftoption.h' to the
+	`builds/unix' directory (using `AC_CONFIG_FILES').
+	Simplify code of test that checks cpp's computation of bit length
+	(the test previously created an empty `ftoption.h' file and deleted
+	it immediately afterwards); without this change, it can happen on my
+	GNU/Linux box that `configure's execution of `config.status' doesn't
+	create `ftoption.h' (no idea why this happens).
+
+	* builds/unix/install.mk (install): Install
+	`builds/unix/ftoption.h'.
+
+	* builds/unix/unix-def.in (DISTCLEAN): Updated.
+
+	* builds/unix/.gitignore: Updated.
+
+2017-11-23  Tor Andersson  <tor.andersson@artifex.com>
+
+	Silence unused function warnings (#52465).
+
+	Some static function declarations cause unused function warnings if
+	certain config options are turned off via `ftoption.h'.
+
+	* src/base/ftbase.h, src/base/ftrfork.c, src/sfnt/ttbdf.h,
+	src/truetype/ttgxvar.h: Add #ifdef guards around these sections.
+
+2017-11-22  Ewald Hew  <ewaldhew@gmail.com>
+
+	* src/psaux/psft.c (cf2_setGlyphWidth): Check format before setting.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4377
+
+2017-11-22  Ewald Hew  <ewaldhew@gmail.com>
+
+	[psaux] Fix CFF advance widths. (#52466)
+
+	Glyph advance widths were being written to the new `PS_Decoder' but not
+	saved to the underlying format specific decoder. This caused pure CFF
+	fonts to have bad advance width.
+
+	* include/freetype/internal/psaux.h (PS_Decoder): Change `glyph_width'
+	field to pointer.
+	Remove unused fields.
+	* src/psaux/psobjs.c (ps_decoder_init): Change `glyph_width' from copy
+	to reference.
+	Remove unused.
+	* src/psaux/psft.c (cf2_setGlyphWidth): Update code.
+
 2017-11-15  Vlad Tsyrklevich  <vtsyrklevich@google.com>
 
 	* include/freetype/ftrender.h: Fix `FT_Renderer_RenderFunc' type.
