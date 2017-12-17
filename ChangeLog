@@ -1,3 +1,164 @@
+2017-12-16  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/windows/vc2010/freetype.vcxproj: AfterBuild copy.
+	* objs/.gitignore: Ignore almost everything.
+
+2017-12-11  Werner Lemberg  <wl@gnu.org>
+
+	Fix compiler warning (#52640).
+
+	* src/base/ftbitmap.c (ft_bitmap_assure_buffer): Remove unused
+	variable.
+
+2017-12-08  Azzuro  <azzuro@team-mediaportal.com>
+
+	* builds/windows/vc2010/freetype.vcxproj: Adjust output directory.
+
+	This allows builds with different configurations in parallel.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	Fix `make setup dos', second try (#52622).
+
+	* builds/detect.mk (dos_setup): Don't use literal `>' character at
+	all.  Mixing the different escaping rules from make, dos, and
+	windows is too fragile.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	[docmaker] Fix code section parsing.
+
+	Stuff like
+
+	  {
+	    <bla>
+	  }
+
+	confused the parser, which incorrectly treated `<bla>' as a markup
+	tag.
+
+	* src/tools/docmaker/content.py (ContentProcessor::process_content):
+	Apply `re_markup_tags' only outside of code sections.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	New `ftdriver.h' file, covering all driver modules.
+
+	This reduces redundancy and increases synergy; it also reduces the
+	number of header files.
+
+	* include/freetype/config/ftheader.h (FT_DRIVER_H): New macro.
+	(FT_AUTOHINTER_H, FT_CFF_DRIVER_H, FT_TRUETYPE_DRIVER_H,
+	FT_PCF_DRIVER_H, FT_TYPE1_DRIVER_H): Make them aliases to
+	FT_DRIVER_H.
+
+	* include/freetype/ftautoh.h, include/freetype/ftcffdrv.h,
+	include/freetype/ftpcfdrv.h, include/freetype/ftt1drv.h,
+	include/freetype/ftttdrv.h: Replaced with...
+	* include/freetype/ftdriver.h: ...this new file.
+	(FT_CFF_HINTING_ADOBE, FT_T1_HINTING_ADOBE): Renamed to...
+	(FT_HINTING_ADOBE): ... this new macro.
+	(FT_CFF_HINTING_FREETYPE, FT_T1_HINTING_FREETYPE): Renamed to...
+	(FT_HINTING_FREETYPE): ... this new macro.
+
+	* src/*/*: Updated accordingly.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	Move `ftdriver.h' to `ftdrv.h'.
+
+	* include/freetype/internal/ftdriver.h: Renamed to...
+	* include/freetype/internal/ftdrv.h: ... this name.
+
+	* include/freetype/internal/internal.h (FT_INTERNAL_DRIVER_H):
+	Updated.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	Fix access to uninitalized memory (#52613).
+
+	Also reported as
+
+	  https://bugs.chromium.org/p/chromium/issues/detail?id=791317
+
+	* src/base/ftbitmap.c (ft_bitmap_assure_buffer): If increasing the
+	bitmap size needs a larger bitmap buffer, assure that the new memory
+	areas are initialized also.
+
+2017-12-08  Werner Lemberg  <wl@gnu.org>
+
+	Fix `make setup dos' (#52622).
+
+	* builds/detect.mk (dos_setup): Properly escape literal `>'
+	character.
+
+2017-12-07  Werner Lemberg  <wl@gnu.org>
+
+	Fix C++ compilation.
+
+	* src/psaux/psauxmod.h: Use FT_CALLBACK_TABLE macro where necessary.
+
+	* src/smooth/ftsmooth.c (ft_smooth_render_generic): Fix warning.
+
+2017-12-07  Werner Lemberg  <wl@gnu.org>
+
+	Fix `make multi'.
+
+	* include/freetype/internal/fttrace.h: Remove unused tracing macros.
+	s/pshalgo2/pshalgo/.
+	Add `trace_cffdecode'.
+	* src/pshinter/pshalgo.c (FT_COMPONENT): Updated.
+
+	* src/cff/cffload.c: Include FT_INTERNAL_POSTSCRIPT_AUX_H.
+	* src/cff/cffobjs.c: Include FT_SERVICE_METRICS_VARIATIONS_H and
+	FT_SERVICE_CFF_TABLE_LOAD_H.
+
+	* src/cid/cidriver.c: Include FT_INTERNAL_POSTSCRIPT_AUX_H.
+
+	* src/psaux/cffdecode.c: Include FT_FREETYPE_H and
+	FT_INTERNAL_DEBUG_H.
+	(FT_COMPONENT): Define.
+	* src/psaux/cffdecode.h: Include FT_INTERNAL_POSTSCRIPT_AUX_H.
+	* src/psaux/psauxmod.h: Include FT_INTERNAL_POSTSCRIPT_AUX_H.
+	Declare `cff_builder_funcs' and `ps_builder_funcs'.
+	* src/psaux/psft.c: Include `psobjs.h' and `cffdecode.h'.
+	* src/psaux/psobjs.c : Include `psauxmod.h'.
+
+2017-12-07  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/config/ftheader.h: Some clean-up.
+
+	This commit removes documentation of deprecated macros and does some
+	minor streamlining.
+
+2017-12-06  Werner Lemberg  <wl@gnu.org>
+
+	* builds/symbian/bld.inf: Updated.
+
+2017-12-06  Werner Lemberg  <wl@gnu.org>
+
+	New header file `ftparams.h' that collects all parameter tags.
+
+	* include/freetype/config/ftheader.h (FT_PARAMETER_TAGS_H): New
+	macro.
+	(FT_TRUETYPE_UNPATENTED_H, FT_UNPATENTED_HINTING_H): Define it to
+	`ftparams.h'.
+
+	* include/freetype/ftautoh.h, include/freetype/ftcffdrv.h,
+	include/freetype/ftincrem.h, include/freetype/ftlcdfil.h,
+	include/freetype/ftsnames.h, include/freetype/ftt1drv.h: Include
+	FT_PARAMETER_TAGS_H.
+	Move FT_PARAM_TAG_XXX definitions to...
+	* include/freetype/ftparams.h: ...this new file.
+
+	* include/freetype/ttunpat.h: Remove.  No longer needed.
+
+2017-12-05  Werner Lemberg  <wl@gnu.org>
+
+	Improve tracing messages by using singular and plural forms.
+
+	* src/*/*.c: Implement it.
+
 2017-12-04  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Allow shared points in `cvar' table (#52532).
@@ -2773,7 +2934,7 @@
 
 	Reported by Earnestly <zibeon@googlemail.com> in
 
-	  http://lists.nongnu.org/archive/html/freetype/2017-04/msg00031.html
+	  https://lists.nongnu.org/archive/html/freetype/2017-04/msg00031.html
 
 2017-04-27  Werner Lemberg  <wl@gnu.org>
 
@@ -3110,7 +3271,7 @@
 
 	Problem reported by 張俊芝 <418092625@qq.com> in
 
-	  http://lists.nongnu.org/archive/html/freetype-devel/2017-03/msg00074.html
+	  https://lists.nongnu.org/archive/html/freetype-devel/2017-03/msg00074.html
 
 2017-03-30  Werner Lemberg  <wl@gnu.org>
 

@@ -651,7 +651,7 @@ FT_BEGIN_HEADER
   /*    FT_ENCODING_MS_SYMBOL ::                                           */
   /*      Microsoft Symbol encoding, used to encode mathematical symbols   */
   /*      and wingdings.  For more information, see                        */
-  /*      `http://www.microsoft.com/typography/otspec/recom.htm',          */
+  /*      `https://www.microsoft.com/typography/otspec/recom.htm',         */
   /*      `http://www.kostis.net/charsets/symbol.htm', and                 */
   /*      `http://www.kostis.net/charsets/wingding.htm'.                   */
   /*                                                                       */
@@ -660,7 +660,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    FT_ENCODING_SJIS ::                                                */
   /*      Shift JIS encoding for Japanese.  More info at                   */
-  /*      `http://en.wikipedia.org/wiki/Shift_JIS'.  See note on           */
+  /*      `https://en.wikipedia.org/wiki/Shift_JIS'.  See note on          */
   /*      multi-byte encodings below.                                      */
   /*                                                                       */
   /*    FT_ENCODING_PRC ::                                                 */
@@ -676,7 +676,7 @@ FT_BEGIN_HEADER
   /*      Corresponds to the Korean encoding system known as Extended      */
   /*      Wansung (MS Windows code page 949).                              */
   /*      For more information see                                         */
-  /*      `http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit949.txt'. */
+  /*      `https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit949.txt'. */
   /*                                                                       */
   /*    FT_ENCODING_JOHAB ::                                               */
   /*      The Korean standard character set (KS~C 5601-1992), which        */
@@ -752,7 +752,7 @@ FT_BEGIN_HEADER
   /*    @FT_Get_CMap_Language_ID to query the Mac language ID that may     */
   /*    be needed to be able to distinguish Apple encoding variants.  See  */
   /*                                                                       */
-  /*      http://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/Readme.txt  */
+  /*      https://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/Readme.txt */
   /*                                                                       */
   /*    to get an idea how to do that.  Basically, if the language ID      */
   /*    is~0, don't use it, otherwise subtract 1 from the language ID.     */
@@ -3557,7 +3557,7 @@ FT_BEGIN_HEADER
   /*    retrieve it.  FreeType follows Adobe TechNote #5902, `Generating   */
   /*    PostScript Names for Fonts Using OpenType Font Variations'.        */
   /*                                                                       */
-  /*      http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/font/pdfs/5902.AdobePSNameGeneration.html */
+  /*      https://download.macromedia.com/pub/developer/opentype/tech-notes/5902.AdobePSNameGeneration.html */
   /*                                                                       */
   /*    [Since 2.8.2] Special PostScript names for named instances are     */
   /*    only returned if the named instance is set with                    */
@@ -3795,17 +3795,17 @@ FT_BEGIN_HEADER
    *   Note that only a subset of the available properties can be
    *   controlled.
    *
-   *   * Stem darkening (@FT_PARAM_TAG_STEM_DARKENING, corresponding to the
-   *     property `no-stem-darkening' provided by the `autofit' and `cff'
-   *     modules; see @no-stem-darkening[autofit] and
-   *     @no-stem-darkening[cff]).
+   *   * @FT_PARAM_TAG_STEM_DARKENING (stem darkening, corresponding to the
+   *     property `no-stem-darkening' provided by the `autofit', `cff',
+   *     `type1', and `t1cid' modules; see @no-stem-darkening).
    *
-   *   * LCD filter weights (@FT_PARAM_TAG_LCD_FILTER_WEIGHTS, corresponding
+   *   * @FT_PARAM_TAG_LCD_FILTER_WEIGHTS (LCD filter weights, corresponding
    *     to function @FT_Library_SetLcdFilterWeights).
    *
-   *   * Seed value for the CFF `random' operator
-   *     (@FT_PARAM_TAG_RANDOM_SEED, corresponding to the `random-seed'
-   *     property provided by the `cff' module; see @random-seed).
+   *   * @FT_PARAM_TAG_RANDOM_SEED (seed value for the CFF, Type~1, and CID
+   *     `random' operator, corresponding to the `random-seed' property
+   *     provided by the `cff', `type1', and `t1cid' modules; see
+   *     @random-seed).
    *
    *   Pass NULL as `data' in @FT_Parameter for a given tag to reset the
    *   option and use the library or module default again.
@@ -3995,7 +3995,7 @@ FT_BEGIN_HEADER
   /*    and subsetting restrictions associated with a font.                */
   /*                                                                       */
   /*    See                                                                */
-  /*    http://www.adobe.com/content/dam/Adobe/en/devnet/acrobat/pdfs/FontPolicies.pdf */
+  /*    https://www.adobe.com/content/dam/Adobe/en/devnet/acrobat/pdfs/FontPolicies.pdf */
   /*    for more details.                                                  */
   /*                                                                       */
   /* <Values>                                                              */
@@ -4095,9 +4095,9 @@ FT_BEGIN_HEADER
   /*    Sequences' (IVS), collected in the `Ideographic Variation          */
   /*    Database' (IVD).                                                   */
   /*                                                                       */
-  /*      http://unicode.org/Public/UCD/latest/ucd/StandardizedVariants.txt */
-  /*      http://unicode.org/reports/tr37/                                 */
-  /*      http://unicode.org/ivd/                                          */
+  /*      https://unicode.org/Public/UCD/latest/ucd/StandardizedVariants.txt */
+  /*      https://unicode.org/reports/tr37/                                */
+  /*      https://unicode.org/ivd/                                         */
   /*                                                                       */
   /*    To date (January 2017), the character with the most ideographic    */
   /*    variations is U+9089, having 32 such IVS.                          */

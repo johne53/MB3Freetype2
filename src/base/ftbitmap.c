@@ -156,7 +156,7 @@
     int             pitch;
     int             new_pitch;
     FT_UInt         bpp;
-    FT_UInt         i, width, height;
+    FT_UInt         width, height;
     unsigned char*  buffer = NULL;
 
 
@@ -235,21 +235,48 @@
     {
       FT_UInt  len = ( width * bpp + 7 ) >> 3;
 
+      unsigned char*  in  = bitmap->buffer;
+      unsigned char*  out = buffer;
 
-      for ( i = 0; i < bitmap->rows; i++ )
-        FT_MEM_COPY( buffer + (FT_UInt)new_pitch * ( ypixels + i ),
-                     bitmap->buffer + (FT_UInt)pitch * i,
-                     len );
+      unsigned char*  limit = bitmap->buffer + pitch * bitmap->rows;
+      int             delta = new_pitch - pitch;
+
+
+      FT_MEM_ZERO( out, new_pitch * ypixels );
+      out += new_pitch * ypixels;
+
+      while ( in < limit )
+      {
+        FT_MEM_COPY( out, in, len );
+        in  += pitch;
+        out += pitch;
+
+        FT_MEM_ZERO( out, delta );
+        out += delta;
+      }
     }
     else
     {
       FT_UInt  len = ( width * bpp + 7 ) >> 3;
 
+      unsigned char*  in  = bitmap->buffer;
+      unsigned char*  out = buffer;
 
-      for ( i = 0; i < bitmap->rows; i++ )
-        FT_MEM_COPY( buffer + (FT_UInt)new_pitch * i,
-                     bitmap->buffer + (FT_UInt)pitch * i,
-                     len );
+      unsigned char*  limit = bitmap->buffer + pitch * bitmap->rows;
+      int             delta = new_pitch - pitch;
+
+
+      while ( in < limit )
+      {
+        FT_MEM_COPY( out, in, len );
+        in  += pitch;
+        out += pitch;
+
+        FT_MEM_ZERO( out, delta );
+        out += delta;
+      }
+
+      FT_MEM_ZERO( out, new_pitch * ypixels );
     }
 
     FT_FREE( bitmap->buffer );
@@ -444,7 +471,7 @@
      * A gamma of 2.2 is fair to assume.  And then, we need to
      * undo the premultiplication too.
      *
-     *   http://accessibility.kde.org/hsl-adjusted.php
+     *   https://accessibility.kde.org/hsl-adjusted.php
      *
      * We do the computation with integers only, applying a gamma of 2.0.
      * We guarantee 32-bit arithmetic to avoid overflow but the resulting

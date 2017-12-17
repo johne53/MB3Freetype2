@@ -370,7 +370,7 @@ typedef ptrdiff_t  FT_PtrDist;
   /* optimize a division and modulo operation on the same parameters   */
   /* into a single call to `__aeabi_idivmod'.  See                     */
   /*                                                                   */
-  /*  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43721                */
+  /*  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43721               */
 #undef FT_DIV_MOD
 #define FT_DIV_MOD( type, dividend, divisor, quotient, remainder ) \
   FT_BEGIN_STMNT                                                   \
@@ -1718,8 +1718,11 @@ typedef ptrdiff_t  FT_PtrDist;
       if ( !ras.invalid )
         gray_record_cell( RAS_VAR );
 
-      FT_TRACE7(( "band [%d..%d]: %d cells\n",
-                  ras.min_ey, ras.max_ey, ras.num_cells ));
+      FT_TRACE7(( "band [%d..%d]: %d cell%s\n",
+                  ras.min_ey,
+                  ras.max_ey,
+                  ras.num_cells,
+                  ras.num_cells == 1 ? "" : "s" ));
     }
     else
     {

@@ -22,6 +22,7 @@
 #include FT_INTERNAL_STREAM_H
 #include FT_TRUETYPE_TAGS_H
 #include FT_TYPE1_TABLES_H
+#include FT_INTERNAL_POSTSCRIPT_AUX_H
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 #include FT_MULTIPLE_MASTERS_H
@@ -1297,7 +1298,9 @@
 
     if ( numOperands > count )
     {
-      FT_TRACE4(( " cff_blend_doBlend: Stack underflow %d args\n", count ));
+      FT_TRACE4(( " cff_blend_doBlend: Stack underflow %d argument%s\n",
+                  count,
+                  count == 1 ? "" : "s" ));
 
       error = FT_THROW( Stack_Underflow );
       goto Exit;
