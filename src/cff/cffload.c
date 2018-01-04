@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    OpenType and CFF data/program tables loader (body).                  */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2018 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -1556,13 +1556,13 @@
                           FT_UInt    lenNDV,
                           FT_Fixed*  NDV )
   {
-    if ( !blend->builtBV                             ||
-         blend->lastVsindex != vsindex               ||
-         blend->lenNDV != lenNDV                     ||
-         ( lenNDV                                  &&
-           memcmp( NDV,
-                   blend->lastNDV,
-                   lenNDV * sizeof ( *NDV ) ) != 0 ) )
+    if ( !blend->builtBV                                ||
+         blend->lastVsindex != vsindex                  ||
+         blend->lenNDV != lenNDV                        ||
+         ( lenNDV                                     &&
+           ft_memcmp( NDV,
+                      blend->lastNDV,
+                      lenNDV * sizeof ( *NDV ) ) != 0 ) )
     {
       /* need to build blend vector */
       return TRUE;

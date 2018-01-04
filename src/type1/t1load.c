@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Type 1 font loader (body).                                           */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2018 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -374,6 +374,8 @@
     PS_Blend  blend = face->blend;
     FT_UInt   n, m;
 
+    FT_Bool  have_diff = 0;
+
 
     if ( !blend )
       return FT_THROW( Invalid_Argument );
@@ -405,10 +407,16 @@
 
         result = FT_MulFix( result, factor );
       }
-      blend->weight_vector[n] = result;
+
+      if ( blend->weight_vector[n] != result )
+      {
+        blend->weight_vector[n] = result;
+        have_diff               = 1;
+      }
     }
 
-    return FT_Err_Ok;
+    /* return value -1 indicates `no change' */
+    return have_diff ? FT_Err_Ok : -1;
   }
 
 

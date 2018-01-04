@@ -1,3 +1,213 @@
+2018-01-03  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Round offsets of glyph components only if hinting is on.
+
+	* src/truetype/ttgload.c (TT_Process_Composite_Component): Implement
+	it.
+
+2018-01-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (ft_var_to_design): Remove dead code.
+
+	This is a better fix than the previous commit, which is now
+	reverted.
+
+2018-01-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Move internal LCD-related declarations.
+
+	* include/freetype/ftlcdfil.h (ft_lcd_padding, ft_lcd_filter_fir):
+	Move from here...
+	* include/freetype/internal/ftobjs.h: ... to here.
+
+2018-01-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* include/freetype/config/ftconfig.h (FT_EXPORT, FT_EXPORT_DEF)
+	[_MSC_VER]: Limit Visual C++ attributes.
+
+2018-01-03  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Make blend/design coordinate round-tripping work.
+
+	Behdad reported that setting blend coordinates, then getting design
+	coordinates did incorrectly return the default instance's
+	coordinates.
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Fix it.
+
+2017-12-31  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Fix endless loop.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4838
+
+2017-12-31  Werner Lemberg  <wl@gnu.org>
+
+	Synchronize other Windows project files.
+
+	* builds/windows/*: Add missing files.
+
+2017-12-31  Werner Lemberg  <wl@gnu.org>
+
+	Update Visual C 2010 project files.
+
+	Problem reported by Hin-Tak.
+
+	* builds/windows/vc2010/freetype.vcxproj: Add files `ftbdf.c' and
+	`ftcid.c'.
+	Sort entries.
+	* builds/windows/vc2010/freetype.vcxproj.filter: Ditto.
+	Fix members of `FT_MODULE' group.
+
+2017-12-30  Werner Lemberg  <wl@gnu.org>
+
+	* builds/vms/ftconfig.h: Synchronize with unix `ftconfig.in' file.
+
+2017-12-28  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/ftconfig.in: Synchronize with main `ftconfig.h' file.
+
+	Reported by Nikolaus.
+
+2017-12-27  Werner Lemberg  <wl@gnu.org>
+
+	Fix compiler warnings.
+
+	* src/base/ftbitmap.c (ft_bitmap_assure_buffer): Make `pitch' and
+	`new_pitch' unsigned.
+
+	* src/base/ftpsprop.c: Include FT_INTERNAL_POSTSCRIPT_PROPS_H.
+
+2017-12-27  Werner Lemberg  <wl@gnu.org>
+
+	Fixes for `make multi'.
+
+	* include/freetype/internal/ftpsprop.h: Use `FT_BASE_CALLBACK'.
+	(ps_property_get): Harmonize declaration with corresponding
+	function typedef.
+
+	* include/freety[e/internal/fttrace.h: Add `trace_psprops'.
+
+	* src/base/ftpsprop.c: Include necessary header files.
+	(FT_COMPONENT): Define.
+	(ps_property_set): Tag with `FT_BASE_CALLBACK_DEF'.
+	(ps_property_get): Tag with `FT_BASE_CALLBACK_DEF'.
+	Harmonize declaration with corresponding function typedef.
+
+2017-12-27  Werner Lemberg  <wl@gnu.org>
+
+	Provide support for intra-module callback functions.
+
+	This is needed especially for `make multi' with C++.
+
+	* include/freetype/config/ftconfig.h (FT_BASE_CALLBACK,
+	FT_BASE_CALLBACK_DEF): New macros.
+
+2017-12-25  Ewald Hew  <ewaldhew@gmail.com>
+
+	Move PostScript drivers' property handlers to `base'.
+
+	This reduces the amount of duplicated code across PostScript
+	drivers.
+
+	* src/cff/cffdrivr.c, src/cid/cidriver.c, src/type1/t1driver.c
+	({cff,cid,t1}_property_{get,set}): Moved to...
+	* include/freetype/internal/ftpsprop.h: ...this new file.
+	(ps_property_{get,set}): New functions to replace moved ones.
+
+	* src/base/ftpsprop.c: New file that implements above functions.
+
+	* include/freetype/internal/internal.h
+	(FT_INTERNAL_POSTSCRIPT_PROPS_H): New macro.
+
+	* src/cff/cffdrivr.c, src/cid/cidriver.c, src/type1/t1driver.c:
+	Updated.
+
+	* src/base/Jamfile, src/base/rules.mk (BASE_SRC), src/base/ftbase.c:
+	Updated.
+
+2017-12-20  Werner Lemberg  <wl@gnu.org>
+
+	Speed up FT_Set_Var_{Design,Blend}_Coordinates if curr == new.
+
+	We exit early if the current design or blend coordinates are
+	identical to the new ones.
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend, TT_Set_Var_Design):
+	Implement it, returning internal error code -1 if there will be no
+	variation change.
+
+	* src/type1/t1load.c (t1_set_mm_blend): Ditto.
+
+	* src/base/ftmm.c (FT_Set_Var_Design_Coordinates,
+	FT_Set_MM_Blend_Coordinates, FT_Set_Var_Blend_Coordinates): Updated.
+
+2017-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix charmap type 2 iterator (#52646).
+
+	The subsetted demo font of the report that exhibits the bug has a
+	very unusual type 2 cmap for Unicode(!): It contains only two
+	sub-headers, one for one-byte characters (covering the range 0x20 to
+	0xFA), and a second one for higher byte 0x01 (just for character
+	code U+0131).
+
+	Before this commit, the iterator wasn't able to correctly handle a
+	sub-header for higher byte 0x01.
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Fix character increment
+	for outer loop.
+
+2017-12-18  Matthias Clasen  <matthias.clasen@gmail.com>
+
+	[truetype] Fix clamping, minor tracing code beautification.
+
+	* src/truetype/ttgxvar.c (ft_var_to_normalized): Trace number of
+	design coordinates.
+	Use clamped value.
+
+2017-12-18  Werner Lemberg  <wl@gnu.org>
+
+	* src/*/*: Only use `ft_' and `FT_' variants of stdc library stuff.
+
+2017-12-18  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_face_vary_cvt): Add size guard (#52688).
+
+2017-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix previous commit.
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph): Correctly handle
+	unhinted phantom points, which must be properly scaled.
+
+2017-12-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Don't apply HVAR and VVAR deltas twice (#52683).
+
+	* src/truetype/ttgload.c (TT_Process_Simple_Glyph): Always adjust
+	`pp1' to `pp4', except if we have an HVAR and/or VVAR table.
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Handle
+	alternative code branch identically w.r.t. presence of an HVAR
+	and/or VVAR table.
+
+2017-12-17  Jonathan Kew  <jfkthame@gmail.com>
+
+	[truetype] Correctly handle variation font phantom points (#52683).
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Fix phantom
+	point indices.
+
+2017-12-17  Jonathan Kew  <jfkthame@gmail.com>
+
+	Fix incorrect advance width scaling (#52683).
+
+	* src/base/ftadvance.c (FT_Get_Advances): Always respect the
+	FT_LOAD_NO_SCALE flag if present.
+
 2017-12-16  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* builds/windows/vc2010/freetype.vcxproj: AfterBuild copy.
@@ -4649,7 +4859,7 @@
 
 ----------------------------------------------------------------------------
 
-Copyright 2016-2017 by
+Copyright 2016-2018 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Tracing handling (specification only).                               */
 /*                                                                         */
-/*  Copyright 2002-2017 by                                                 */
+/*  Copyright 2002-2018 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -39,6 +39,7 @@ FT_TRACE_DEF( mm )        /* MM interface            (ftmm.c)     */
 FT_TRACE_DEF( raccess )   /* resource fork accessor  (ftrfork.c)  */
 FT_TRACE_DEF( synth )     /* bold/slant synthesizer  (ftsynth.c)  */
 FT_TRACE_DEF( bitmap )    /* bitmap checksum         (ftobjs.c)   */
+FT_TRACE_DEF( psprops )   /* PS driver properties    (ftpsprop.c) */
 
   /* Cache sub-system */
 FT_TRACE_DEF( cache )     /* cache sub-system        (ftcache.c, etc.) */

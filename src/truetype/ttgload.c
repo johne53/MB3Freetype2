@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType Glyph Loader (body).                                        */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2018 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -801,7 +801,7 @@
     {
       FT_TRACE1(( "TT_Hint_Glyph: too long instructions" ));
       FT_TRACE1(( " (0x%lx byte) is truncated\n",
-                 loader->glyph->control_len ));
+                  loader->glyph->control_len ));
     }
     n_ins = loader->glyph->control_len;
 
@@ -1037,9 +1037,24 @@
           vec->x = FT_MulFix( vec->x, x_scale );
           vec->y = FT_MulFix( vec->y, y_scale );
         }
+      }
 
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+      /* if we have a HVAR table, `pp1' and/or `pp2' are already adjusted */
+      if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) ||
+           !IS_HINTED( loader->load_flags )                                 )
+#endif
+      {
         loader->pp1 = outline->points[n_points - 4];
         loader->pp2 = outline->points[n_points - 3];
+      }
+
+#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+      /* if we have a VVAR table, `pp3' and/or `pp4' are already adjusted */
+      if ( !( loader->face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) ||
+           !IS_HINTED( loader->load_flags )                                 )
+#endif
+      {
         loader->pp3 = outline->points[n_points - 2];
         loader->pp4 = outline->points[n_points - 1];
       }
@@ -1191,8 +1206,28 @@
 
         if ( subglyph->flags & ROUND_XY_TO_GRID )
         {
-          x = FT_PIX_ROUND( x );
-          y = FT_PIX_ROUND( y );
+          TT_Face    face   = loader->face;
+          TT_Driver  driver = (TT_Driver)FT_FACE_DRIVER( face );
+
+
+          if ( IS_HINTED( loader->load_flags ) )
+          {
+            /*
+             * We round the horizontal offset only if there is hinting along
+             * the x axis; this corresponds to integer advance width values.
+             *
+             * Theoretically, a glyph's bytecode can toggle ClearType's
+             * `backward compatibility' mode, which would allow modification
+             * of the advance width.  In reality, however, applications
+             * neither allow nor expect modified advance widths if sub-pixel
+             * rendering is active.
+             *
+             */
+            if ( driver->interpreter_version == TT_INTERPRETER_VERSION_35 )
+              x = FT_PIX_ROUND( x );
+
+            y = FT_PIX_ROUND( y );
+          }
         }
       }
     }
@@ -1404,6 +1439,7 @@
 #ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
     TT_Driver driver = (TT_Driver)FT_FACE_DRIVER( loader->face );
 #endif
+
 
 #ifdef TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY
     if ( driver->interpreter_version == TT_INTERPRETER_VERSION_38 )
@@ -1758,7 +1794,7 @@
       /* clear the nodes filled by sibling chains */
       node = ft_list_get_node_at( &loader->composites, recurse_count );
       for ( node2 = node; node2; node2 = node2->next )
-        node2->data = (void*)ULONG_MAX;
+        node2->data = (void*)FT_ULONG_MAX;
 
       /* check whether we already have a composite glyph with this index */
       if ( FT_List_Find( &loader->composites,
