@@ -295,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\base\ftpsprop.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\base\ftstroke.c"
 				>
 			</File>
