@@ -1,3 +1,121 @@
+2018-01-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[build] Enable VERSIONINFO resource for Cygwin/MinGW.
+
+	* builds/unix/configure.raw: Check for resource compiler.
+	* builds/unix/unix-cc.in: Conditionally set up resource compiler.
+	* builds/freetype.mk: Add conditional rule for `ftver.rc'.
+	* src/base/ftver.rc: Copyright notice and year update.
+
+2018-01-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[build] Move VERSIONINFO resource.
+
+	* builds/windows/vc2010/freetype.vcxproj: Updated.
+	* builds/windows/ftver.rc: Move file from here...
+	* src/base/ftver.rc: ... to here.
+
+2018-01-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[build] Expand dllexport/dllimport to Cygwin/MinGW.
+
+	* include/freetype/config/ftconfig.h: Respect DLL_EXPORT,
+	s/_MSC_VER/_WIN32/.
+	* builds/unix/ftconfig.in: Replicate here.
+	* builds/vms/ftconfig.h: Replicate here.
+
+2018-01-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[build] Improve and document MSVC build.
+
+	* include/freetype/config/ftconfig.h: Guard dllexport/dllimport
+	attributes with _DLL and FT2_DLLIMPORT.
+	* builds/windows/vc2010/index.html: Update documentation.
+
+2018-01-10  Steve Robinson  <ssrobins@gmail.com>
+
+	* CMakeLists.txt [win32]: Suppress warnings for POSIX functions.
+
+2018-01-10  Ewald Hew  <ewaldhew@gmail.com>
+
+	[psaux] Correctly handle Flex features (#52846).
+
+	* src/psaux/psintrp.c (cf2_interpT2CharString) <cf2_cmdVMOVETO,
+	cf2_cmdHMOVETO>: Do not move if doing Flex.
+
+2018-01-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/windows/vc2010/freetype.sln: Synchronize with the project.
+
+2018-01-08  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.9 released.
+	=======================
+
+
+	Tag sources with `VER-2-9'.
+
+	* docs/VERSION.TXT: Add entry for version 2.9.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/windows/ftver.rc,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.8.1/2.9/, s/281/29/.
+
+	* include/freetype/freetype.h (FREETYPE_MINOR): Set to 9.
+	(FREETYPE_PATCH): Set to 0.
+
+	* builds/unix/configure.raw (version_info): Set to 22:0:16.
+	* CMakeLists.txt (VERSION_PATCH): Set to 1.
+
+2018-01-07  Werner Lemberg  <wl@gnu.org>
+
+	Add check for librt, needed for `ftbench' (#52824).
+
+	* builds/unix/configure.raw (LIB_CLOCK_GETTIME): Define; this will
+	hold `-lrt' if necessary.
+
+	* builds/unix/unix-cc.in (LIB_CLOCK_GETTIME): New variable.
+
+2018-01-07  Ewald Hew  <ewaldhew@gmail.com>
+
+	[psaux] Fix Type 1 glyphs with too many stem hints.
+
+	According to the CFF specification, charstrings can have up to 96 stem
+	hints. Due to hint replacement routines in Type 1 charstrings, some
+	glyphs are rejected by the Adobe engine, which implements the above
+	limit. This fix turns off hinting for such glyphs.
+
+	* src/psaux/pshints.c (cf2_hintmap_build): Reset the error from calling
+	`cf2_hintmask_setAll' on a problematic Type 1 charstring and turn off
+	hinting.
+
+2018-01-06  Werner Lemberg  <wl@gnu.org>
+
+	Add `FT_Done_MM_Var'.
+
+	This is necessary in case the application's memory routines differ
+	from FreeType.  A typical example is a Python application on Windows
+	that calls FreeType compiled as a DLL via the `ctypes' interface.
+
+	* include/freetype/ftmm.h, src/base/ftmm.c (FT_Done_MM_Var): Declare
+	and define.
+
+	* docs/CHANGES: Updated.
+
 2018-01-03  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Round offsets of glyph components only if hinting is on.

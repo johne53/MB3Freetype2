@@ -17,7 +17,7 @@ AC_CONFIG_SRCDIR([ftconfig.in])
 
 # Don't forget to update `docs/VERSIONS.TXT'!
 
-version_info='21:0:15'
+version_info='22:0:16'
 AC_SUBST([version_info])
 ft_version=`echo $version_info | tr : .`
 AC_SUBST([ft_version])
@@ -37,6 +37,7 @@ AC_SUBST(EXEEXT)
 PKG_PROG_PKG_CONFIG([0.24])
 
 LT_INIT(win32-dll)
+LT_PROG_RC
 
 
 # checks for native programs to generate building tool
@@ -507,6 +508,21 @@ fi
 if test x"$with_harfbuzz" = xyes -a "$have_harfbuzz" = no; then
   AC_MSG_ERROR([harfbuzz support requested but library not found])
 fi
+
+
+# check for librt
+#
+# We need `clock_gettime' for the `ftbench' demo program.
+#
+# The code is modeled after gnulib's file `clock_time.m4', ignoring
+# very old Solaris systems.
+
+LIB_CLOCK_GETTIME=
+AC_SEARCH_LIBS([clock_gettime],
+               [rt],
+               [test "$ac_cv_search_clock_gettime" = "none required" \
+                || LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
+AC_SUBST([LIB_CLOCK_GETTIME])
 
 
 # Some options handling SDKs/archs in CFLAGS should be copied

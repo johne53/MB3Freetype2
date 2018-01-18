@@ -87,13 +87,20 @@ ANSIFLAGS := @XX_ANSIFLAGS@
 
 # C compiler to use -- we use libtool!
 #
-#
 CCraw := $(CC)
 CC    := $(LIBTOOL) --mode=compile $(CCraw)
 
+# Resource compiler to use on Cygwin/MinGW, usually windres.
+#
+RCraw := @RC@
+ifneq ($(RCraw),)
+  RC := $(LIBTOOL) --tag=RC --mode=compile $(RCraw)
+endif
+
 # Linker flags.
 #
-LDFLAGS := @LDFLAGS@
+LDFLAGS           := @LDFLAGS@
+LIB_CLOCK_GETTIME := @LIB_CLOCK_GETTIME@  # for ftbench
 
 
 # export symbols
