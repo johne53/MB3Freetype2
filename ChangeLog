@@ -1,3 +1,88 @@
+2018-02-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[unix] Use -fvisibility=hidden.
+
+	It is now widely recommended that ELF shared libraries hide symbols
+	except those with explicit __attribute__((visibility("default"))).
+	This is supported by all major compilers and should rather be an
+	option in libtool.
+
+	* builds/unix/configure.raw: Add -fvisibility=hidden to CFLAGS.
+	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
+	include/freetype/config/ftconfig.h (FT_EXPORT): Use visibility
+	attribute.
+
+2018-01-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Better protection against invalid VF data.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5739
+
+	Bug introduced in commit 08cd62deedefe217f2ea50e392923ce8b5bc7ac7.
+
+	* src/truetype/ttgxvar.c (TT_Set_Var_Design): Always initialize
+	`normalizedcoords'.
+
+2018-01-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (Ins_GETVARIATION): Avoid NULL reference.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5736
+
+2018-01-27  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Minor.
+
+2018-01-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Better trace VF instances.
+
+	* src/truetype/ttgxvar.c (ft_var_to_normalized): Don't emit number
+	of coordinates.
+	(TT_Get_MM_Var): Trace instance indices names.
+	(TT_Set_Var_Design): Updated.
+
+2018-01-27  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Beautify tracing of VF axis records.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Show axis records in a
+	table-like manner.
+
+2018-01-26  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Fix multiple calls of `FT_Get_MM_Var' (#52955).
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Set
+	`face->blend->num_axis' in case we have to initialize the
+	`face->blend'.
+
+2018-01-23  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[apinames] Anonymous version map for GNU linker.
+
+	* src/tools/apinames.c (PROGRAM_VERSION): Set to 0.3.
+	(OutputFormat): Add `OUTPUT_GNU_VERMAP'.
+	(names_dump): Handle it.
+	(usage): Updated.
+	(main): Handle new command line flag `-wL'.
+
+2018-01-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[unix] Call libtool to clean up.
+
+	* builds/unix/install.mk (clean_project_unix, distclean_project_unix):
+	Use libtool.
+	* builds/freetype.mk: Minor.
+
+2018-01-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftver.rc: Fix mingw-w64 compilation.
+
 2018-01-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[build] Enable VERSIONINFO resource for Cygwin/MinGW.
