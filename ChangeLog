@@ -1,3 +1,37 @@
+2018-03-13  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttcmap.c (tt_cmap2_validate): Fix potential numeric
+	overflow.
+
+2018-03-13  Werner Lemberg  <wl@gnu.org>
+
+	Fix cmap format 2 handling (#53320).
+
+	The patch introduced for #52646 was not correct.
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Adjust condition.
+
+2018-03-10  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	* CMakeLists.txt (BASE_SRCS): Update to changes from 2018-03-05.
+
+2018-03-09  Chun-wei Fan  <fanc999@yahoo.com.tw>
+
+	* CMakeLists.txt [win32]: Allow MSVC DLL builds (#53287).
+
+	Do not limit DLL builds to MinGW, since we already have
+	`__declspec(dllexport)' directives in `ftconfig.h'.
+	Also suppress more warnings for POSIX functions.
+
+2018-03-08  Hugh McMaster  <hugh.mcmaster@outlook.com>
+
+	Make installation of `freetype-config' optional (#53093).
+
+	* builds/unix/configure.raw: Add option `--enable-freetype-config'
+	and set `INSTALL_FT2_CONFIG'.
+	* builds/unix/unix-def.in (INSTALL_FT2_CONFIG): Define.
+	* builds/unix/install.mk (install): Handle it.
+
 2018-03-05  Werner Lemberg  <wl@gnu.org>
 
 	Make `ftlcdfil.c' part of the `base' module.
