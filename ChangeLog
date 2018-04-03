@@ -1,3 +1,52 @@
+2018-04-01  Werner Lemberg  <wl@gnu.org>
+
+	* builds/toplevel.mk (work): Use $(SEP).
+
+	This fixes the `make refdoc' using Cygwin: $(CAT) is `type' on this
+	platform, and this program only understands backslashes in paths.
+
+	Reported by Nikhil Ramakrishnan <ramakrishnan.nikhil@gmail.com>.
+
+2018-03-30  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix memory leak (only if tracing is on).
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var) [FT_DEBUG_LEVEL_TRACE}: Fix
+	it.
+
+2018-03-23  Ben Wagner  <bungeman@google.com>
+
+	[sfnt] Correctly handle missing bitmaps in sbix format (#53404).
+
+	* src/sfnt/ttfsbit.c (tt_face_load_sbix_image): Fix return value.
+
+2018-03-23  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Fix advance of empty glyphs in bitmap fonts (#53393).
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Apply scaling to metrics
+	for empty bitmaps.
+
+2018-03-22  Werner Lemberg  <wl@gnu.org>
+
+	Remove `ftlcdfil.c' and `ftfntfmt.c' from build files (#53415).
+
+	builds/amiga/makefile, builds/amiga/makefile.os4,
+	builds/amiga/smakefile, builds/mac/FreeType.m68k_cfm.make.txt,
+	builds/mac/FreeType.m68k_far.make.txt,
+	builds/mac/FreeType.ppc_carbon.make.txt,
+	builds/mac/FreeType.ppc_classic.make.txt,
+	builds/symbian/freetype.mmp, builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/freetype.vcxproj.filters,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj, vms_make.com: Do it.
+
 2018-03-13  Werner Lemberg  <wl@gnu.org>
 
 	* src/sfnt/ttcmap.c (tt_cmap2_validate): Fix potential numeric
