@@ -164,4 +164,5 @@ pip-log.txt
 
 config.mk
 objs/vc2010/
+build
 /builds/win32/msvc/freetype.vsprops

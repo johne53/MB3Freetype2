@@ -1,3 +1,151 @@
+2018-04-17  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Integer overflow issues.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7739
+
+	* src/truetype/ttinterp.c (Ins_CEILING): Use FT_PIX_CEIL_LONG.
+
+2018-04-16  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Integer overflow issues.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7718
+
+	* src/truetype/ttinterp.c (Ins_MIRP): Use ADD_LONG.
+
+2018-04-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[build] Use `info' function of make 3.81.
+
+	* configure, docs/INSTALL, docs/INSTALL.CROSS, docs/INSTALL.GNU,
+	docs/INSTALL.UNIX, docs/MAKEPP: Bump make version requirements.
+
+	* builds/detect.mk (std_setup): Replace `echo' with `info'.
+	(dos_setup): Removed.
+	* builds/unix/install.mk, builds/modules.mk, builds/dos/detect.mk,
+	builds/windows/detect.mk, builds/os2/detect.mk: Updated.
+	* builds/newline: No longer needed.
+
+2018-04-15  Werner Lemberg  <wl@gnu.org>
+
+	[truetype]: Limit `SLOOP' bytecode argument to 16 bits.
+
+	This fixes
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7707
+
+	* src/truetype/ttinterp.c (Ins_SLOOP): Do it.
+
+2018-04-14  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Integer overflow issues.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7652
+
+	* src/truetype/ttinterp.c (Ins_MDAP): Use SUB_LONG.
+
+2018-04-14  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Update to Unicode 11.0.0.
+
+	But no support new scripts (volunteers welcomed).
+
+	* src/autofit/afranges.c (af_arab_nonbase_uniranges,
+	af_beng_nonbase_uniranges, af_cakm_nonbase_uniranges,
+	af_deva_nonbase_uniranges, af_geor_uniranges,
+	af_gujr_nonbase_uniranges, af_mlym_nonbase_uniranges,
+	af_nkoo_nonbase_uniranges, af_telu_nonbase_uniranges,
+	af_hani_uniranges): Add new data.
+
+2018-04-10  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	* CMakeLists.txt, builds/cmake/FindHarfBuzz.cmake: Extensive
+	modernization measures.
+
+	This brings up the minimum required CMake version to 2.8.12.
+
+	The installation paths follow the GNU defaults now, e.g. installing on a
+	64 bit host will place binaries into the lib64/ folder on e.g. Fedora.
+
+	Symbols are hidden by default (e.g. `-fvisibility=hidden' on GCC).
+
+	CMake will no longer look for a C++ compiler.
+
+	Library and .so version now match the Autotools build.
+
+	Comments in the build file and informational messages now use platform
+	agnostic example commands.
+
+	ftoption.h and ftconfig.h are written directly without a redundant `-new'
+	copy.
+
+	External dependencies are expressed as option()s and will turn up as such
+	in cmake-gui.
+
+	Internal: Properties such as dependencies and include directories are now
+	privately set on the freetype library instead of globally.
+
+	The CPack definitions have been cleaned up, the `make dist' has been
+	removed. Source packages generated with CPack don't contain Autotools
+	files and aren't used by the maintainters anyway.
+
+	On Windows, src/base/ftver.rc is compiled to decorate the library with
+	version and copyright information.
+
+	A pkg-config file is now generated and installed.
+
+2018-04-09  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Integer overflow issues.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7453
+
+	* src/truetype/ttinterp.c (Round_Super, Round_Super_45): Use
+	ADD_LONG and SUB_LONG.
+
+2018-04-06  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[windows, wince] Clean up legacy project files.
+
+	* builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/windows/vc2005/freetype.vcproj,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/freetype.dsp: Remove per-file compile flags.
+
+2018-04-04  Werner Lemberg  <wl@gnu.org>
+
+	[cff, type1] Sanitize `BlueFuzz' and `BlueShift'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7371
+
+	* src/cff/cffload.c (cff_load_private_dict): Sanitize
+	`priv->blue_shift' and `priv->blue_fuzz' to avoid overflows later
+	on.
+
+	* src/type1/t1load.c (T1_Open_Face): Ditto.
+
+2018-04-04  Ben Wagner  <bungeman@google.com>
+
+	* src/truetype/ttobjs.c (trick_names): Add 3 tricky fonts (#53554),
+	`DFHei-Md-HK-BF', `DFKaiShu-Md-HK-BF' and `DFMing-Bd-HK-BF'.
+	(tt_check_trickyness_sfnt_ids): Add checksums for 3 tricky fonts
+	in above.
+
 2018-04-01  Werner Lemberg  <wl@gnu.org>
 
 	* builds/toplevel.mk (work): Use $(SEP).
