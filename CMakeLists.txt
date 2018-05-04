@@ -130,7 +130,7 @@ project(freetype C)
 
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "9")
-set(VERSION_PATCH "0")
+set(VERSION_PATCH "1")
 
 # SOVERSION scheme: CURRENT.AGE.REVISION
 #   If there was an incompatible interface change:
@@ -229,9 +229,12 @@ if (UNIX)
   endif ()
   string(REPLACE "/undef " "#undef "
     FTCONFIG_H "${FTCONFIG_H}")
-  file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
-    "${FTCONFIG_H}")
+else()
+  file(READ "${PROJECT_SOURCE_DIR}/include/freetype/config/ftconfig.h"
+    FTCONFIG_H)
 endif ()
+file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
+  "${FTCONFIG_H}")
 
 
 # Create the options file

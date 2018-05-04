@@ -1,3 +1,151 @@
+2018-05-04  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
+
+	Support symbol visibility features of Sun / Oracle C compilers.
+	Reported by Kiyoshi Kanazawa:
+	https://lists.gnu.org/archive/html/freetype-devel/2018-05/msg00008.html
+	Thanks to the suggestions by Alexei and Alan Coopersmith.
+
+	* builds/unix/configure.raw: Check if "-xldscope=hidden" is
+	accepted, and if so, it is added to CFLAGS.  This is the option
+	making Sun / Oracle C compilers hide the symbols from global
+	scope.
+	* include/freetype/config/ftconfig.h: Use "__global" prefix
+	for FT_EXPORT() macro, if SunPro C is newer than Sun ONE
+	Studio 8 (2003).
+	* builds/unix/ftconfig.in: Ditto.
+	* builds/vms/ftconfig.h: Ditto.
+
+2018-05-02  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	Unbreak CMake Windows installation
+
+	* CMakeLists.txt: Generate ftconfig.h on non-UNIX.
+
+
+2018-05-02  Werner Lemberg  <wl@gnu.org>
+
+	Remove FT_CONFIG_OPTION_PIC and related code.
+
+	*/* [FT_CONFIG_OPTION_PIC]: Remove all code guarded by this
+	preprocessor symbol.
+
+	*/*: Replace `XXX_GET' macros (which could be either a function in
+	PIC mode or an array in non-PIC mode) with `xxx' arrays.
+
+	* include/freetype/internal/ftpic.h, src/autofit/afpic.c,
+	src/autofit/afpic.h, src/base/basepic.c, src/base/basepic.h,
+	src/base/ftpic.c, src/cff/cffpic.c, src/cff/cffpic.h,
+	src/pshinter/pshpic.c, src/pshinter/pshpic.h, src/psnames/pspic.c,
+	src/psnames/pspic.h, src/raster/rastpic.c, src/raster/rastpic.h,
+	src/sfnt/sfntpic.c, src/sfnt/sfntpic.h, src/smooth/ftspic.c,
+	src/smooth/ftspic.h, src/truetype/ttpic.c, src/truetype/ttpic.h:
+	Removed.
+
+2018-05-01  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.9.1 released.
+	=========================
+
+
+	Tag sources with `VER-2-9-1'.
+
+	* docs/VERSION.TXT: Add entry for version 2.9.1.
+	* docs/CHANGES: Updated.
+
+	* README, Jamfile (RefDoc), builds/windows/vc2005/freetype.vcproj,
+	src/base/ftver.rc, builds/windows/vc2005/index.html,
+	builds/windows/vc2008/freetype.vcproj,
+	builds/windows/vc2008/index.html,
+	builds/windows/vc2010/freetype.vcxproj,
+	builds/windows/vc2010/index.html,
+	builds/windows/visualc/freetype.dsp,
+	builds/windows/visualc/freetype.vcproj,
+	builds/windows/visualc/index.html,
+	builds/windows/visualce/freetype.dsp,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/index.html: s/2.9/2.9.1/, s/29/291/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 1.
+
+	* builds/unix/configure.raw (version_info): Set to 22:1:16.
+	* CMakeLists.txt (VERSION_PATCH): Set to 1.
+
+	* include/freetype/ftgasp.h: Use FT_BEGIN_HEADER and FT_END_HEADER.
+
+2018-04-26  Werner Lemberg  <wl@gnu.org>
+
+	Another fix for handling invalid format 2 cmaps.
+
+	Sigh.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8003
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Adjust condition to avoid
+	an endless loop.
+
+2018-04-24  Ben Wagner  <bungeman@google.com>
+
+	[base] Avoid undefined behaviour in lcd filtering code (#53727).
+
+	* src/base/ftlcdfil.c (ft_lcd_filter_fir, _ft_lcd_filter_legacy):
+	Ensure `height > 0'.
+
+2018-04-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftoutln.c (FT_Outline_Decompose): Improve error tracing.
+
+2018-04-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Fix bitmap emboldening.
+
+	Bug introduced after release 2.8.
+
+	* src/base/ftbitmap.c (ft_bitmap_assure_buffer): We use
+	`FT_QALLOC_MULT', which doesn't zero out the buffer.  Adjust the
+	bitmap copying code to take care of this fact.
+
+2018-04-22  Werner Lemberg  <wl@gnu.org>
+
+	Another fix for handling invalid format 2 cmaps.
+
+	The previous commit was incomplete.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7928
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Adjust condition to avoid
+	an endless loop.
+
+2018-04-19  Werner Lemberg  <wl@gnu.org
+
+	[autofit] Add support for Georgian Mtavruli characters.
+
+	This will be part of the forthcoming Unicode 11.0.
+
+	* src/autofit/afblue.dat: Add blue zone data for Mtavruli.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Mtavruli standard character.
+
+2018-04-18  Werner Lemberg  <wl@gnu.org>
+
+	Fix handling of invalid format 2 cmaps.
+
+	The problem was introduced after the last release.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7828
+
+	* src/sfnt/ttcmap.c (tt_cmap2_char_next): Avoid endless loop.
+
 2018-04-17  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Integer overflow issues.
@@ -452,7 +600,7 @@
 	(FREETYPE_PATCH): Set to 0.
 
 	* builds/unix/configure.raw (version_info): Set to 22:0:16.
-	* CMakeLists.txt (VERSION_PATCH): Set to 1.
+	* CMakeLists.txt (VERSION_PATCH): Set to 0.
 
 2018-01-07  Werner Lemberg  <wl@gnu.org>
 
