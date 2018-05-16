@@ -374,32 +374,26 @@
       /* unless the rounded box can collapse for a narrow glyph */
       if ( cbox.xMax - cbox.xMin < 64 )
       {
-        cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
-        cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
+        cbox.xMin = ( cbox.xMin + cbox.xMax ) / 2 - 32;
+        cbox.xMax = cbox.xMin + 64;
       }
-      else
-      {
-        cbox.xMin = FT_PIX_ROUND_LONG( cbox.xMin );
-        cbox.xMax = FT_PIX_ROUND_LONG( cbox.xMax );
-      }
+
+      cbox.xMin = FT_PIX_ROUND_LONG( cbox.xMin );
+      cbox.xMax = FT_PIX_ROUND_LONG( cbox.xMax );
 
       if ( cbox.yMax - cbox.yMin < 64 )
       {
-        cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-        cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
+        cbox.yMin = ( cbox.yMin + cbox.yMax ) / 2 - 32;
+        cbox.yMax = cbox.yMin + 64;
       }
-      else
-      {
-        cbox.yMin = FT_PIX_ROUND_LONG( cbox.yMin );
-        cbox.yMax = FT_PIX_ROUND_LONG( cbox.yMax );
-      }
-#else
-      cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
-      cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-      cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
-      cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
-#endif
+
+      cbox.yMin = FT_PIX_ROUND_LONG( cbox.yMin );
+      cbox.yMax = FT_PIX_ROUND_LONG( cbox.yMax );
+
       break;
+#else
+      goto Round;
+#endif
 
     case FT_RENDER_MODE_LCD:
       pixel_mode = FT_PIXEL_MODE_LCD;
@@ -537,6 +531,16 @@
 
     /* free bitmap buffer if needed */
     ft_glyphslot_free_bitmap( slot );
+
+    /* free glyph color layers if needed */
+    if ( slot->internal->color_layers )
+    {
+      FT_Colr_InternalRec*  color_layers = slot->internal->color_layers;
+
+
+      FT_FREE( color_layers->layers );
+      FT_FREE( slot->internal->color_layers );
+    }
 
     /* slot->internal might be NULL in out-of-memory situations */
     if ( slot->internal )
@@ -1014,17 +1018,36 @@
         ft_glyphslot_preset_bitmap( slot, mode, NULL );
     }
 
-    FT_TRACE5(( "FT_Load_Glyph: index %d, flags %x\n",
-                glyph_index, load_flags               ));
-    FT_TRACE5(( "  x advance: %f\n", slot->advance.x / 64.0 ));
-    FT_TRACE5(( "  y advance: %f\n", slot->advance.y / 64.0 ));
-    FT_TRACE5(( "  linear x advance: %f\n",
-                slot->linearHoriAdvance / 65536.0 ));
-    FT_TRACE5(( "  linear y advance: %f\n",
-                slot->linearVertAdvance / 65536.0 ));
-    FT_TRACE5(( "  bitmap %dx%d, mode %d\n",
-                slot->bitmap.width, slot->bitmap.rows,
-                slot->bitmap.pixel_mode               ));
+#ifdef FT_DEBUG_LEVEL_TRACE
+    {
+      static const char* const  pixel_modes[] =
+      {
+        "none",
+        "monochrome bitmap",
+        "gray 8-bit bitmap",
+        "gray 2-bit bitmap",
+        "gray 4-bit bitmap",
+        "LCD 8-bit bitmap",
+        "vertical LCD 8-bit bitmap",
+        "BGRA 32-bit color image bitmap"
+      };
+
+
+      FT_TRACE5(( "FT_Load_Glyph: index %d, flags 0x%x\n",
+                  glyph_index, load_flags ));
+      FT_TRACE5(( "  x advance: %f\n", slot->advance.x / 64.0 ));
+      FT_TRACE5(( "  y advance: %f\n", slot->advance.y / 64.0 ));
+      FT_TRACE5(( "  linear x advance: %f\n",
+                  slot->linearHoriAdvance / 65536.0 ));
+      FT_TRACE5(( "  linear y advance: %f\n",
+                  slot->linearVertAdvance / 65536.0 ));
+      FT_TRACE5(( "  bitmap %dx%d, %s (mode %d)\n",
+                  slot->bitmap.width,
+                  slot->bitmap.rows,
+                  pixel_modes[slot->bitmap.pixel_mode],
+                  slot->bitmap.pixel_mode ));
+    }
+#endif
 
   Exit:
     return error;
@@ -4497,6 +4520,61 @@
       break;
 
     default:
+      if ( slot->internal->color_layers )
+      {
+        FT_Face  face = slot->face;
+
+
+        error = FT_New_GlyphSlot( face, NULL );
+        if ( !error )
+        {
+          TT_Face       ttface = (TT_Face)face;
+          SFNT_Service  sfnt   = (SFNT_Service)ttface->sfnt;
+
+          FT_Glyph_LayerRec*  glyph_layers =
+                                slot->internal->color_layers->layers;
+
+          FT_Int  idx;
+
+
+          for ( idx = 0;
+                idx < slot->internal->color_layers->num_layers;
+                idx++ )
+          {
+            FT_Int  load_flags;
+
+
+            load_flags  = slot->internal->color_layers->load_flags
+                          & ~FT_LOAD_COLOR;
+            load_flags |= FT_LOAD_RENDER;
+
+            error = FT_Load_Glyph( face,
+                                   glyph_layers[idx].glyph_index,
+                                   load_flags );
+            if ( error )
+              break;
+
+            error = sfnt->colr_blend( ttface,
+                                      glyph_layers[idx].color_index,
+                                      slot,
+                                      face->glyph );
+            if ( error )
+              break;
+          }
+
+          if ( !error )
+            slot->format = FT_GLYPH_FORMAT_BITMAP;
+
+          FT_Done_GlyphSlot( face->glyph );
+        }
+
+        if ( !error )
+          return error;
+
+        /* Failed to do the colored layer.  Draw outline instead. */
+        slot->format = FT_GLYPH_FORMAT_OUTLINE;
+      }
+
       {
         FT_ListNode  node = NULL;
 

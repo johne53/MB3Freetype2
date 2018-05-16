@@ -2892,6 +2892,39 @@
          size->metrics->y_ppem < 24         )
       glyph->outline.flags |= FT_OUTLINE_HIGH_PRECISION;
 
+    /* The outline based algorithm took care of metrics. */
+    /* Read additional color info if requested.          */
+    if ( ( load_flags & FT_LOAD_COLOR )            &&
+         ( (TT_Face)(glyph->face) )->colr_and_cpal )
+    {
+      TT_Face       face   = (TT_Face)glyph->face;
+      FT_Memory     memory = face->root.memory;
+      SFNT_Service  sfnt   = (SFNT_Service)face->sfnt;
+
+      FT_Glyph_LayerRec*  glyph_layers;
+      FT_UShort           num_glyph_layers;
+
+
+      error = sfnt->load_colr_layer( face,
+                                     glyph_index,
+                                     &glyph_layers,
+                                     &num_glyph_layers );
+      if ( error )
+        return error;
+
+      if ( !glyph->internal->color_layers )
+      {
+        if ( FT_NEW( glyph->internal->color_layers ) )
+          return error;
+      }
+
+      FT_FREE( glyph->internal->color_layers->layers );
+
+      glyph->internal->color_layers->layers     = glyph_layers;
+      glyph->internal->color_layers->num_layers = num_glyph_layers;
+      glyph->internal->color_layers->load_flags = load_flags;
+    }
+
   Exit:
 #ifdef FT_DEBUG_LEVEL_TRACE
     if ( error )

@@ -1,6 +1,208 @@
+2018-05-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Fix mono bitmap presetting (#53896).
+
+	It is rather fundamental to set monochrome bitmap based on rounded
+	CBox because the b/w rasterizer turns on pixels when their centers are
+	inside the glyph outline. The dropout control is unpredictable and can
+	distort narrow glyphs if the bitmap is too wide.
+
+	Reported by Chris Liddell.
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bitmap): If BBox boundaries
+	are too close, adjust them before rounding.
+
+2018-05-15  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix compiler warning (#53915).
+
+	* src/psaux/psft.c (cf2_freeT1SeacComponent): Do it.
+
+2018-05-15  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix memory leak in handling `COLR' data.
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Free old `layers' array
+	before reassigning allocated memory.
+	Only allocate `color_layers' if we don't have one already.
+
+2018-05-15  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] If `COLR' is present, don't assume that all glyphs use it.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr_layers): Return FT_Err_Ok if
+	current glyph is not a `COLR' base glyph.
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Don't allocate
+	`color_layers' if there are no color layers.
+
+2018-05-14  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Fix signature of `pixel_modes'.
+
+2018-05-14  Werner Lemberg  <wl@gnu.org>
+
+	Provide dummy functions if `TT_CONFIG_OPTION_SFNT_NAMES' is not set.
+
+	* src/base/ftsnames.c [!TT_CONFIG_OPTION_SFNT_NAMES]: Implement it.
+
+2018-05-13  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Improve tracing.
+
+2018-05-13  Shao Yu Zhang  <shaozhang@fb.com>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Preliminary support of coloured layer outlines.
+
+	This commit enables OpenType's COLR/CPAL table handling; a typical
+	application are color emojis that can be scaled to any size.
+
+	If the color palette does not exist or is invalid, the rendering
+	step rasterizes the outline instead.  The current implementation
+	assumes that the foreground is black.
+
+	Enable this by defining option TT_CONFIG_OPTION_COLOR_LAYERS.
+
+	There are still some issues with metrics; additionally, an API to
+	fetch color layers is missing.
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h
+	(TT_CONFIG_OPTION_COLOR_LAYERS): New macro.
+
+	* include/freetype/internal/ftobjs.h (FT_Glyph_LayerRec,
+	FT_Colr_InternalRec): New structures.
+	(FT_Slot_InternalRec): Add `color_layers' field.
+
+	* include/freetype/internal/sfnt.h (TT_Load_Colr_Layer_Func,
+	TT_Blend_Colr_Func): New function types.
+	(SFNT_Interface): Add `load_colr', `free_colr', `load_colr_layer',
+	and `colr_blend' fields.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Add
+	`colr_and_cpal' field.
+
+	* include/freetype/internal/tttags. (TTAG_COLR, TTAG_CPAL): New
+	macros.
+
+	* src/sfnt/ttcolr.c, src/sfnt/ttcolr.h: New files.
+
+	* src/base/ftobjs.c (ft_glyphslot_done, FT_Render_Glyph_Internal):
+	Handle glyph color layers.
+
+	* src/sfnt/Jamfile (_sources), src/sfnt/rules.mk (SFNT_DRV_SRC): Add
+	`ttcolr.c'.
+
+	* src/sfnt/sfdriver.c: Include `ttcolr.h'.
+	(PUT_COLOR_LAYERS): New macro.
+	Update call to `FT_DEFINE_SFNT_INTERFACE'.
+
+	* src/sfnt/sfnt.c: Include `ttcolr.c'.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face): Load `COLR' and `CPAL' tables.
+	(sfnt_done_face): Updated.
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Handle color layers.
+
+2018-05-12  Arkady Shapkin  <arkady.shapkin@gmail.com>
+
+	Use MS VC++'s _BitScanReverse to calculate MSB (patch #9636).
+
+	* include/freetype/internal/ftcalc.h (FT_MSB) [_MSC_VER]: Implement
+	it.
+
+2018-05-10  Alan Coopersmith  <alan.coopersmith@oracle.com>
+
+	Fix DLL compilation on Solaris.
+
+	AC_COMPILE_IFELSE only tries to compile a `*.c' to a `*.o'.  The
+	Solaris Studio 12.1 through 12.5 compilers see the
+	`-fvisibility=hidden' flag, but ignore it with a warning of:
+
+	  cc: Warning: Option -fvisibility=hidden passed to ld,
+	               if ld is invoked, ignored otherwise
+
+	AC_LINK_IFELSE does the compile and then tries to link the result,
+	at which point the Solaris linker will issue an error:
+
+	  ld: fatal: option '-fvisibility=hidden' is incompatible with
+	      building a dynamic executable
+
+	If we don't use AC_LINK_IFELSE to catch the error, then configure
+	will fail further tests which attempt to link, such as those testing
+	dependencies like `libbz2'.
+
+	Also, don't try adding `-fvisibility' if we have already added
+	`-xldscope', just use one of them, since Sun Studio 12 and earlier
+	compilers only issue a warning, and don't try passing through to the
+	linker to generate an error, so AC_LINK_IFELSE doesn't catch them.
+
+	Tested on Solaris 11.4 beta with compiler versions:
+
+	  Sun Studio 8 (Sun C 5.5)
+	  Sun Studio 10 (Sun C 5.7)
+	  Sun Studio 11 (Sun C 5.8)
+	  Sun Studio 12 (Sun C 5.9)
+	  Sun Studio 12.1 (Sun C 5.10)
+	  Oracle Solaris Studio 12.2 (Sun C 5.11)
+	  Oracle Solaris Studio 12.3 (Sun C 5.12)
+	  Oracle Solaris Studio 12.4 (Sun C 5.13)
+	  Oracle Developer Studio 12.5 (Sun C 5.14)
+	  Oracle Developer Studio 12.6 (Sun C 5.15)
+	  gcc 5.5.0
+	  gcc 7.3.0
+
+	and verified the libfreetype.so.6 generated by each of those
+	compilers exported the same set of symbols.
+
+	* builds/unix/configure.raw: Implement it.
+
+2018-05-08  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Avoid potential SEGV if running out of memory.
+
+	Problem reported by Shailesh Mistry <shailesh.mistry@hotmail.co.uk>.
+
+	* src/autofit/afshaper.c (af_shaper_buf_create,
+	af_shaper_buf_destroy) [!FT_CONFIG_OPTION_USE_HARFBUZZ]: Don't
+	allocate and free a four-byte buffer.  Instead, make those functions
+	no-ops; the calling functions will provide a pointer to a buffer
+	instead.
+
+	* src/autofit/afcjk.c (af_cjk_metrics_init_widths,
+	af_cjk_metrics_init_blues, af_cjk_metrics_check_digits),
+	src/autofit/aflatin.c (af_latin_metrics_init_widths,
+	af_latin_metrics_init_blues, af_latin_metrics_check_digits)
+	[!FT_CONFIG_OPTION_USE_HARFBUZZ]: Use pointer to local variable for
+	`shaper_buf'.
+
+2018-05-07  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[cmake] Allow using project as subfolder in other project.
+
+	* CMakeLists.txt: Test for CMake build directory being different
+	from source directory.  Provide other parts of the build system
+	access the full include directory.
+
+2018-05-07  Werner Lemberg  <wl@gnu.org>
+
+	[build] Suppress configure's `nothing to be done' message.
+
+	This is due to calling the configure script via `make' (within the
+	top-level `configure' wrapper script).  The same can happen for all
+	other secondary make targets that are used to only modify the
+	primary one, e.g., `make setup devel'.
+
+	* builds/dos/detect.mk (emx, turboc, watcom, borlandc, borlandc16),
+	builds/os2/detect (visualage, watcom, borlandc, devel),
+	builds/unix/detect.mk (devel, lcc, unix), builds/windows/detect.mk
+	(visualc, watcom, visualage, lcc, mingw32, bcc32, devel-bcc,
+	devel-gcc): Use no-op recipe.
+
 2018-05-04  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
 	Support symbol visibility features of Sun / Oracle C compilers.
+
 	Reported by Kiyoshi Kanazawa:
 	https://lists.gnu.org/archive/html/freetype-devel/2018-05/msg00008.html
 	Thanks to the suggestions by Alexei and Alan Coopersmith.
@@ -20,7 +222,6 @@
 	Unbreak CMake Windows installation
 
 	* CMakeLists.txt: Generate ftconfig.h on non-UNIX.
-
 
 2018-05-02  Werner Lemberg  <wl@gnu.org>
 
