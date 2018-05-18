@@ -1,3 +1,24 @@
+2018-05-17  Werner Lemberg  <wl@gnu.org>
+
+	s/inline/__inline/ for MSVC.
+
+	Reported by John Emmas <john@creativepost.co.uk>.
+
+	* include/freetype/internal/ftcalc.h (FT_MSB) [_MSC_VER]: Do it.
+
+2018-05-16  Werner Lemberg  <wl@gnu.org>
+
+	Add function `FT_Get_GlyphLayers' to access `COLR' table data.
+
+	* include/freetype/internal/ftobjs.h (FT_Glyph_LayerRec): Move this
+	structure to...
+	* include/freetype/freetype.h (FT_Glyph_LayerRec): ... this
+	header file.
+	(FT_Glyph_Layer): New typedef.
+	Update code to use it where appropriate.
+
+	* src/base/ftobjs.c (FT_Get_GlyphLayers): New function.
+
 2018-05-15  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[base] Fix mono bitmap presetting (#53896).
@@ -53,7 +74,7 @@
 2018-05-13  Shao Yu Zhang  <shaozhang@fb.com>
 	    Werner Lemberg  <wl@gnu.org>
 
-	[sfnt] Preliminary support of coloured layer outlines.
+	[sfnt] Preliminary support of coloured layer outlines (#44689).
 
 	This commit enables OpenType's COLR/CPAL table handling; a typical
 	application are color emojis that can be scaled to any size.
