@@ -1,3 +1,145 @@
+2018-06-03  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/glnames.py (main): Emit header in `light' comment style.
+
+2018-06-02  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Attempt to mitigate bug #54019.
+
+	The robust rendering of estra large glyphs came with unbearable cost.
+	The old way of bisecting should fail but fail faster.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph): Switch back to bisecting
+	in y-direction.
+
+2018-06-02  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (Ins_MIRP): Use SUB_LONG; avoid FT_ABS.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8706
+
+2018-06-02  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/afwarp.h: Use AF_CONFIG_OPTION_USE_WARPER (#54033).
+
+2018-05-31  Werner Lemberg  <wl@gnu.org>
+
+	* src/raster/ftraster.c (black_TWorker_): Remove `gTarget' field.
+
+	This is no longer used.
+
+2018-05-31  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Get colors from `CPAL' table in right order (#54015).
+
+	* src/sfnt/ttcolr.c (tt_face_find_color): Fix it.
+
+2018-05-30  Werner Lemberg  <wl@gnu.org>
+
+	ftcolor.h: Improve API design, fix typos (#54011, #54014).
+
+	* include/freetype/ftcolor.h (FT_Palette_Get_Names): Replace with...
+	(FT_Palette_Get_Name_IDs): ... this function.
+	(FT_Palette_Get_Entry_Names): Replace with...
+	(FT_Palette_Get_Entry_Name_IDs): ... this function
+	s/FT_Palette_Set_Foreground_COlor/FT_Palette_Set_Foreground_Color/.
+
+2018-05-30  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	Beautify a3cfed5e87232c933bdc64f43e8ebebcfd18b41b.
+
+	* src/autofit/afloader.c (af_loader_load_glyph): Move the
+	initialisationand declaration of variables into the if-block.
+
+2018-05-30  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	Fix pointer underflow.
+
+	The declaration of `edge2' can be reached with `edge1 == NULL' and
+	`axis->edges == 0' which results in undefined behaviour.
+
+	* src/autofit/afloader.c (af_loader_load_glyph): Initialise `edge2'
+	after checking `axis->num_edges > 1'.  `edge1 != NULL' can be assumed.
+
+2018-05-30  Werner Lemberg  <wl@gnu.org>
+
+	Various minor color fixes.
+
+	* include/freetype/config/ftheader.h (FT_COLOR_H): New macro.
+
+	* include/freetype/internal/ftobjs.h (FT_Colr_Internal): Change
+	type of `load_flags' to `FT_Int32'.
+
+	* include/freetype/internal/sfnt.h (TT_Load_Colr_Layer_Func): Change
+	type of `idx' to `FT_UInt'.
+	(TT_Blend_Colr_Func): Change type of `color_index' to `FT_UInt'.
+
+	* src/base/ftobjs.c (FT_Render_Glyph_Internal): Change type of
+	`load_flags' to `FT_Int32'.
+
+	* src/sfnt/ttcolr.c (find_base_glyph_record,
+	tt_face_load_colr_layers): Change type of `glyph_id' to `FT_UInt'.
+	(tt_face_find_color, tt_face_colr_blend_layer): Change type of
+	`color_index' to `FT_UInt'.
+	Fix signedness and type issues.
+
+	* src/sfnt/ttcolr.h: Updated.
+
+2018-05-25  Nikhil Ramakrishnan  <ramakrishnan.nikhil@gmail.com>
+
+	[docmaker] Fix missing `Defined in (...)' under Windows/Cygwin.
+
+	This platform uses backslashes for paths, which docmaker didn't
+	understand correctly.
+
+	* src/tools/docmaker/tohtml.py (HtmlFormatter::blockEnter): Use
+	`os.path.normpath' to normalize the path for the platform being
+	used.
+
+2018-05-24  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Formalize Harmony LCD rendering.
+
+	This generalizes magic outline shifts that make Harmony LCD
+	rendering work in terms of precise two-dimensional RGB subpixel
+	positions. These coordinates are now set in time of the `smooth'
+	module initialization and later used to shift a glyph outline for
+	rendering. FT_RENDER_MODE_LCD and FT_RENDER_MODE_LCD_V use the same
+	coordinates. The letter, however, rotates them before using.
+	The LCD bitmap padding is also calculated using these coordinates.
+
+	* include/freetype/internal/ftobjs.h (FT_LibraryRec): New array field
+	`lcd_geometry'.
+	* src/base/ftlcdfil.c (ft_lcd_padding): Reworked.
+	* src/base/ftobjs.c (ft_glyphslot_preset_bitmap): Updated accordingly.
+
+	* src/smooth/ftsmooth.c [!FT_CONFIG_OPTION_SUBPIXEL_RENDERING]
+	(ft_smooth_init): Initialize `lcd_geometry'.
+	(ft_smooth_render_generic): Formalize outline shifts.
+
+2018-05-22  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Reject elements of composites with invalid glyph indices.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8413
+
+	* src/truetype/ttgload.c (TT_Load_Composite_Glyph): Implement it.
+
+2018-05-22  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgload.c (TT_Load_Simple_Glyph): Trace # of points.
+
+2018-05-20  Werner Lemberg  <wl@gnu.org>
+
+	* include/freetype/ftcolor.h: New file.
+
+	This is an interface to the `CPAL' OpenType table.  No
+	implementation yet.
+
 2018-05-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* include/freetype/internal/ftcalc.h (FT_MSB): Verified `_MSC_VER'.
