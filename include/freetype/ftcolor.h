@@ -1,19 +1,19 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftcolor.h                                                              */
-/*                                                                         */
-/*    FreeType's glyph color management (specification).                   */
-/*                                                                         */
-/*  Copyright 2018 by                                                      */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftcolor.h
+ *
+ *   FreeType's glyph color management (specification).
+ *
+ * Copyright 2018 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef FTCOLOR_H_
@@ -41,7 +41,7 @@ FT_BEGIN_HEADER
    *   Glyph Color Management
    *
    * @abstract:
-   *   Retrieving and manipulating OpenType's `CPAL' table entries.
+   *   Retrieving and manipulating OpenType's `CPAL' table data.
    *
    * @description:
    *   The functions described here allow access and manipulation of color
@@ -88,89 +88,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @func:
-   *   FT_Palette_Get_Size
-   *
-   * @description:
-   *   Get the number of palettes in the `CPAL' table and the number of
-   *   entries in a palette (all palettes have the same number of entries).
-   *
-   * @input:
-   *   face ::
-   *     The source face handle.
-   *
-   * @output:
-   *   anum_palettes ::
-   *     The number of palettes.
-   *
-   *   anum_palette_entries ::
-   *     The number of entries in a single palette.
-   *
-   * @return:
-   *   FreeType error code.  0~means success.
-   *
-   * @note:
-   *   This function always returns an error if the config macro
-   *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
-   *
-   * @since:
-   *   2.10
-   */
-  FT_EXPORT( FT_Error )
-  FT_Palette_Get_Size( FT_Face     face,
-                       FT_UShort*  anum_palettes,
-                       FT_UShort*  anum_palette_entries );
-
-
-  /**************************************************************************
-   *
-   * @func:
-   *   FT_Palette_Get_Name_IDs
-   *
-   * @description:
-   *   Get the palette name IDs, which correspond to entries like `dark' or
-   *   `light' in the font's `name' table.
-   *
-   * @input:
-   *   face ::
-   *     The source face handle.
-   *
-   * @output:
-   *   palette_name_ids ::
-   *     A read-only array of palette name IDs.  NULL if the font's `CPAL'
-   *     table doesn't contain appropriate data.
-   *
-   *     Use function @FT_Get_Sfnt_Name to map name IDs to a name strings.
-   *
-   * @return:
-   *   FreeType error code.  0~means success.
-   *
-   * @note:
-   *   The number of palettes can be retrieved with @FT_Palette_Get_Size.
-   *
-   *   An empty name ID in the `CPAL' table gets represented as value
-   *   0xFFFF.
-   *
-   *   This function always returns an error if the config macro
-   *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
-   *
-   * @since:
-   *   2.10
-   */
-  FT_EXPORT( FT_Error )
-  FT_Palette_Get_Name_IDs( FT_Face           face,
-                           const FT_UShort*  palette_name_ids );
-
-
-  /**************************************************************************
-   *
    * @enum:
    *   FT_PALETTE_XXX
    *
    * @description:
-   *   A list of bit field constants returned by function
-   *   @FT_Palette_Get_Types to indicate for which background a given
-   *   palette is usable.
+   *   A list of bit field constants used in the `palette_types' array of
+   *   the @FT_Palette structure to indicate for which background a palette
+   *   with a given index is usable.
    *
    * @values:
    *   FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND ::
@@ -181,10 +105,6 @@ FT_BEGIN_HEADER
    *     The palette is appropriate to use when displaying the font on a
    *     dark background such as black.
    *
-   * @note:
-   *   The number of palette types can be retrieved with
-   *   @FT_Palette_Get_Size.
-   *
    * @since:
    *   2.10
    */
@@ -194,75 +114,91 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @func:
-   *   FT_Palette_Get_Types
+   * @struct:
+   *   FT_Palette
    *
    * @description:
-   *   Get the palette types.  Possible values are an ORed combination of
-   *   @FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND and
-   *   @FT_PALETTE_USABLE_WITH_DARK_BACKGROUND.
+   *   This structure holds the data of the `CPAL' table.
    *
-   * @input:
-   *   face ::
-   *     The source face handle.
+   * @fields:
+   *   num_palettes ::
+   *     The number of palettes.
    *
-   * @output:
-   *   apalette_types ::
-   *     A read-only array of palette types.  NULL if the font's `CPAL'
-   *     table doesn't contain appropriate data.
+   *   palette_name_ids ::
+   *     A read-only array of palette name IDs with `num_palettes' elements,
+   *     corresponding to entries like `dark' or `light' in the font's
+   *     `name' table.
    *
-   * @return:
-   *   FreeType error code.  0~means success.
+   *     An empty name ID in the `CPAL' table gets represented as value
+   *     0xFFFF.
+   *
+   *     NULL if the font's `CPAL' table doesn't contain appropriate data.
+   *
+   *   palette_types ::
+   *     A read-only array of palette types with `num_palettes' elements. 
+   *     Possible values are an ORed combination of
+   *     @FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND and
+   *     @FT_PALETTE_USABLE_WITH_DARK_BACKGROUND.
+   *
+   *     NULL if the font's `CPAL' table doesn't contain appropriate data.
+   *
+   *   num_palette_entries ::
+   *     The number of entries in a single palette.  All palettes have the
+   *     same size.
+   *
+   *   palette_entry_name_ids ::
+   *     A read-only array of palette entry name IDs with
+   *     `num_palette_entries'.  In each palette, entries with the same
+   *     index have the same function.  For example, index~0 might
+   *     correspond to string `outline' in the font's `name' table to
+   *     indicate that this palette entry is used for outlines, index~1
+   *     might correspond to `fill' to indicate the filling color palette
+   *     entry, etc.
+   *
+   *     An empty entry name ID in the `CPAL' table gets represented as
+   *     value 0xFFFF.
+   *
+   *     NULL if the font's `CPAL' table doesn't contain appropriate data.
    *
    * @note:
-   *   The number of palette types can be retrieved with
-   *   @FT_Palette_Get_Size.
-   *
-   *   This function always returns an error if the config macro
-   *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
+   *   Use function @FT_Get_Sfnt_Name to map name IDs and entry name IDs to
+   *   name strings.
    *
    * @since:
    *   2.10
    */
-  FT_EXPORT( FT_Error )
-  FT_Palette_Get_Types( FT_Face           face,
-                        const FT_UShort*  apalette_types );
+  typedef struct  FT_Palette_ {
+    FT_UShort         num_palettes;
+    const FT_UShort*  palette_name_ids;
+    const FT_UShort*  palette_types;
+
+    FT_UShort         num_palette_entries;
+    const FT_UShort*  palette_entry_name_ids;
+
+  } FT_Palette;
 
 
   /**************************************************************************
    *
    * @func:
-   *   FT_Palette_Get_Entry_Name_IDs
+   *   FT_Palette_Get
    *
    * @description:
-   *   Get the palette entry name IDs.  In each palette, entries with the
-   *   same index have the same function.  For example, index~0 might
-   *   correspond to string `outline' in the font's `name' table to indicate
-   *   that this palette entry is used for outlines, index~1 might
-   *   correspond to `fill' to indicate the filling color palette entry,
-   *   etc.
+   *   Retrieve the face's color palette data.
    *
    * @input:
    *   face ::
    *     The source face handle.
    *
    * @output:
-   *   aentry_names ::
-   *     A read-only array of palette entry name IDs.  NULL if the font's
-   *     `CPAL' table doesn't contain appropriate data.
-   *
-   *     Use function @FT_Get_Sfnt_Name to map entry name IDs to a name
-   *     strings.
+   *   apalette ::
+   *     A pointer to an @FT_Palette structure.
    *
    * @return:
    *   FreeType error code.  0~means success.
    *
    * @note:
-   *   The number of palette entries can be retrieved with
-   *   @FT_Palette_Get_Size.
-   *
-   *   An empty entry name ID in the `CPAL' table gets represented as value
-   *   0xFFFF.
+   *   All arrays in the returned @FT_Palette structure are read-only.
    *
    *   This function always returns an error if the config macro
    *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
@@ -271,8 +207,8 @@ FT_BEGIN_HEADER
    *   2.10
    */
   FT_EXPORT( FT_Error )
-  FT_Palette_Get_Entry_Name_IDs( FT_Face           face,
-                                 const FT_UShort*  palette_entry_name_ids );
+  FT_Palette_Get( FT_Face      face,
+                  FT_Palette  *apalette );
 
 
   /**************************************************************************
@@ -311,8 +247,8 @@ FT_BEGIN_HEADER
    *   FreeType error code.  0~means success.
    *
    * @note:
-   *   The number of color entries can be retrieved with
-   *   @FT_Palette_Get_Size.
+   *   The number of color entries is given by the `num_palette_entries'
+   *   field in the @FT_Palette structure.
    *
    *   The array pointed to by `apalette_entries' is owned and managed by
    *   FreeType.
@@ -349,6 +285,13 @@ FT_BEGIN_HEADER
    *   FreeType error code.  0~means success.
    *
    * @note:
+   *   If this function isn't called, the text foreground color is set to
+   *   white opaque (BGRA value 0xFFFFFFFF) if
+   *   @FT_PALETTE_USABLE_WITH_DARK_BACKGROUND is present for the current
+   *   palette, and black opaque (BGRA value 0x000000FF) otherwise,
+   *   including the case that no palette types are available in the `CPAL'
+   *   table.
+   *
    *   This function always returns an error if the config macro
    *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
    *

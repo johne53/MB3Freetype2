@@ -65,6 +65,7 @@
 #include <ft2build.h>
 #include "ftraster.h"
 #include FT_INTERNAL_CALC_H   /* for FT_MulDiv and FT_MulDiv_No_Round */
+#include FT_OUTLINE_H         /* for FT_Outline_Get_CBox              */
 
 #endif /* !STANDALONE_ */
 
@@ -493,7 +494,7 @@
     TPoint*     arc;                /* current Bezier arc pointer          */
 
     UShort      bWidth;             /* target bitmap width                 */
-    PByte       bTarget;            /* target bitmap buffer                */
+    PByte       bOrigin;            /* target bitmap bottom-left origin    */
 
     Long        lastX, lastY;
     Long        minY, maxY;
@@ -516,8 +517,6 @@
     FT_Outline  outline;
 
     Long        traceOfs;           /* current offset in target bitmap     */
-    Long        traceG;             /* current offset in target pixmap     */
-
     Short       traceIncr;          /* sweep's increment in target bitmap  */
 
     /* dispatch variables */
@@ -2220,8 +2219,6 @@
 
     ras.traceIncr = (Short)-pitch;
     ras.traceOfs  = -*min * pitch;
-    if ( pitch > 0 )
-      ras.traceOfs += (Long)( ras.target.rows - 1 ) * pitch;
   }
 
 
@@ -2279,7 +2276,7 @@
       f1 = (Byte)  ( 0xFF >> ( e1 & 7 ) );
       f2 = (Byte) ~( 0x7F >> ( e2 & 7 ) );
 
-      target = ras.bTarget + ras.traceOfs + c1;
+      target = ras.bOrigin + ras.traceOfs + c1;
       c2 -= c1;
 
       if ( c2 > 0 )
@@ -2437,7 +2434,7 @@
         f1 = (Short)( e1 &  7 );
 
         if ( e1 >= 0 && e1 < ras.bWidth                      &&
-             ras.bTarget[ras.traceOfs + c1] & ( 0x80 >> f1 ) )
+             ras.bOrigin[ras.traceOfs + c1] & ( 0x80 >> f1 ) )
           goto Exit;
       }
       else
@@ -2453,7 +2450,7 @@
       c1 = (Short)( e1 >> 3 );
       f1 = (Short)( e1 & 7 );
 
-      ras.bTarget[ras.traceOfs + c1] |= (char)( 0x80 >> f1 );
+      ras.bOrigin[ras.traceOfs + c1] |= (char)( 0x80 >> f1 );
     }
 
   Exit:
@@ -2520,19 +2517,14 @@
         {
           Byte   f1;
           PByte  bits;
-          PByte  p;
 
 
           FT_TRACE7(( " -> y=%d (drop-out)", e1 ));
 
-          bits = ras.bTarget + ( y >> 3 );
+          bits = ras.bOrigin + ( y >> 3 ) - e1 * ras.target.pitch;
           f1   = (Byte)( 0x80 >> ( y & 7 ) );
-          p    = bits - e1 * ras.target.pitch;
 
-          if ( ras.target.pitch > 0 )
-            p += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
-
-          p[0] |= f1;
+          bits[0] |= f1;
         }
       }
 
@@ -2634,12 +2626,8 @@
 
         e1 = TRUNC( e1 );
 
-        bits = ras.bTarget + ( y >> 3 );
+        bits = ras.bOrigin + ( y >> 3 ) - e1 * ras.target.pitch;
         f1   = (Byte)( 0x80 >> ( y & 7 ) );
-
-        bits -= e1 * ras.target.pitch;
-        if ( ras.target.pitch > 0 )
-          bits += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
         if ( e1 >= 0                     &&
              (ULong)e1 < ras.target.rows &&
@@ -2656,12 +2644,8 @@
     {
       FT_TRACE7(( " -> y=%d (drop-out)", e1 ));
 
-      bits  = ras.bTarget + ( y >> 3 );
+      bits  = ras.bOrigin + ( y >> 3 ) - e1 * ras.target.pitch;
       f1    = (Byte)( 0x80 >> ( y & 7 ) );
-      bits -= e1 * ras.target.pitch;
-
-      if ( ras.target.pitch > 0 )
-        bits += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
       bits[0] |= f1;
     }
@@ -2925,6 +2909,94 @@
   }
 
 
+#ifdef STANDALONE_
+
+  /**************************************************************************
+   *
+   * The following functions should only compile in stand-alone mode,
+   * i.e., when building this component without the rest of FreeType.
+   *
+   */
+
+  /**************************************************************************
+   *
+   * @Function:
+   *   FT_Outline_Get_CBox
+   *
+   * @Description:
+   *   Return an outline's `control box'.  The control box encloses all
+   *   the outline's points, including Bézier control points.  Though it
+   *   coincides with the exact bounding box for most glyphs, it can be
+   *   slightly larger in some situations (like when rotating an outline
+   *   that contains Bézier outside arcs).
+   *
+   *   Computing the control box is very fast, while getting the bounding
+   *   box can take much more time as it needs to walk over all segments
+   *   and arcs in the outline.  To get the latter, you can use the
+   *   `ftbbox' component, which is dedicated to this single task.
+   *
+   * @Input:
+   *   outline ::
+   *     A pointer to the source outline descriptor.
+   *
+   * @Output:
+   *   acbox ::
+   *     The outline's control box.
+   *
+   * @Note:
+   *   See @FT_Glyph_Get_CBox for a discussion of tricky fonts.
+   */
+
+  static void
+  FT_Outline_Get_CBox( const FT_Outline*  outline,
+                       FT_BBox           *acbox )
+  {
+    Long  xMin, yMin, xMax, yMax;
+
+
+    if ( outline && acbox )
+    {
+      if ( outline->n_points == 0 )
+      {
+        xMin = 0;
+        yMin = 0;
+        xMax = 0;
+        yMax = 0;
+      }
+      else
+      {
+        FT_Vector*  vec   = outline->points;
+        FT_Vector*  limit = vec + outline->n_points;
+
+
+        xMin = xMax = vec->x;
+        yMin = yMax = vec->y;
+        vec++;
+
+        for ( ; vec < limit; vec++ )
+        {
+          Long  x, y;
+
+
+          x = vec->x;
+          if ( x < xMin ) xMin = x;
+          if ( x > xMax ) xMax = x;
+
+          y = vec->y;
+          if ( y < yMin ) yMin = y;
+          if ( y > yMax ) yMax = y;
+        }
+      }
+      acbox->xMin = xMin;
+      acbox->xMax = xMax;
+      acbox->yMin = yMin;
+      acbox->yMax = yMax;
+    }
+  }
+
+#endif /* STANDALONE_ */
+
+
   /**************************************************************************
    *
    * @Function:
@@ -3051,7 +3123,10 @@
     ras.band_stack[0].y_max = (Short)( ras.target.rows - 1 );
 
     ras.bWidth  = (UShort)ras.target.width;
-    ras.bTarget = (Byte*)ras.target.buffer;
+    ras.bOrigin = (Byte*)ras.target.buffer;
+
+    if ( ras.target.pitch > 0 )
+      ras.bOrigin += (Long)( ras.target.rows - 1 ) * ras.target.pitch;
 
     if ( ( error = Render_Single_Pass( RAS_VARS 0 ) ) != 0 )
       return error;
@@ -3183,6 +3258,7 @@
   {
     const FT_Outline*  outline    = (const FT_Outline*)params->source;
     const FT_Bitmap*   target_map = params->target;
+    FT_BBox            cbox;
 
     black_TWorker  worker[1];
 
@@ -3223,19 +3299,23 @@
     if ( !target_map->buffer )
       return FT_THROW( Invalid );
 
+    FT_Outline_Get_CBox( outline, &cbox );
+
     /* reject too large outline coordinates */
-    {
-      FT_Vector*  vec   = outline->points;
-      FT_Vector*  limit = vec + outline->n_points;
+    if ( cbox.xMin < -0x1000000L || cbox.xMax > 0x1000000L ||
+         cbox.yMin < -0x1000000L || cbox.yMax > 0x1000000L )
+      return FT_THROW( Invalid );
 
+    /* truncate the bounding box to integer pixels */
+    cbox.xMin = cbox.xMin >> 6;
+    cbox.yMin = cbox.yMin >> 6;
+    cbox.xMax = ( cbox.xMax + 63 ) >> 6;
+    cbox.yMax = ( cbox.yMax + 63 ) >> 6;
 
-      for ( ; vec < limit; vec++ )
-      {
-        if ( vec->x < -0x1000000L || vec->x > 0x1000000L ||
-             vec->y < -0x1000000L || vec->y > 0x1000000L )
-         return FT_THROW( Invalid );
-      }
-    }
+    /* reject too large glyphs */
+    if ( cbox.xMax - cbox.xMin > 0xFFFF ||
+         cbox.yMax - cbox.yMin > 0xFFFF )
+      return FT_THROW( Invalid );
 
     ras.outline = *outline;
     ras.target  = *target_map;
