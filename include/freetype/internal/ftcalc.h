@@ -248,18 +248,18 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_MulDiv_No_Round
    *
-   * @Description:
+   * @description:
    *   A very simple function used to perform the computation `(a*b)/c'
    *   (without rounding) with maximum accuracy (it uses a 64-bit
    *   intermediate integer whenever necessary).
    *
-   *   This function isn't necessarily as fast as some processor specific
+   *   This function isn't necessarily as fast as some processor-specific
    *   operations, but is at least completely portable.
    *
-   * @Input:
+   * @input:
    *   a ::
    *     The first multiplier.
    *   b ::
@@ -267,7 +267,7 @@ FT_BEGIN_HEADER
    *   c ::
    *     The divisor.
    *
-   * @Return:
+   * @return:
    *   The result of `(a*b)/c'.  This function never traps when trying to
    *   divide by zero; it simply returns `MaxInt' or `MinInt' depending
    *   on the signs of `a' and `b'.
@@ -290,6 +290,21 @@ FT_BEGIN_HEADER
   FT_Matrix_Multiply_Scaled( const FT_Matrix*  a,
                              FT_Matrix        *b,
                              FT_Long           scaling );
+
+
+  /*
+   * Check a matrix.  If the transformation would lead to extreme shear or
+   * extreme scaling, for example, return 0.  If everything is OK, return 1.
+   *
+   * Based on geometric considerations we use the following inequality to
+   * identify a degenerate matrix.
+   *
+   *   50 * abs(xx*yy - xy*yx) < xx^2 + xy^2 + yx^2 + yy^2
+   *
+   * Value 50 is heuristic.
+   */
+  FT_BASE( FT_Bool )
+  FT_Matrix_Check( const FT_Matrix*  matrix );
 
 
   /*
@@ -407,20 +422,20 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_SqrtFixed
    *
-   * @Description:
+   * @description:
    *   Computes the square root of a 16.16 fixed-point value.
    *
-   * @Input:
+   * @input:
    *   x ::
    *     The value to compute the root for.
    *
-   * @Return:
+   * @return:
    *   The result of `sqrt(x)'.
    *
-   * @Note:
+   * @note:
    *   This function is not very fast.
    */
   FT_BASE( FT_Int32 )
@@ -447,6 +462,15 @@ FT_BEGIN_HEADER
    *
    * Use with care!
    */
+#define ADD_INT( a, b )                           \
+          (FT_Int)( (FT_UInt)(a) + (FT_UInt)(b) )
+#define SUB_INT( a, b )                           \
+          (FT_Int)( (FT_UInt)(a) - (FT_UInt)(b) )
+#define MUL_INT( a, b )                           \
+          (FT_Int)( (FT_UInt)(a) * (FT_UInt)(b) )
+#define NEG_INT( a )                              \
+          (FT_Int)( (FT_UInt)0 - (FT_UInt)(a) )
+
 #define ADD_LONG( a, b )                             \
           (FT_Long)( (FT_ULong)(a) + (FT_ULong)(b) )
 #define SUB_LONG( a, b )                             \

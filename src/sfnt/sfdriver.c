@@ -34,6 +34,7 @@
 
 #ifdef TT_CONFIG_OPTION_COLOR_LAYERS
 #include "ttcolr.h"
+#include "ttcpal.h"
 #endif
 
 #ifdef TT_CONFIG_OPTION_POSTSCRIPT_NAMES
@@ -676,7 +677,7 @@
     if ( fixed < 0 )
     {
       *p++ = '-';
-      fixed = -fixed;
+      fixed = NEG_INT( fixed );
     }
 
     int_part  = ( fixed >> 16 ) & 0xFFFF;
@@ -1257,12 +1258,18 @@
     PUT_EMBEDDED_BITMAPS( tt_face_load_strike_metrics ),
                    /* TT_Load_Strike_Metrics_Func  load_strike_metrics */
 
+    PUT_COLOR_LAYERS( tt_face_load_cpal ),
+                            /* TT_Load_Table_Func      load_cpal       */
     PUT_COLOR_LAYERS( tt_face_load_colr ),
                             /* TT_Load_Table_Func      load_colr       */
+    PUT_COLOR_LAYERS( tt_face_free_cpal ),
+                            /* TT_Free_Table_Func      free_cpal       */
     PUT_COLOR_LAYERS( tt_face_free_colr ),
                             /* TT_Free_Table_Func      free_colr       */
-    PUT_COLOR_LAYERS( tt_face_load_colr_layers ),
-                            /* TT_Load_Colr_Layer_Func load_colr_layer */
+    PUT_COLOR_LAYERS( tt_face_palette_set ),
+                            /* TT_Set_Palette_Func     set_palette     */
+    PUT_COLOR_LAYERS( tt_face_get_colr_layer ),
+                            /* TT_Get_Colr_Layer_Func  get_colr_layer  */
     PUT_COLOR_LAYERS( tt_face_colr_blend_layer ),
                             /* TT_Blend_Colr_Func      colr_blend      */
 

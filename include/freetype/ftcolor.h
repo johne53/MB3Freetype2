@@ -45,7 +45,7 @@ FT_BEGIN_HEADER
    *
    * @description:
    *   The functions described here allow access and manipulation of color
-   *   palette entries in OpenType's `CPAL' table.
+   *   palette entries in OpenType's `CPAL' tables.
    */
 
 
@@ -92,30 +92,30 @@ FT_BEGIN_HEADER
    *   FT_PALETTE_XXX
    *
    * @description:
-   *   A list of bit field constants used in the `palette_types' array of
-   *   the @FT_Palette structure to indicate for which background a palette
-   *   with a given index is usable.
+   *   A list of bit field constants used in the `palette_flags' array of
+   *   the @FT_Palette_Data structure to indicate for which background a
+   *   palette with a given index is usable.
    *
    * @values:
-   *   FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND ::
+   *   FT_PALETTE_FOR_LIGHT_BACKGROUND ::
    *     The palette is appropriate to use when displaying the font on a
    *     light background such as white.
    *
-   *   FT_PALETTE_USABLE_WITH_DARK_BACKGROUND ::
+   *   FT_PALETTE_FOR_DARK_BACKGROUND ::
    *     The palette is appropriate to use when displaying the font on a
    *     dark background such as black.
    *
    * @since:
    *   2.10
    */
-#define FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND  0x01
-#define FT_PALETTE_USABLE_WITH_DARK_BACKGROUND   0x02
+#define FT_PALETTE_FOR_LIGHT_BACKGROUND  0x01
+#define FT_PALETTE_FOR_DARK_BACKGROUND   0x02
 
 
   /**************************************************************************
    *
    * @struct:
-   *   FT_Palette
+   *   FT_Palette_Data
    *
    * @description:
    *   This structure holds the data of the `CPAL' table.
@@ -134,11 +134,11 @@ FT_BEGIN_HEADER
    *
    *     NULL if the font's `CPAL' table doesn't contain appropriate data.
    *
-   *   palette_types ::
-   *     A read-only array of palette types with `num_palettes' elements. 
+   *   palette_flags ::
+   *     A read-only array of palette flags with `num_palettes' elements.
    *     Possible values are an ORed combination of
-   *     @FT_PALETTE_USABLE_WITH_LIGHT_BACKGROUND and
-   *     @FT_PALETTE_USABLE_WITH_DARK_BACKGROUND.
+   *     @FT_PALETTE_FOR_LIGHT_BACKGROUND and
+   *     @FT_PALETTE_FOR_DARK_BACKGROUND.
    *
    *     NULL if the font's `CPAL' table doesn't contain appropriate data.
    *
@@ -167,21 +167,21 @@ FT_BEGIN_HEADER
    * @since:
    *   2.10
    */
-  typedef struct  FT_Palette_ {
+  typedef struct  FT_Palette_Data_ {
     FT_UShort         num_palettes;
     const FT_UShort*  palette_name_ids;
-    const FT_UShort*  palette_types;
+    const FT_UShort*  palette_flags;
 
     FT_UShort         num_palette_entries;
     const FT_UShort*  palette_entry_name_ids;
 
-  } FT_Palette;
+  } FT_Palette_Data;
 
 
   /**************************************************************************
    *
-   * @func:
-   *   FT_Palette_Get
+   * @function:
+   *   FT_Palette_Data_Get
    *
    * @description:
    *   Retrieve the face's color palette data.
@@ -192,13 +192,13 @@ FT_BEGIN_HEADER
    *
    * @output:
    *   apalette ::
-   *     A pointer to an @FT_Palette structure.
+   *     A pointer to an @FT_Palette_Data structure.
    *
    * @return:
    *   FreeType error code.  0~means success.
    *
    * @note:
-   *   All arrays in the returned @FT_Palette structure are read-only.
+   *   All arrays in the returned @FT_Palette_Data structure are read-only.
    *
    *   This function always returns an error if the config macro
    *   `TT_CONFIG_OPTION_COLOR_LAYERS' is not defined in `ftoption.h'.
@@ -207,13 +207,13 @@ FT_BEGIN_HEADER
    *   2.10
    */
   FT_EXPORT( FT_Error )
-  FT_Palette_Get( FT_Face      face,
-                  FT_Palette  *apalette );
+  FT_Palette_Data_Get( FT_Face           face,
+                       FT_Palette_Data  *apalette );
 
 
   /**************************************************************************
    *
-   * @func:
+   * @function:
    *   FT_Palette_Select
    *
    * @description:
@@ -238,17 +238,19 @@ FT_BEGIN_HEADER
    *     The palette index.
    *
    * @output:
-   *   apalette_entries ::
+   *   apalette ::
    *     An array of color entries for a palette with index `palette_index'.
-   *     If `apalette_entries' is set to NULL, no array gets returned (and
-   *     no color entries can be modified).
+   *     If `apalette' is set to NULL, no array gets returned (and no color
+   *     entries can be modified).
+   *
+   *     In case the font doesn't support color palettes, NULL is returned.
    *
    * @return:
    *   FreeType error code.  0~means success.
    *
    * @note:
    *   The number of color entries is given by the `num_palette_entries'
-   *   field in the @FT_Palette structure.
+   *   field in the @FT_Palette_Data structure.
    *
    *   The array pointed to by `apalette_entries' is owned and managed by
    *   FreeType.
@@ -262,17 +264,17 @@ FT_BEGIN_HEADER
   FT_EXPORT( FT_Error )
   FT_Palette_Select( FT_Face     face,
                      FT_UShort   palette_index,
-                     FT_Color*  *apalette_entries );
+                     FT_Color*  *apalette );
 
 
   /**************************************************************************
    *
-   * @func:
+   * @function:
    *   FT_Palette_Set_Foreground_Color
    *
    * @description:
-   *   `CPAL' uses color index 0xFFFF to indicate a `text foreground color'.
-   *   This function sets this value.
+   *   `COLR' uses palette index 0xFFFF to indicate a `text foreground
+   *   color'.  This function sets this value.
    *
    * @input:
    *   face ::
@@ -287,7 +289,7 @@ FT_BEGIN_HEADER
    * @note:
    *   If this function isn't called, the text foreground color is set to
    *   white opaque (BGRA value 0xFFFFFFFF) if
-   *   @FT_PALETTE_USABLE_WITH_DARK_BACKGROUND is present for the current
+   *   @FT_PALETTE_FOR_DARK_BACKGROUND is present for the current
    *   palette, and black opaque (BGRA value 0x000000FF) otherwise,
    *   including the case that no palette types are available in the `CPAL'
    *   table.

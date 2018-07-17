@@ -30,15 +30,15 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Init_Face_Func
    *
-   * @Description:
+   * @description:
    *   First part of the SFNT face object initialization.  This finds
    *   the face in a SFNT file or collection, and load its format tag in
    *   face->format_tag.
    *
-   * @Input:
+   * @input:
    *   stream ::
    *     The input stream.
    *
@@ -57,10 +57,10 @@ FT_BEGIN_HEADER
    *   params ::
    *     Optional additional parameters.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    *
-   * @Note:
+   * @note:
    *   The stream cursor must be at the font file's origin.
    *
    *   This function recognizes fonts embedded in a `TrueType
@@ -80,15 +80,15 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_Face_Func
    *
-   * @Description:
+   * @description:
    *   Second part of the SFNT face object initialization.  This loads
    *   the common SFNT tables (head, OS/2, maxp, metrics, etc.) in the
    *   face object.
    *
-   * @Input:
+   * @input:
    *   stream ::
    *     The input stream.
    *
@@ -107,10 +107,10 @@ FT_BEGIN_HEADER
    *   params ::
    *     Optional additional parameters.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    *
-   * @Note:
+   * @note:
    *   This function must be called after TT_Init_Face_Func().
    */
   typedef FT_Error
@@ -123,17 +123,17 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Done_Face_Func
    *
-   * @Description:
+   * @description:
    *   A callback used to delete the common SFNT data from a face.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the target face object.
    *
-   * @Note:
+   * @note:
    *   This function does NOT destroy the face object.
    */
   typedef void
@@ -142,13 +142,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_Any_Func
    *
-   * @Description:
+   * @description:
    *   Load any font table into client memory.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The face object to look for.
    *
@@ -178,11 +178,11 @@ FT_BEGIN_HEADER
    *     Loads the next `length' bytes of table or font,
    *     starting at offset `offset' (in table or font too).
    *
-   * @Output:
+   * @output:
    *   buffer ::
    *     The address of target buffer.
    *
-   * @Return:
+   * @return:
    *   TrueType error code.  0 means success.
    */
   typedef FT_Error
@@ -195,14 +195,14 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Find_SBit_Image_Func
    *
-   * @Description:
+   * @description:
    *   Check whether an embedded bitmap (an `sbit') exists for a given
    *   glyph, at a given strike.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
@@ -212,7 +212,7 @@ FT_BEGIN_HEADER
    *   strike_index ::
    *     The current strike index.
    *
-   * @Output:
+   * @output:
    *   arange ::
    *     The SBit range containing the glyph index.
    *
@@ -222,7 +222,7 @@ FT_BEGIN_HEADER
    *   aglyph_offset ::
    *     The offset of the glyph data in `EBDT' table.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.  Returns
    *   SFNT_Err_Invalid_Argument if no sbit exists for the requested
    *   glyph.
@@ -238,27 +238,27 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_SBit_Metrics_Func
    *
-   * @Description:
+   * @description:
    *   Get the big metrics for a given embedded bitmap.
    *
-   * @Input:
+   * @input:
    *   stream ::
    *     The input stream.
    *
    *   range ::
    *     The SBit range containing the glyph.
    *
-   * @Output:
+   * @output:
    *   big_metrics ::
    *     A big SBit metrics structure for the glyph.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    *
-   * @Note:
+   * @note:
    *   The stream cursor must be positioned at the glyph's offset within
    *   the `EBDT' table before the call.
    *
@@ -274,14 +274,14 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_SBit_Image_Func
    *
-   * @Description:
+   * @description:
    *   Load a given glyph sbit image from the font resource.  This also
    *   returns its metrics.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
@@ -297,18 +297,18 @@ FT_BEGIN_HEADER
    *   stream ::
    *     The input stream.
    *
-   * @Output:
+   * @output:
    *   amap ::
    *     The target pixmap.
    *
    *   ametrics ::
    *     A big sbit metrics structure for the glyph image.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.  Returns an error if no
    *   glyph sbit exists for the index.
    *
-   *  @Note:
+   * @note:
    *   The `map.buffer' field is always freed before the glyph is loaded.
    */
   typedef FT_Error
@@ -323,24 +323,24 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Set_SBit_Strike_Func
    *
-   * @Description:
+   * @description:
    *   Select an sbit strike for a given size request.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
    *   req ::
    *     The size request.
    *
-   * @Output:
+   * @output:
    *   astrike_index ::
    *     The index of the sbit strike.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.  Returns an error if no
    *   sbit strike exists for the selected ppem values.
    */
@@ -352,24 +352,24 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_Strike_Metrics_Func
    *
-   * @Description:
+   * @description:
    *   Load the metrics of a given strike.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
    *   strike_index ::
    *     The strike index.
    *
-   * @Output:
+   * @output:
    *   metrics ::
    *     the metrics of the strike.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.  Returns an error if no
    *   such sbit strike exists.
    */
@@ -381,13 +381,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Get_PS_Name_Func
    *
-   * @Description:
+   * @description:
    *   Get the PostScript glyph name of a glyph.
    *
-   * @Input:
+   * @input:
    *   idx ::
    *     The glyph index.
    *
@@ -397,7 +397,7 @@ FT_BEGIN_HEADER
    *
    *     You must not modify the returned string!
    *
-   * @Output:
+   * @output:
    *   FreeType error code.  0 means success.
    */
   typedef FT_Error
@@ -408,14 +408,14 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_Metrics_Func
    *
-   * @Description:
+   * @description:
    *   Load a metrics table, which is a table with a horizontal and a
    *   vertical version.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the target face object.
    *
@@ -425,7 +425,7 @@ FT_BEGIN_HEADER
    *   vertical ::
    *     A boolean flag.  If set, load the vertical one.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    */
   typedef FT_Error
@@ -436,13 +436,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Get_Metrics_Func
    *
-   * @Description:
+   * @description:
    *   Load the horizontal or vertical header in a face object.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the target face object.
    *
@@ -452,7 +452,7 @@ FT_BEGIN_HEADER
    *   gindex ::
    *     The glyph index.
    *
-   * @Output:
+   * @output:
    *   abearing ::
    *     The horizontal (or vertical) bearing.  Set to zero in
    *     case of error.
@@ -471,50 +471,85 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
-   *   TT_Load_Colr_Layer_Func
+   * @functype:
+   *   TT_Set_Palette_Func
    *
-   * @Description:
-   *   Load the color layer data given a glyph index.
+   * @description:
+   *   Load the colors into `face->palette' for a given palette index.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
    *   idx ::
-   *     The glyph index.
+   *     The palette index.
    *
-   * @Output:
-   *   layers ::
-   *     The layer info with color index and glyph index.
-   *     Deallocate with `FT_FREE'.
-   *
-   *   num_layers ::
-   *     Number of layers.
-   *
-   * @Return:
-   *   FreeType error code.  0 means success.  Returns an error if no
-   *   color layer information exists for `idx'.
+   * @return:
+   *   FreeType error code.  0 means success.
    */
   typedef FT_Error
-  (*TT_Load_Colr_Layer_Func)( TT_Face          face,
-                              FT_UInt          idx,
-                              FT_Glyph_Layer  *layers,
-                              FT_UShort*       num_layers );
+  (*TT_Set_Palette_Func)( TT_Face  face,
+                          FT_UInt  idx );
 
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
+   *   TT_Get_Colr_Layer_Func
+   *
+   * @description:
+   *   Iteratively get the color layer data of a given glyph index.
+   *
+   * @input:
+   *   face ::
+   *     The target face object.
+   *
+   *   base_glyph ::
+   *     The glyph index the colored glyph layers are associated with.
+   *
+   * @inout:
+   *   iterator ::
+   *     An @FT_LayerIterator object.  For the first call you should set
+   *     `iterator->p' to NULL.  For all following calls, simply use the
+   *     same object again.
+   *
+   * @output:
+   *   aglyph_index ::
+   *     The glyph index of the current layer.
+   *
+   *   acolor_index ::
+   *     The color index into the font face's color palette of the current
+   *     layer.  The value 0xFFFF is special; it doesn't reference a palette
+   *     entry but indicates that the text foreground color should be used
+   *     instead (to be set up by the application outside of FreeType).
+   *
+   * @return:
+   *   Value~1 if everything is OK.  If there are no more layers (or if
+   *   there are no layers at all), value~0 gets returned.  In case of an
+   *   error, value~0 is returned also.
+   */
+  typedef FT_Bool
+  (*TT_Get_Colr_Layer_Func)( TT_Face            face,
+                             FT_UInt            base_glyph,
+                             FT_UInt           *aglyph_index,
+                             FT_UInt           *acolor_index,
+                             FT_LayerIterator*  iterator );
+
+
+  /**************************************************************************
+   *
+   * @functype:
    *   TT_Blend_Colr_Func
    *
-   * @Description:
+   * @description:
    *   Blend the bitmap in `new_glyph' into `base_glyph' using the color
-   *   specified by `color_index'.
+   *   specified by `color_index'.  If `color_index' is 0xFFFF, use
+   *   `face->foreground_color' if `face->have_foreground_color' is set.
+   *   Otherwise check `face->palette_data.palette_flags': If present and
+   *   @FT_PALETTE_FOR_DARK_BACKGROUND is set, use BGRA value 0xFFFFFFFF
+   *   (white opaque).  Otherwise use BGRA value 0x000000FF (black opaque).
    *
-   *   XXX: Handle foregound color
-   *
-   * @Input:
+   * @input:
    *   face ::
    *     The target face object.
    *
@@ -528,7 +563,7 @@ FT_BEGIN_HEADER
    *   new_glyph ::
    *     Slot to be incooperated into `base_glyph'.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.  Returns an error if
    *   color_index is invalid or reallocation fails.
    */
@@ -541,26 +576,26 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Get_Name_Func
    *
-   * @Description:
+   * @description:
    *   From the `name' table, return a given ENGLISH name record in
    *   ASCII.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the source face object.
    *
    *   nameid ::
    *     The name id of the name record to return.
    *
-   * @InOut:
+   * @inout:
    *   name ::
    *     The address of an allocated string pointer.  NULL if
    *     no name is present.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    */
   typedef FT_Error
@@ -571,21 +606,21 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Get_Name_ID_Func
    *
-   * @Description:
+   * @description:
    *   Search whether an ENGLISH version for a given name ID is in the
    *   `name' table.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the source face object.
    *
    *   nameid ::
    *     The name id of the name record to return.
    *
-   * @Out:
+   * @output:
    *   win ::
    *     If non-negative, an index into the `name' table with
    *     the corresponding (3,1) or (3,0) Windows entry.
@@ -594,7 +629,7 @@ FT_BEGIN_HEADER
    *     If non-negative, an index into the `name' table with
    *     the corresponding (1,0) Apple entry.
    *
-   * @Return:
+   * @return:
    *   1 if there is either a win or apple entry (or both), 0 otheriwse.
    */
   typedef FT_Bool
@@ -606,23 +641,23 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Load_Table_Func
    *
-   * @Description:
+   * @description:
    *   Load a given TrueType table.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the target face object.
    *
    *   stream ::
    *     The input stream.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    *
-   * @Note:
+   * @note:
    *   The function uses `face->goto_table' to seek the stream to the
    *   start of the table, except while loading the font directory.
    */
@@ -633,13 +668,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @FuncType:
+   * @functype:
    *   TT_Free_Table_Func
    *
-   * @Description:
+   * @description:
    *   Free a given TrueType table.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to the target face object.
    */
@@ -670,14 +705,14 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   SFNT_Interface
    *
-   * @Description:
+   * @description:
    *   This structure holds pointers to the functions used to load and
    *   free the basic tables that are required in a `sfnt' font file.
    *
-   * @Fields:
+   * @fields:
    *   Check the various xxx_Func() descriptions for details.
    */
   typedef struct  SFNT_Interface_
@@ -737,9 +772,12 @@ FT_BEGIN_HEADER
     TT_Set_SBit_Strike_Func      set_sbit_strike;
     TT_Load_Strike_Metrics_Func  load_strike_metrics;
 
+    TT_Load_Table_Func           load_cpal;
     TT_Load_Table_Func           load_colr;
+    TT_Free_Table_Func           free_cpal;
     TT_Free_Table_Func           free_colr;
-    TT_Load_Colr_Layer_Func      load_colr_layer;
+    TT_Set_Palette_Func          set_palette;
+    TT_Get_Colr_Layer_Func       get_colr_layer;
     TT_Blend_Colr_Func           colr_blend;
 
     TT_Get_Metrics_Func          get_metrics;
@@ -784,9 +822,12 @@ FT_BEGIN_HEADER
           free_eblc_,                    \
           set_sbit_strike_,              \
           load_strike_metrics_,          \
+          load_cpal_,                    \
           load_colr_,                    \
+          free_cpal_,                    \
           free_colr_,                    \
-          load_colr_layer_,              \
+          set_palette_,                  \
+          get_colr_layer_,               \
           colr_blend_,                   \
           get_metrics_,                  \
           get_name_,                     \
@@ -821,9 +862,12 @@ FT_BEGIN_HEADER
     free_eblc_,                          \
     set_sbit_strike_,                    \
     load_strike_metrics_,                \
+    load_cpal_,                          \
     load_colr_,                          \
+    free_cpal_,                          \
     free_colr_,                          \
-    load_colr_layer_,                    \
+    set_palette_,                        \
+    get_colr_layer_,                     \
     colr_blend_,                         \
     get_metrics_,                        \
     get_name_,                           \

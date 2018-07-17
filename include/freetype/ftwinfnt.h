@@ -34,17 +34,17 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Section:
+   * @section:
    *   winfnt_fonts
    *
-   * @Title:
+   * @title:
    *   Window FNT Files
    *
-   * @Abstract:
-   *   Windows FNT specific API.
+   * @abstract:
+   *   Windows FNT-specific API.
    *
-   * @Description:
-   *   This section contains the declaration of Windows FNT specific
+   * @description:
+   *   This section contains the declaration of Windows FNT-specific
    *   functions.
    *
    */
@@ -175,10 +175,10 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_WinFNT_HeaderRec
    *
-   * @Description:
+   * @description:
    *   Windows FNT Header info.
    */
   typedef struct  FT_WinFNT_HeaderRec_
@@ -225,10 +225,10 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_WinFNT_Header
    *
-   * @Description:
+   * @description:
    *   A handle to an @FT_WinFNT_HeaderRec structure.
    */
   typedef struct FT_WinFNT_HeaderRec_*  FT_WinFNT_Header;

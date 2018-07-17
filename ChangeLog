@@ -1,3 +1,460 @@
+2018-07-16  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	* include/freetype/internal/ftcalc.h: Add macros for handling
+	harmless over-/underflowing `FT_Int' values.
+
+	* src/sfnt/sfdriver.c (fixed2float): Fix negation of
+	`(int)(-2147483648)'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=9423
+
+2018-07-16  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Fix off-by-one error.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=9412
+
+2018-07-12  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftoutln.c (FT_Outline_Get_Orientation): Init `cbox'.
+
+	Taken from patch #9667, written by Steve Langasek
+	<vorlon@debian.org>.
+
+	This fixes a build failure (most probably a bug in gcc) on ppc64el
+	when building with -O3.
+
+2018-07-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix typo (#54238).
+
+	* src/base/ftcolor.c (FT_Palette_Set_Foreground_Color)
+	[!TT_CONFIG_OPTION_COLOR_LAYERS]: Add return value.
+
+2018-07-05  Werner Lemberg  <wl@gnu.org>
+
+	Adjust table size comparisons (#54242).
+
+	* src/sfnt/ttcpal.c (tt_face_load_cpal): Implement it.
+
+2018-07-05  Werner Lemberg  <wl@gnu.org>
+
+	Fix more 32bit issues (#54208).
+
+	* src/cff/cffload.c (cff_blend_build_vector): Convert assertion into
+	run-time error.
+
+	* src/truetype/ttgxvar.c (ft_var_to_normalized): Protect against
+	numeric overflow.
+
+2018-07-04  Werner Lemberg  <wl@gnu.org>
+
+	Fix 32bit build warnings (#54239).
+
+	* src/base/ftbitmap.c (FT_Bitmap_Blend): Add casts to avoid signed
+	vs. unsigned comparisons.
+
+	* srb/sfnt/ttcolr.c (tt_face_get_colr_layer): Ditto.
+
+2018-07-02  Jeff Carey  <Jeff.Carey@monotype.com>
+
+	* src/psnames/psmodule.c (ps_unicodes_init): Fix alloc debugging.
+
+2018-07-02  Werner Lemberg  <wl@gnu.org>
+
+	s/palette_types/palette_flags/.
+
+	Suggested by Behdad.
+
+2018-07-02  Werner Lemberg  <wl@gnu.org>
+
+	Make `FT_Get_Color_Glyph_Layer' return FT_Bool.
+
+	* include/freetype/freetype.h, src/base/ftobjs.c
+	(FT_Get_Color_Glyph_Layer, FT_Render_Glyph_Internal): Updated.
+
+	* include/freetype/internal/sfnt.h (TT_Get_Colr_Layer_Func),
+	src/sfnt/ttcolr.h, src/sfnt/ttcolr.c (tt_face_get_colr_layer):
+	Updated.
+
+2018-07-01  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftobjs.c (FT_Get_Color_Glyph_Layer): Guard SFNT function.
+
+	Reported by Behdad.
+
+2018-06-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/fttrigon.c (FT_Tan): Improve accuracy.
+	(FT_Vector_Rotate): Simplify.
+
+2018-06-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftobjs.c (FT_Set_Charmap): Robustify.
+
+2018-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix memory leak.
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Add initializers.
+	Fix typo in `goto' destination.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=9071
+
+2018-06-25  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_face_vary_cvt): Add initializers.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=9070
+
+2018-06-24  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Increase precision while applying VF deltas.
+
+	It turned out that we incorrectly round CVT and glyph point deltas
+	before accumulation, leading to severe positioning errors if there
+	are many delta values to sum up.
+
+	Problem reported by Akiem Helmling <akiem@underware.nl> and analyzed
+	by Behdad.
+
+	* src/truetype/ttgxvar.c (ft_var_readpackeddelta): Return deltas in
+	16.16 format.
+	(tt_face_var_cvt): Collect deltas in `cvt_deltas', which is a 16.16
+	format array, and add the accumulated values to the CVT at the end
+	of the function.
+	(TT_Vary_Apply_Glyph_Deltas): Store data in `points_org' and
+	`points_out' in 16.16 format.
+	Collect deltas in `point_deltas_x' and `point_deltas_y', which are
+	16.16 format arrays, and add the accumulated values to the glyph
+	coordinates at the end of the function.
+
+2018-06-24  Werner Lemberg  <wl@gnu.org>
+
+	New base function `FT_Matrix_Check' (#54019).
+
+	* src/base/ftcalc.c (FT_Matrix_Check): New base function to properly
+	reject degenerate font matrices.
+
+	* include/freetype/internal/ftcalc.h: Updated.
+
+	* src/cff/cffparse.c (cff_parse_font_matrix), src/cid/cidload.c
+	(cid_parse_font_matrix), src/type1/t1load.c (t1_parse_font_matrix),
+	src/type42/t42parse.c (t42_parse_font_matrix): Use
+	`FT_Matrix_Check'.
+
+2018-06-23  Werner Lemberg  <wl@gnu.org>
+
+	Fix typo.
+
+	Reported by Behdad.
+
+	* src/base/ftcolor.c (FT_Palette_Data_Get)
+	[!TT_CONFIG_OPTION_COLOR_LAYERS]: s/apalette/apalette_data/.
+
+2018-06-21  Werner Lemberg  <wl@gnu.org>
+
+	s/FT_PALETTE_USABLE_WITH_/FT_PALETTE_FOR_/.
+
+	* include/freetype/ftcolor.h, include/freetype/internal/sfnt.h,
+	src/sfnt/ttcolr.c: Do it.
+
+2018-06-19  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix CPAL heap buffer overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8968
+
+	* src/sfnt/ttcpal.c (tt_face_load_cpal): Guard CPAL version 1
+	offsets.
+
+2018-06-19  Werner Lemberg  <wl@gnu.org>
+
+	Doh.  Don't use CPAL or COLR data if tables are missing.
+
+	Reported by Alexei.
+
+	* src/sfnt/ttcolr.c (tt_face_get_colr_layer): Return immediately if
+	`colr' is NULL.
+
+	* src/sfnt/ttcpal.c (tt_face_palette_set): Return immediately, if
+	`cpal' is NULL.
+
+2018-06-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[base] Introduce `FT_New_Glyph'.
+
+	This function facilitates access to full capabilities of FreeType
+	rendering engine for custom glyphs. This can be quite useful for
+	consistent rendering of mathematical and chemical formulas, e.g.
+
+	  https://bugs.chromium.org/p/chromium/issues/detail?id=757078
+
+	* include/freetype/ftglyph.h, src/base/ftglyph.c (FT_New_Glyph): New
+	function.
+
+2018-06-17  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	[bdf] Fix underflow of an unsigned value.
+
+	bdflib.c:1562 could be reached with `font->glyphs_used == 0'.  That
+	caused an underflow of the unsigned value which results in undefined
+	behaviour.
+
+	* src/bdf/bdflib.c (_bdf_parse_glyphs): Bail out earlier than before
+	if the `ENCODING' keyword cannot be found.
+
+2018-06-17  Werner Lemberg  <wl@gnu.org>
+
+	[base] Add tracing for `FT_Bitmap_Blend'.
+
+	* include/freetype/internal/fttrace.h (trace_bitmap): New
+	enumeration.
+
+	* src/base/ftbitmap.c (FT_COMPONENT): Define.
+	(FT_Bitmap_Blend): Add `FT_TRACE5' calls.
+
+2018-06-17  Werner Lemberg  <wl@gnu.org>
+
+	s/trace_bitmap/trace_checksum/.
+
+	* include/freetype/internal/fttrace.h: s/bitmap/checksum/.
+
+	* src/base/ftobjs.c (FT_COMPONENT): s/trace_bitmap/trace_checksum/.
+	Adjust code.
+
+2018-06-16  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix color glyph layer loading.
+
+	* src/sfnt/ttcolr.c (Colr): Add `table_size' field.
+	(tt_face_load_colr): Set it.
+	(tt_face_get_colr_layer): Check pointer limit for layer entries.
+
+2018-06-16  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix color palette loading.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8933
+
+	* src/sfnt/ttcpal.c (Cpal): Add `table_size' field.
+	(tt_face_load_cpal): Set it.
+	(tt_face_palette_set): Check pointer limit for color entries.
+
+2018-06-16  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftbitmap.c (FT_Bitmap_Blend): Avoid integer overflow.
+
+2018-06-16  Werner Lemberg  <wl@gnu.org>
+
+	Add `FT_Bitmap_Blend' API.
+
+	Still missing: Support for negative bitmap pitch and subpixel offset
+	of source bitmap.
+
+	* include/freetype/ftbitmap.h, src/base/ftbitmap.c
+	(FT_Bitmap_Blend): New function.
+
+2018-06-14  Werner Lemberg  <wl@gnu.org>
+
+	Replace `FT_Get_GlyphLayers' with `FT_Get_Color_Glyph_Layer'.
+
+	This avoids any additional allocation of COLR related structures in
+	a glyph slot.
+
+	* include/freetype/freetype.h (FT_Glyph_Layer, FT_Glyph_LayerRec,
+	FT_Get_GlyphLayers): Removed.
+
+	* include/freetype/internal/ftobjs.h (FT_Colr_InternalRec): Removed.
+	(FT_Slot_InternalRec): Remove `color_layers'.
+
+	* include/freetype/internal/sfnt.h (TT_Load_Colr_Layer_Func):
+	Removed.
+	(SFNT_Interface, FT_DEFINE_SFNT_INTERFACE): Remove
+	`load_colr_layer'.
+
+	* src/base/ftobjs.c (ft_glyph_slot_done): Updated.
+	(FT_Render_Glyph_Internal): Use `FT_Get_Color_Glyph_Layer'.
+	(FT_Get_GlyphLayers): Removed.
+
+	* src/sfnt/sfdriver.c (sfnt_interface): Updated.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr_layers): Removed.
+	* src/sfnt/ttcolr.h: Updated.
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Updated.
+
+2018-06-14  Werner Lemberg  <wl@gnu.org>
+
+	Provide iterative API to access `COLR' data.
+
+	This solution doesn't store any data in an `FT_GlyphSlot' object.
+
+	* include/freetype/freetype.h (FT_LayerIterator): New structure.
+	(FT_Get_Color_Glyph_Layer): New function.
+
+	* include/freetype/internal/sfnt.h (TT_Get_Colr_Layer_Func): New
+	function type.
+	(SFNT_Interface, FT_DEFINE_SFNT_INTERFACE): Add it.
+
+	* src/base/ftobjs.c (FT_Get_Color_Glyph_Layer): Implement it.
+
+	* src/sfnt/ttcolr.c (tt_face_get_colr_layer): New function.
+	* src/sfnt/ttcolr.h: Updated.
+
+	* src/sfnt/sfdriver.c (sfnt_interface): Updated.
+
+2018-06-14  Werner Lemberg  <wl@gnu.org>
+
+	Add glyph index and glyph load flags to glyph slot.
+
+	* include/freetype/freetype.h (FT_GlyphSlotRec): Rename unused
+	`reserved' field to `glyph_index'.
+
+	* include/freetype/internal/ftobjs.h (FT_Slot_InternalRec): Add
+	`load_flags' field.
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Set new fields.
+
+2018-06-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Move `CPAL' stuff into separate files.
+
+	* src/sfnt/sfdriver.c: Include `ttcpal.h'.
+	* src/sfnt/sfnt.c: Include `ttcpal.c'.
+
+	* src/sfnt/ttcolr.c, src/sfnt/ttcolr.h: Move CPAL stuff to ...
+	* src/sfnt/ttcpal.c, src/sfnt/ttcpal.c: ... these new files.
+
+	* src/sfnt/Jamfile (_sources), src/sfnt/rules.mk (SFNT_DRV_SRC):
+	Updated.
+
+	* include/freetype/internal/fttrace.h: Add support for `colr' and
+	`cpal'.
+	Sort entries.
+
+2018-06-13  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Separate `CPAL' and `COLR' table handling.
+
+	Later on we want to support the `SVG' table also, which needs `CPAL'
+	(but not `COLR').
+
+	* include/freetype/internal/sfnt.h (SFNT_Interface): Add `load_cpal'
+	and `free_cpal' fields.
+	(FT_DEFINE_SFNT_INTERFACE): Updated.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Replace
+	`colr_and_cpal' fields with `cpal' and `colr'.
+
+	* src/sfnt/sfdriver.c (sfnt_interface): Updated.
+
+	* src/sfnt/sfobjs.c (sfnt_load_face, sfnt_done_face): Updated.
+
+	* src/sfnt/ttcolr.c (Colr, Cpal): Add `table' field.
+	(ColrCpal): Removed.
+	(tt_face_load_colr): Split off CPAL handling into...
+	(tt_face_load_cpal): ... this new function.
+	(tt_face_free_colr): Split off CPAL handling into...
+	(tt_face_free_cpal): ... this new function.
+	(tt_face_load_colr_layers, tt_face_palette_set): Updated.
+
+	* src/sfnt/ttcolr.h: Updated.
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): Updated.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix `sizeof' thinko.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr, tt_face_palette_set): Don't
+	use `sizeof' for computing array limit.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	Finish CPAL/COLR support (4/4).
+
+	* src/sfnt/ttcolr.c (tt_face_find_color): Removed.
+	(tt_face_colr_blend_layer): Use `face->palette' instead of calling
+	`tt_face_find_color'.
+	Use and set text foreground color.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	Finish CPAL/COLR support (3/4).
+
+	* src/base/ftcolor.c: Include FT_INTERNAL_SFNT_H.
+	(FT_Palette_Select, FT_Palette_Set_Foreground_Color): Implement
+	functions.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	Finish CPAL/COLR support (2/4).
+
+	* src/sfnt/ttcolr.c (tt_face_palette_set): New function.
+	(tt_face_load_colr): Allocate `face->palette' and call
+	`tt_face_palette_set'.
+	Adjust return error code in case of error.
+
+	* src/sfnt/ttcolr.h: Updated.
+
+	* include/freetype/internal/sfnt.h (TT_Set_Palette_Func): New
+	function type.
+	(SFNT_Interface, FT_DEFINE_SFNT_INTERFACE): Add it.
+
+	* src/sfnt/sfdriver.c (sfnt_interface), src/sfnt/sfobjs.c
+	(sfnt_done_face): Updated.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	Finish CPAL/COLR support (1/4).
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): New fields
+	`palette_index', `palette', `have_foreground_color' and
+	`foreground_color'.
+
+2018-06-12  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Minor.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr_layers):
+	s/palette_index/palette_entry_index/ for consistency.
+	Adjust return error code in case of error.
+
+2018-06-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Clean up.
+
+	* src/raster/ftraster.c (black_TWorker, SCALED, Set_High_Precision):
+	Clean up after 5-level gray removal (8dc8635874).
+	(Vertical_Sweep_Span): Be brief.
+
+2018-06-10  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix compiler warnings.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr, tt_face_load_colr_layers,
+	tt_face_colr_blend_layer): Add `NULL' initializers.
+
+2018-06-10  Werner Lemberg  <wl@gnu.org>
+
+	s/FT_Palette/FT_Palette_Data/, s/palette/palette_data/.
+
+	* include/freetype/ftcolor.h, include/freetype/internal/tttypes.h,
+	src/base/ftcolor.c, src/sfnt/sfobjs.c, src/sfnt/ttcolr.c: Updated.
+
 2018-06-10  Nikolaus Waxweiler  <madigens@gmail.com>
 
 	CMakeLists: also accept IOS_PLATFORM=SIMULATOR64

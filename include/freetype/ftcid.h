@@ -34,17 +34,17 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Section:
+   * @section:
    *   cid_fonts
    *
-   * @Title:
+   * @title:
    *   CID Fonts
    *
-   * @Abstract:
-   *   CID-keyed font specific API.
+   * @abstract:
+   *   CID-keyed font-specific API.
    *
-   * @Description:
-   *   This section contains the declaration of CID-keyed font specific
+   * @description:
+   *   This section contains the declaration of CID-keyed font-specific
    *   functions.
    *
    */

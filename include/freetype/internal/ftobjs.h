@@ -293,15 +293,15 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_Face_InternalRec
    *
-   * @Description:
+   * @description:
    *   This structure contains the internal fields of each FT_Face
    *   object.  These fields may change between different releases of
    *   FreeType.
    *
-   * @Fields:
+   * @fields:
    *   max_points ::
    *     The maximum number of points used to store the vectorial outline
    *     of any glyph in this face.  If this value cannot be known in
@@ -384,26 +384,17 @@ FT_BEGIN_HEADER
   } FT_Face_InternalRec;
 
 
-  typedef struct  FT_Colr_InternalRec_
-  {
-    FT_Glyph_Layer  layers;
-    FT_UShort       num_layers;
-    FT_Int32        load_flags;
-
-  } FT_Colr_InternalRec, *FT_Colr_Internal;
-
-
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_Slot_InternalRec
    *
-   * @Description:
+   * @description:
    *   This structure contains the internal fields of each FT_GlyphSlot
    *   object.  These fields may change between different releases of
    *   FreeType.
    *
-   * @Fields:
+   * @fields:
    *   loader ::
    *     The glyph loader object used to load outlines
    *     into the glyph slot.
@@ -432,8 +423,9 @@ FT_BEGIN_HEADER
    *   glyph_hints ::
    *     Format-specific glyph hints management.
    *
-   *   color_layers ::
-   *     Data from (SFNT) COLR/CPAL tables.
+   *   load_flags ::
+   *     The load flags passed as an argument to @FT_Load_Glyph while
+   *     initializing the glyph slot.
    */
 
 #define FT_GLYPH_OWN_BITMAP  0x1U
@@ -447,21 +439,21 @@ FT_BEGIN_HEADER
     FT_Vector       glyph_delta;
     void*           glyph_hints;
 
-    FT_Colr_Internal  color_layers;
+    FT_Int32        load_flags;
 
   } FT_GlyphSlot_InternalRec;
 
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_Size_InternalRec
    *
-   * @Description:
+   * @description:
    *   This structure contains the internal fields of each FT_Size
    *   object.
    *
-   * @Fields:
+   * @fields:
    *   module_data ::
    *     Data specific to a driver module.
    *
@@ -498,13 +490,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_ModuleRec
    *
-   * @Description:
+   * @description:
    *   A module object instance.
    *
-   * @Fields:
+   * @fields:
    *   clazz ::
    *     A pointer to the module's class.
    *
@@ -558,24 +550,24 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_Get_Module_Interface
    *
-   * @Description:
+   * @description:
    *   Finds a module and returns its specific interface as a typeless
    *   pointer.
    *
-   * @Input:
+   * @input:
    *   library ::
    *     A handle to the library object.
    *
    *   module_name ::
    *     The module's name (as an ASCII string).
    *
-   * @Return:
+   * @return:
    *   A module-specific interface if available, 0 otherwise.
    *
-   * @Note:
+   * @note:
    *   You should better be familiar with FreeType internals to know
    *   which module to look for, and what its interface is :-)
    */
@@ -631,24 +623,24 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_New_GlyphSlot
    *
-   * @Description:
+   * @description:
    *   It is sometimes useful to have more than one glyph slot for a
    *   given face object.  This function is used to create additional
    *   slots.  All of them are automatically discarded when the face is
    *   destroyed.
    *
-   * @Input:
+   * @input:
    *   face ::
    *     A handle to a parent face object.
    *
-   * @Output:
+   * @output:
    *   aslot ::
    *     A handle to a new glyph slot object.
    *
-   * @Return:
+   * @return:
    *   FreeType error code.  0 means success.
    */
   FT_BASE( FT_Error )
@@ -658,15 +650,15 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_Done_GlyphSlot
    *
-   * @Description:
+   * @description:
    *   Destroys a given glyph slot.  Remember however that all slots are
    *   automatically destroyed with its parent.  Using this function is
    *   not always mandatory.
    *
-   * @Input:
+   * @input:
    *   slot ::
    *     A handle to a target glyph slot.
    */
@@ -793,29 +785,29 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_DriverRec
    *
-   * @Description:
+   * @description:
    *   The root font driver class.  A font driver is responsible for
    *   managing and loading font files of a given format.
    *
-   *  @Fields:
-   *    root ::
-   *      Contains the fields of the root module class.
+   * @fields:
+   *   root ::
+   *     Contains the fields of the root module class.
    *
-   *    clazz ::
-   *      A pointer to the font driver's class.  Note that
-   *      this is NOT root.clazz.  `class' wasn't used
-   *      as it is a reserved word in C++.
+   *   clazz ::
+   *     A pointer to the font driver's class.  Note that
+   *     this is NOT root.clazz.  `class' wasn't used
+   *     as it is a reserved word in C++.
    *
-   *    faces_list ::
-   *      The list of faces currently opened by this
-   *      driver.
+   *   faces_list ::
+   *     The list of faces currently opened by this
+   *     driver.
    *
-   *    glyph_loader ::
-   *      Unused.  Used to be glyph loader for all faces
-   *      managed by this driver.
+   *   glyph_loader ::
+   *     Unused.  Used to be glyph loader for all faces
+   *     managed by this driver.
    */
   typedef struct  FT_DriverRec_
   {
@@ -847,15 +839,15 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Struct:
+   * @struct:
    *   FT_LibraryRec
    *
-   * @Description:
+   * @description:
    *   The FreeType library class.  This is the root of all FreeType
    *   data.  Use FT_New_Library() to create a library object, and
    *   FT_Done_Library() to discard it and all child objects.
    *
-   * @Fields:
+   * @fields:
    *   memory ::
    *     The library's memory object.  Manages memory
    *     allocation.
@@ -982,13 +974,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_New_Memory
    *
-   * @Description:
+   * @description:
    *   Creates a new memory object.
    *
-   * @Return:
+   * @return:
    *   A pointer to the new memory object.  0 in case of error.
    */
   FT_BASE( FT_Memory )
@@ -997,13 +989,13 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Function:
+   * @function:
    *   FT_Done_Memory
    *
-   * @Description:
+   * @description:
    *   Discards memory manager.
    *
-   * @Input:
+   * @input:
    *   memory ::
    *     A handle to the memory manager.
    */
@@ -1026,10 +1018,10 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_OUTLINE_FUNCS
    *
-   * @Description:
+   * @description:
    *   Used to initialize an instance of FT_Outline_Funcs struct.
    *   The struct will be allocated in the global scope (or the scope
    *   where the macro is used).
@@ -1055,10 +1047,10 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_RASTER_FUNCS
    *
-   * @Description:
+   * @description:
    *   Used to initialize an instance of FT_Raster_Funcs struct.
    *   The struct will be allocated in the global scope (or the scope
    *   where the macro is used).
@@ -1085,10 +1077,10 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_GLYPH
    *
-   * @Description:
+   * @description:
    *   The struct will be allocated in the global scope (or the scope
    *   where the macro is used).
    */
@@ -1118,17 +1110,17 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Macro:
+   * @macro:
    *   FT_DECLARE_RENDERER
    *
-   * @Description:
+   * @description:
    *   Used to create a forward declaration of a
    *   FT_Renderer_Class struct instance.
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_RENDERER
    *
-   * @Description:
+   * @description:
    *   Used to initialize an instance of FT_Renderer_Class struct.
    *
    *   The struct will be allocated in the global scope (or the scope
@@ -1179,26 +1171,26 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
-   * @Macro:
+   * @macro:
    *   FT_DECLARE_MODULE
    *
-   * @Description:
+   * @description:
    *   Used to create a forward declaration of a
    *   FT_Module_Class struct instance.
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_MODULE
    *
-   * @Description:
+   * @description:
    *   Used to initialize an instance of an FT_Module_Class struct.
    *
    *   The struct will be allocated in the global scope (or the scope
    *   where the macro is used).
    *
-   * @Macro:
+   * @macro:
    *   FT_DEFINE_ROOT_MODULE
    *
-   * @Description:
+   * @description:
    *   Used to initialize an instance of an FT_Module_Class struct inside
    *   another struct that contains it or in a function that initializes
    *   that containing struct.

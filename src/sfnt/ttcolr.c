@@ -2,12 +2,12 @@
  *
  * ttcolr.c
  *
- *   TrueType and OpenType color outline support.
+ *   TrueType and OpenType colored glyph layer support (body).
  *
  * Copyright 2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
- * Written by Shao Yu Zhang <shaozhang@fb.com>.
+ * Originally written by Shao Yu Zhang <shaozhang@fb.com>.
  *
  * This file is part of the FreeType project, and may only be used,
  * modified, and distributed under the terms of the FreeType project
@@ -20,10 +20,9 @@
 
   /**************************************************************************
    *
-   * `COLR' and `CPAL' table specification:
+   * `COLR' table specification:
    *
    *   https://www.microsoft.com/typography/otspec/colr.htm
-   *   https://www.microsoft.com/typography/otspec/cpal.htm
    *
    */
 
@@ -44,8 +43,6 @@
 #define BASE_GLYPH_SIZE            6
 #define LAYER_SIZE                 4
 #define COLR_HEADER_SIZE          14
-#define CPAL_V0_HEADER_BASE_SIZE  12
-#define COLOR_SIZE                 4
 
 
   typedef struct BaseGlyphRecord_
@@ -66,33 +63,11 @@
     FT_Byte*  base_glyphs;
     FT_Byte*  layers;
 
+    /* The memory which backs up the `COLR' table. */
+    void*     table;
+    FT_ULong  table_size;
+
   } Colr;
-
-
-  /* all data from `CPAL' not covered in FT_Palette */
-  typedef struct Cpal_
-  {
-    FT_UShort  version;        /* Table version number (0 or 1 supported). */
-    FT_UShort  num_colors;               /* Total number of color records, */
-                                         /* combined for all palettes.     */
-    FT_Byte*  colors;                              /* RGBA array of colors */
-    FT_Byte*  color_indices; /* Index of each palette's first color record */
-                             /* in the combined color record array.        */
-
-  } Cpal;
-
-
-  typedef struct ColrCpal_
-  {
-    /* Accessors into the colr/cpal tables. */
-    Colr  colr;
-    Cpal  cpal;
-
-    /* The memory which backs up colr/cpal tables. */
-    void*  colr_table;
-    void*  cpal_table;
-
-  } ColrCpal;
 
 
   /**************************************************************************
@@ -102,7 +77,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttcolrcpal
+#define FT_COMPONENT  trace_ttcolr
 
 
   FT_LOCAL_DEF( FT_Error )
@@ -112,190 +87,70 @@
     FT_Error   error;
     FT_Memory  memory = face->root.memory;
 
-    FT_Byte*  colr_table = NULL;
-    FT_Byte*  cpal_table = NULL;
-    FT_Byte*  p          = NULL;
+    FT_Byte*  table = NULL;
+    FT_Byte*  p     = NULL;
 
-    Colr       colr;
-    Cpal       cpal;
-    ColrCpal*  cc = NULL;
+    Colr*  colr = NULL;
 
-    FT_ULong  base_glyph_offset, layer_offset, colors_offset;
+    FT_ULong  base_glyph_offset, layer_offset;
     FT_ULong  table_size;
 
 
-    /*
-     * COLR
-     */
+    /* `COLR' always needs `CPAL' */
+    if ( !face->cpal )
+      return FT_THROW( Invalid_File_Format );
 
     error = face->goto_table( face, TTAG_COLR, stream, &table_size );
     if ( error )
-      goto NoColor;
+      goto NoColr;
 
     if ( table_size < COLR_HEADER_SIZE )
       goto InvalidTable;
 
-    if ( FT_FRAME_EXTRACT( table_size, colr_table ) )
-      goto NoColor;
+    if ( FT_FRAME_EXTRACT( table_size, table ) )
+      goto NoColr;
 
-    p = colr_table;
+    p = table;
 
-    FT_ZERO( &colr );
-    colr.version = FT_NEXT_USHORT( p );
-    if ( colr.version != 0 )
+    if ( FT_NEW( colr ) )
+      goto NoColr;
+
+    colr->version = FT_NEXT_USHORT( p );
+    if ( colr->version != 0 )
       goto InvalidTable;
 
-    colr.num_base_glyphs = FT_NEXT_USHORT( p );
-    base_glyph_offset    = FT_NEXT_ULONG( p );
+    colr->num_base_glyphs = FT_NEXT_USHORT( p );
+    base_glyph_offset     = FT_NEXT_ULONG( p );
 
     if ( base_glyph_offset >= table_size )
       goto InvalidTable;
-    if ( colr.num_base_glyphs * BASE_GLYPH_SIZE >
+    if ( colr->num_base_glyphs * BASE_GLYPH_SIZE >
            table_size - base_glyph_offset )
       goto InvalidTable;
 
-    layer_offset    = FT_NEXT_ULONG( p );
-    colr.num_layers = FT_NEXT_USHORT( p );
+    layer_offset     = FT_NEXT_ULONG( p );
+    colr->num_layers = FT_NEXT_USHORT( p );
 
     if ( layer_offset >= table_size )
       goto InvalidTable;
-    if ( colr.num_layers * LAYER_SIZE > table_size - layer_offset )
+    if ( colr->num_layers * LAYER_SIZE > table_size - layer_offset )
       goto InvalidTable;
 
-    colr.base_glyphs = (FT_Byte*)( colr_table + base_glyph_offset );
-    colr.layers      = (FT_Byte*)( colr_table + layer_offset      );
+    colr->base_glyphs = (FT_Byte*)( table + base_glyph_offset );
+    colr->layers      = (FT_Byte*)( table + layer_offset      );
+    colr->table       = table;
+    colr->table_size  = table_size;
 
-    /*
-     * CPAL
-     */
-
-    error = face->goto_table( face, TTAG_CPAL, stream, &table_size );
-    if ( error )
-      goto NoColor;
-
-    if ( table_size < CPAL_V0_HEADER_BASE_SIZE )
-      goto InvalidTable;
-
-    if ( FT_FRAME_EXTRACT( table_size, cpal_table ) )
-      goto NoColor;
-
-    p = cpal_table;
-
-    FT_ZERO( &cpal );
-    cpal.version = FT_NEXT_USHORT( p );
-    if ( cpal.version > 1 )
-      goto InvalidTable;
-
-    face->palette.num_palette_entries = FT_NEXT_USHORT( p );
-    face->palette.num_palettes        = FT_NEXT_USHORT( p );
-
-    cpal.num_colors = FT_NEXT_USHORT( p );
-    colors_offset   = FT_NEXT_ULONG( p );
-
-    if ( colors_offset >= table_size )
-      goto InvalidTable;
-    if ( cpal.num_colors * COLOR_SIZE > table_size - colors_offset )
-      goto InvalidTable;
-
-    cpal.color_indices = p;
-    cpal.colors        = (FT_Byte*)( cpal_table + colors_offset );
-
-    if ( cpal.version == 1 )
-    {
-      FT_ULong    type_offset, label_offset, entry_label_offset;
-      FT_UShort*  array;
-      FT_UShort*  limit;
-      FT_UShort*  q;
-
-
-      p += face->palette.num_palettes * 2;
-
-      type_offset        = FT_NEXT_ULONG( p );
-      label_offset       = FT_NEXT_ULONG( p );
-      entry_label_offset = FT_NEXT_ULONG( p );
-
-      if ( type_offset )
-      {
-        if ( type_offset >= table_size )
-          goto InvalidTable;
-        if ( face->palette.num_palettes * 2 > table_size - type_offset )
-          goto InvalidTable;
-
-        if ( FT_QNEW_ARRAY( array, face->palette.num_palettes ) )
-          goto NoColor;
-
-        p     = cpal_table + type_offset;
-        q     = array;
-        limit = q + face->palette.num_palettes * sizeof ( FT_UShort );
-
-        while ( q < limit )
-          *q++ = FT_NEXT_USHORT( p );
-
-        face->palette.palette_types = array;
-      }
-
-      if ( label_offset )
-      {
-        if ( label_offset >= table_size )
-          goto InvalidTable;
-        if ( face->palette.num_palettes * 2 > table_size - label_offset )
-          goto InvalidTable;
-
-        if ( FT_QNEW_ARRAY( array, face->palette.num_palettes ) )
-          goto NoColor;
-
-        p     = cpal_table + label_offset;
-        q     = array;
-        limit = q + face->palette.num_palettes * sizeof ( FT_UShort );
-
-        while ( q < limit )
-          *q++ = FT_NEXT_USHORT( p );
-
-        face->palette.palette_name_ids = array;
-      }
-
-      if ( entry_label_offset )
-      {
-        if ( entry_label_offset >= table_size )
-          goto InvalidTable;
-        if ( face->palette.num_palette_entries * 2 >
-               table_size - entry_label_offset )
-          goto InvalidTable;
-
-        if ( FT_QNEW_ARRAY( array, face->palette.num_palette_entries ) )
-          goto NoColor;
-
-        p     = cpal_table + entry_label_offset;
-        q     = array;
-        limit = q + face->palette.num_palette_entries * sizeof ( FT_UShort );
-
-        while ( q < limit )
-          *q++ = FT_NEXT_USHORT( p );
-
-        face->palette.palette_entry_name_ids = array;
-      }
-    }
-
-    if ( FT_NEW( cc ) )
-      goto NoColor;
-
-    cc->colr       = colr;
-    cc->cpal       = cpal;
-    cc->colr_table = colr_table;
-    cc->cpal_table = cpal_table;
-
-    face->colr_and_cpal = cc;
+    face->colr = colr;
 
     return FT_Err_Ok;
 
   InvalidTable:
-    error = FT_THROW( Invalid_File_Format );
+    error = FT_THROW( Invalid_Table );
 
-  NoColor:
-    FT_FRAME_RELEASE( colr_table );
-    FT_FRAME_RELEASE( cpal_table );
-
-    /* arrays in `face->palette' are freed in `sfnt_face_done' */
+  NoColr:
+    FT_FRAME_RELEASE( table );
+    FT_FREE( colr );
 
     return error;
   }
@@ -307,15 +162,13 @@
     FT_Stream  stream = face->root.stream;
     FT_Memory  memory = face->root.memory;
 
-    ColrCpal*  colr_and_cpal = (ColrCpal*)face->colr_and_cpal;
+    Colr*  colr = (Colr*)face->colr;
 
 
-    if ( colr_and_cpal )
+    if ( colr )
     {
-      FT_FRAME_RELEASE( colr_and_cpal->colr_table );
-      FT_FRAME_RELEASE( colr_and_cpal->cpal_table );
-
-      FT_FREE( face->colr_and_cpal );
+      FT_FRAME_RELEASE( colr->table );
+      FT_FREE( colr );
     }
   }
 
@@ -356,104 +209,58 @@
   }
 
 
-  FT_LOCAL_DEF( FT_Error )
-  tt_face_load_colr_layers( TT_Face          face,
-                            FT_UInt          glyph_id,
-                            FT_Glyph_Layer  *ret_layers,
-                            FT_UShort*       ret_num_layers )
+  FT_LOCAL_DEF( FT_Bool )
+  tt_face_get_colr_layer( TT_Face            face,
+                          FT_UInt            base_glyph,
+                          FT_UInt           *aglyph_index,
+                          FT_UInt           *acolor_index,
+                          FT_LayerIterator*  iterator )
   {
-    FT_Error   error;
-    FT_Memory  memory = face->root.memory;
-
-    ColrCpal*  colr_and_cpal = (ColrCpal *)face->colr_and_cpal;
-    Colr*      colr          = &colr_and_cpal->colr;
-
+    Colr*            colr = (Colr*)face->colr;
     BaseGlyphRecord  glyph_record;
-    FT_Glyph_Layer   layers;
-    int              layer_idx;
-    FT_Byte*         layer_record_ptr;
 
 
-    if ( !ret_layers || !ret_num_layers )
-      return FT_THROW( Invalid_Argument );
-
-    if ( !find_base_glyph_record( colr->base_glyphs,
-                                  colr->num_base_glyphs,
-                                  glyph_id,
-                                  &glyph_record ) )
-    {
-      *ret_layers     = NULL;
-      *ret_num_layers = 0;
-
-      return FT_Err_Ok;
-    }
-
-    /* Load all colors for the glyphs; this would be stored in the slot. */
-    layer_record_ptr = colr->layers +
-                       glyph_record.first_layer_index * LAYER_SIZE;
-
-    if ( FT_NEW_ARRAY( layers, glyph_record.num_layers ) )
-      goto Error;
-
-    for ( layer_idx = 0; layer_idx < glyph_record.num_layers; layer_idx++ )
-    {
-      FT_UShort  gid           = FT_NEXT_USHORT( layer_record_ptr );
-      FT_UShort  palette_index = FT_NEXT_USHORT( layer_record_ptr );
-
-
-      if ( palette_index != 0xFFFF                            &&
-           palette_index >= face->palette.num_palette_entries )
-      {
-        error = FT_THROW( Invalid_File_Format );
-        goto Error;
-      }
-
-      layers[layer_idx].color_index = palette_index;
-      layers[layer_idx].glyph_index = gid;
-    }
-
-    *ret_layers     = layers;
-    *ret_num_layers = glyph_record.num_layers;
-
-    return FT_Err_Ok;
-
-  Error:
-    if ( layers )
-      FT_FREE( layers );
-
-    return error;
-  }
-
-
-  static FT_Bool
-  tt_face_find_color( TT_Face   face,
-                      FT_UInt   color_index,
-                      FT_Byte*  blue,
-                      FT_Byte*  green,
-                      FT_Byte*  red,
-                      FT_Byte*  alpha )
-  {
-    ColrCpal*  colr_and_cpal = (ColrCpal *)face->colr_and_cpal;
-    Cpal*      cpal          = &colr_and_cpal->cpal;
-
-    FT_Int    palette_index = 0;
-    FT_Byte*  p;
-    FT_Int    color_offset;
-
-
-    if ( color_index >= face->palette.num_palette_entries )
+    if ( !colr )
       return 0;
 
-    p = cpal->color_indices + palette_index * (int)sizeof ( FT_UShort );
+    if ( !iterator->p )
+    {
+      FT_ULong  offset;
 
-    color_offset = FT_NEXT_USHORT( p );
 
-    p = cpal->colors + color_offset + COLOR_SIZE * color_index;
+      /* first call to function */
+      iterator->layer = 0;
 
-    *blue  = FT_NEXT_BYTE( p );
-    *green = FT_NEXT_BYTE( p );
-    *red   = FT_NEXT_BYTE( p );
-    *alpha = FT_NEXT_BYTE( p );
+      if ( !find_base_glyph_record( colr->base_glyphs,
+                                    colr->num_base_glyphs,
+                                    base_glyph,
+                                    &glyph_record ) )
+        return 0;
+
+      if ( glyph_record.num_layers )
+        iterator->num_layers = glyph_record.num_layers;
+      else
+        return 0;
+
+      offset = LAYER_SIZE * glyph_record.first_layer_index;
+      if ( offset + LAYER_SIZE * glyph_record.num_layers > colr->table_size )
+        return 0;
+
+      iterator->p = colr->layers + offset;
+    }
+
+    if ( iterator->layer >= iterator->num_layers )
+      return 0;
+
+    *aglyph_index = FT_NEXT_USHORT( iterator->p );
+    *acolor_index = FT_NEXT_USHORT( iterator->p );
+
+    if ( *aglyph_index >= (FT_UInt)( FT_FACE( face )->num_glyphs )   ||
+         ( *acolor_index != 0xFFFF                                 &&
+           *acolor_index >= face->palette_data.num_palette_entries ) )
+      return 0;
+
+    iterator->layer++;
 
     return 1;
   }
@@ -521,7 +328,7 @@
         FT_UInt  rows  = (FT_UInt)( y_max - y_min );
         FT_UInt  pitch = width * 4;
 
-        FT_Byte*  buf;
+        FT_Byte*  buf = NULL;
         FT_Byte*  p;
         FT_Byte*  q;
 
@@ -557,16 +364,43 @@
       }
     }
 
-    /* Default assignments to pacify compiler. */
-    r = g = b = 0;
-    alpha = 255;
-
-    if ( color_index != 0xFFFF )
-      tt_face_find_color( face, color_index, &b, &g, &r, &alpha );
+    if ( color_index == 0xFFFF )
+    {
+      if ( face->have_foreground_color )
+      {
+        b     = face->foreground_color.blue;
+        g     = face->foreground_color.green;
+        r     = face->foreground_color.red;
+        alpha = face->foreground_color.alpha;
+      }
+      else
+      {
+        if ( face->palette_data.palette_flags                          &&
+             ( face->palette_data.palette_flags[face->palette_index] &
+                 FT_PALETTE_FOR_DARK_BACKGROUND                      ) )
+        {
+          /* white opaque */
+          b     = 0xFF;
+          g     = 0xFF;
+          r     = 0xFF;
+          alpha = 0xFF;
+        }
+        else
+        {
+          /* black opaque */
+          b     = 0x00;
+          g     = 0x00;
+          r     = 0x00;
+          alpha = 0xFF;
+        }
+      }
+    }
     else
     {
-      /* TODO. foreground color from argument?                */
-      /* Add public FT_Render_Glyph_Color() with color value? */
+      b     = face->palette[color_index].blue;
+      g     = face->palette[color_index].green;
+      r     = face->palette[color_index].red;
+      alpha = face->palette[color_index].alpha;
     }
 
     /* XXX Convert if srcSlot.bitmap is not grey? */
