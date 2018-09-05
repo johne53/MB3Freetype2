@@ -274,10 +274,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\base\ftcolor.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\windows\ftdebug.c"
 				>
 			</File>
@@ -302,10 +298,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\base\ftpsprop.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\base\ftstroke.c"
 				>
 			</File>
@@ -325,15 +317,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\src\base\ftfntfmt.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\src\base\ftgxval.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\src\base\ftlcdfil.c"
 					>
 				</File>
 				<File
