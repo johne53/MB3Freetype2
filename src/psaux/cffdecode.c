@@ -35,7 +35,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_cffdecode
+#define FT_COMPONENT  cffdecode
 
 
 #ifdef CFF_CONFIG_OPTION_OLD_ENGINE
@@ -860,6 +860,15 @@
           case cff_op_flex1:
           case cff_op_callsubr:
           case cff_op_callgsubr:
+            /* depracated opcodes */
+          case cff_op_dotsection:
+            /* invalid Type 1 opcodes */
+          case cff_op_hsbw:
+          case cff_op_closepath:
+          case cff_op_callothersubr:
+          case cff_op_seac:
+          case cff_op_sbw:
+          case cff_op_setcurrentpoint:
             goto MM_Error;
 
           default:
@@ -955,10 +964,10 @@
         case cff_op_hstemhm:
         case cff_op_vstemhm:
           /* the number of arguments is always even here */
-          FT_TRACE4((
-              op == cff_op_hstem   ? " hstem\n"   :
-            ( op == cff_op_vstem   ? " vstem\n"   :
-            ( op == cff_op_hstemhm ? " hstemhm\n" : " vstemhm\n" ) ) ));
+          FT_TRACE4(( "%s\n",
+              op == cff_op_hstem   ? " hstem"   :
+            ( op == cff_op_vstem   ? " vstem"   :
+            ( op == cff_op_hstemhm ? " hstemhm" : " vstemhm" ) ) ));
 
           if ( hinter )
             hinter->stems( hinter->hints,
@@ -972,7 +981,8 @@
 
         case cff_op_hintmask:
         case cff_op_cntrmask:
-          FT_TRACE4(( op == cff_op_hintmask ? " hintmask" : " cntrmask" ));
+          FT_TRACE4(( "%s", op == cff_op_hintmask ? " hintmask"
+                                                  : " cntrmask" ));
 
           /* implement vstem when needed --                        */
           /* the specification doesn't say it, but this also works */
@@ -1085,8 +1095,8 @@
             FT_Int  phase = ( op == cff_op_hlineto );
 
 
-            FT_TRACE4(( op == cff_op_hlineto ? " hlineto\n"
-                                             : " vlineto\n" ));
+            FT_TRACE4(( "%s\n", op == cff_op_hlineto ? " hlineto"
+                                                     : " vlineto" ));
 
             if ( num_args < 0 )
               goto Stack_Underflow;
@@ -1257,8 +1267,8 @@
             FT_Int  nargs;
 
 
-            FT_TRACE4(( op == cff_op_vhcurveto ? " vhcurveto\n"
-                                               : " hvcurveto\n" ));
+            FT_TRACE4(( "%s\n", op == cff_op_vhcurveto ? " vhcurveto"
+                                                       : " hvcurveto" ));
 
             if ( cff_builder_start_point( builder, x, y ) )
               goto Fail;
@@ -1712,16 +1722,20 @@
           break;
 
         case cff_op_random:
-          FT_TRACE4(( " random\n" ));
+          {
+            FT_UInt32*  randval = in_dict ? &decoder->cff->top_font.random
+                                          : &decoder->current_subfont->random;
 
-          /* only use the lower 16 bits of `random'  */
-          /* to generate a number in the range (0;1] */
-          args[0] = (FT_Fixed)
-                      ( ( decoder->current_subfont->random & 0xFFFF ) + 1 );
-          args++;
 
-          decoder->current_subfont->random =
-            cff_random( decoder->current_subfont->random );
+            FT_TRACE4(( " random\n" ));
+
+            /* only use the lower 16 bits of `random'  */
+            /* to generate a number in the range (0;1] */
+            args[0] = (FT_Fixed)( ( *randval & 0xFFFF ) + 1 );
+            args++;
+
+            *randval = cff_random( *randval );
+          }
           break;
 
         case cff_op_mul:
@@ -1807,6 +1821,7 @@
 
             if ( idx >= 0 )
             {
+              idx = idx % count;
               while ( idx > 0 )
               {
                 FT_Fixed  tmp = args[count - 1];
@@ -1821,6 +1836,10 @@
             }
             else
             {
+              /* before C99 it is implementation-defined whether    */
+              /* the result of `%' is negative if the first operand */
+              /* is negative                                        */
+              idx = -( ( -idx ) % count );
               while ( idx < 0 )
               {
                 FT_Fixed  tmp = args[0];
@@ -1921,6 +1940,7 @@
         case cff_op_blend:
           /* this operator was removed from the Type2 specification */
           /* in version 16-March-2000                               */
+          if ( num_designs )
           {
             FT_Int  num_results = (FT_Int)( args[0] >> 16 );
 
@@ -1939,6 +1959,8 @@
             args     -= num_results * ( num_designs - 1 );
             num_args -= num_results * ( num_designs - 1 );
           }
+          else
+            goto Syntax_Error;
           break;
 
         case cff_op_dotsection:

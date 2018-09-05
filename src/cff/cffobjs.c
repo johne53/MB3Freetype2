@@ -51,7 +51,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_cffobjs
+#define FT_COMPONENT  cffobjs
 
 
   /**************************************************************************
@@ -644,14 +644,14 @@
 
       dict = &cff->top_font.font_dict;
 
-      /* we need the `PSNames' module for CFF and CEF formats */
+      /* we need the `psnames' module for CFF and CEF formats */
       /* which aren't CID-keyed                               */
       if ( dict->cid_registry == 0xFFFFU && !psnames )
       {
         FT_ERROR(( "cff_face_init:"
                    " cannot open CFF & CEF fonts\n"
                    "              "
-                   " without the `PSNames' module\n" ));
+                   " without the `psnames' module\n" ));
         error = FT_THROW( Missing_Module );
         goto Exit;
       }

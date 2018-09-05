@@ -46,7 +46,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttinterp
+#define FT_COMPONENT  ttinterp
 
 
 #define NO_SUBPIXEL_HINTING                                                  \
@@ -1171,22 +1171,22 @@
     "9 MDRP[mrW]",
     "9 MDRP[mr?]",
 
-    "7 MDRP[pG]",
-    "7 MDRP[pB]",
-    "7 MDRP[pW]",
-    "7 MDRP[p?]",
-    "8 MDRP[prG]",
-    "8 MDRP[prB]",
-    "8 MDRP[prW]",
-    "8 MDRP[pr?]",
-    "8 MDRP[pmG]",
-    "8 MDRP[pmB]",
-    "8 MDRP[pmW]",
-    "8 MDRP[pm?]",
-    "9 MDRP[pmrG]",
-    "9 MDRP[pmrB]",
-    "9 MDRP[pmrW]",
-    "9 MDRP[pmr?]",
+    "8 MDRP[pG]",
+    "8 MDRP[pB]",
+    "8 MDRP[pW]",
+    "8 MDRP[p?]",
+    "9 MDRP[prG]",
+    "9 MDRP[prB]",
+    "9 MDRP[prW]",
+    "9 MDRP[pr?]",
+    "9 MDRP[pmG]",
+    "9 MDRP[pmB]",
+    "9 MDRP[pmW]",
+    "9 MDRP[pm?]",
+    "A MDRP[pmrG]",
+    "A MDRP[pmrB]",
+    "A MDRP[pmrW]",
+    "A MDRP[pmr?]",
 
     "7 MIRP[G]",
     "7 MIRP[B]",
@@ -1205,22 +1205,22 @@
     "9 MIRP[mrW]",
     "9 MIRP[mr?]",
 
-    "7 MIRP[pG]",
-    "7 MIRP[pB]",
-    "7 MIRP[pW]",
-    "7 MIRP[p?]",
-    "8 MIRP[prG]",
-    "8 MIRP[prB]",
-    "8 MIRP[prW]",
-    "8 MIRP[pr?]",
-    "8 MIRP[pmG]",
-    "8 MIRP[pmB]",
-    "8 MIRP[pmW]",
-    "8 MIRP[pm?]",
-    "9 MIRP[pmrG]",
-    "9 MIRP[pmrB]",
-    "9 MIRP[pmrW]",
-    "9 MIRP[pmr?]"
+    "8 MIRP[pG]",
+    "8 MIRP[pB]",
+    "8 MIRP[pW]",
+    "8 MIRP[p?]",
+    "9 MIRP[prG]",
+    "9 MIRP[prB]",
+    "9 MIRP[prW]",
+    "9 MIRP[pr?]",
+    "9 MIRP[pmG]",
+    "9 MIRP[pmB]",
+    "9 MIRP[pmW]",
+    "9 MIRP[pm?]",
+    "A MIRP[pmrG]",
+    "A MIRP[pmrB]",
+    "A MIRP[pmrW]",
+    "A MIRP[pmr?]"
   };
 
 #endif /* FT_DEBUG_LEVEL_TRACE */
@@ -7874,7 +7874,7 @@
         /* and the first few stack elements also             */
         FT_TRACE6(( "  " ));
         FT_TRACE7(( "%06d ", exc->IP ));
-        FT_TRACE6(( opcode_name[exc->opcode] + 2 ));
+        FT_TRACE6(( "%s", opcode_name[exc->opcode] + 2 ));
         FT_TRACE7(( "%*s", *opcode_name[exc->opcode] == 'A'
                               ? 2
                               : 12 - ( *opcode_name[exc->opcode] - '0' ),

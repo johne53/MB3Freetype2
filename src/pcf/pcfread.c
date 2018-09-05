@@ -44,7 +44,7 @@ THE SOFTWARE.
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_pcfread
+#define FT_COMPONENT  pcfread
 
 
 #ifdef FT_DEBUG_LEVEL_TRACE
@@ -810,8 +810,8 @@ THE SOFTWARE.
   {
     FT_Error   error;
     FT_Memory  memory  = FT_FACE( face )->memory;
-    FT_Long*   offsets = NULL;
-    FT_Long    bitmapSizes[GLYPHPADOPTIONS];
+    FT_ULong*  offsets = NULL;
+    FT_ULong   bitmapSizes[GLYPHPADOPTIONS];
     FT_ULong   format, size;
     FT_ULong   nbitmaps, orig_nbitmaps, i, sizebitmaps = 0;
 
@@ -878,11 +878,11 @@ THE SOFTWARE.
     for ( i = 0; i < nbitmaps; i++ )
     {
       if ( PCF_BYTE_ORDER( format ) == MSBFirst )
-        (void)FT_READ_LONG( offsets[i] );
+        (void)FT_READ_ULONG( offsets[i] );
       else
-        (void)FT_READ_LONG_LE( offsets[i] );
+        (void)FT_READ_ULONG_LE( offsets[i] );
 
-      FT_TRACE5(( "  bitmap %ld: offset %ld (0x%lX)\n",
+      FT_TRACE5(( "  bitmap %lu: offset %lu (0x%lX)\n",
                   i, offsets[i], offsets[i] ));
     }
     if ( error )
@@ -891,22 +891,22 @@ THE SOFTWARE.
     for ( i = 0; i < GLYPHPADOPTIONS; i++ )
     {
       if ( PCF_BYTE_ORDER( format ) == MSBFirst )
-        (void)FT_READ_LONG( bitmapSizes[i] );
+        (void)FT_READ_ULONG( bitmapSizes[i] );
       else
-        (void)FT_READ_LONG_LE( bitmapSizes[i] );
+        (void)FT_READ_ULONG_LE( bitmapSizes[i] );
       if ( error )
         goto Bail;
 
-      sizebitmaps = (FT_ULong)bitmapSizes[PCF_GLYPH_PAD_INDEX( format )];
+      sizebitmaps = bitmapSizes[PCF_GLYPH_PAD_INDEX( format )];
 
-      FT_TRACE4(( "  %ld-bit padding implies a size of %ld\n",
+      FT_TRACE4(( "  %ld-bit padding implies a size of %lu\n",
                   8 << i, bitmapSizes[i] ));
     }
 
-    FT_TRACE4(( "  %ld bitmaps, using %ld-bit padding\n",
+    FT_TRACE4(( "  %lu bitmaps, using %ld-bit padding\n",
                 nbitmaps,
                 8 << PCF_GLYPH_PAD_INDEX( format ) ));
-    FT_TRACE4(( "  bitmap size: %ld\n", sizebitmaps ));
+    FT_TRACE4(( "  bitmap size: %lu\n", sizebitmaps ));
 
     FT_UNUSED( sizebitmaps );       /* only used for debugging */
 
@@ -915,14 +915,13 @@ THE SOFTWARE.
     for ( i = 0; i < nbitmaps; i++ )
     {
       /* rough estimate */
-      if ( ( offsets[i] < 0 )              ||
-           ( (FT_ULong)offsets[i] > size ) )
+      if ( offsets[i] > size )
       {
         FT_TRACE0(( "pcf_get_bitmaps:"
-                    " invalid offset to bitmap data of glyph %ld\n", i ));
+                    " invalid offset to bitmap data of glyph %lu\n", i ));
       }
       else
-        face->metrics[i].bits = stream->pos + (FT_ULong)offsets[i];
+        face->metrics[i].bits = stream->pos + offsets[i];
     }
 
     face->bitmapsFormat = format;
@@ -944,12 +943,12 @@ THE SOFTWARE.
     FT_Error      error;
     FT_Memory     memory = FT_FACE( face )->memory;
     FT_ULong      format, size;
-    int           firstCol, lastCol;
-    int           firstRow, lastRow;
+    FT_UShort     firstCol, lastCol;
+    FT_UShort     firstRow, lastRow;
     FT_ULong      nencoding;
     FT_UShort     defaultCharRow, defaultCharCol;
     FT_UShort     encodingOffset, defaultCharEncodingOffset;
-    int           i, j;
+    FT_UShort     i, j;
     FT_Byte*      pos;
     FT_ULong      k;
     PCF_Encoding  encoding = NULL;
@@ -975,18 +974,18 @@ THE SOFTWARE.
     /* make sense for most encodings.                         */
     if ( PCF_BYTE_ORDER( format ) == MSBFirst )
     {
-      firstCol          = FT_GET_SHORT();
-      lastCol           = FT_GET_SHORT();
-      firstRow          = FT_GET_SHORT();
-      lastRow           = FT_GET_SHORT();
+      firstCol          = FT_GET_USHORT();
+      lastCol           = FT_GET_USHORT();
+      firstRow          = FT_GET_USHORT();
+      lastRow           = FT_GET_USHORT();
       face->defaultChar = FT_GET_USHORT();
     }
     else
     {
-      firstCol          = FT_GET_SHORT_LE();
-      lastCol           = FT_GET_SHORT_LE();
-      firstRow          = FT_GET_SHORT_LE();
-      lastRow           = FT_GET_SHORT_LE();
+      firstCol          = FT_GET_USHORT_LE();
+      lastCol           = FT_GET_USHORT_LE();
+      firstRow          = FT_GET_USHORT_LE();
+      lastRow           = FT_GET_USHORT_LE();
       face->defaultChar = FT_GET_USHORT_LE();
     }
 
@@ -1008,10 +1007,8 @@ THE SOFTWARE.
                 face->defaultChar ));
 
     /* sanity checks; we limit numbers of rows and columns to 256 */
-    if ( firstCol < 0       ||
-         firstCol > lastCol ||
+    if ( firstCol > lastCol ||
          lastCol  > 0xFF    ||
-         firstRow < 0       ||
          firstRow > lastRow ||
          lastRow  > 0xFF    )
       return FT_THROW( Invalid_Table );
@@ -1032,14 +1029,14 @@ THE SOFTWARE.
     defaultCharCol = face->defaultChar & 0xFF;
 
     /* validate default character */
-    if ( defaultCharRow < (FT_UShort)firstRow ||
-         defaultCharRow > (FT_UShort)lastRow  ||
-         defaultCharCol < (FT_UShort)firstCol ||
-         defaultCharCol > (FT_UShort)lastCol  )
+    if ( defaultCharRow < firstRow ||
+         defaultCharRow > lastRow  ||
+         defaultCharCol < firstCol ||
+         defaultCharCol > lastCol  )
     {
-      face->defaultChar = firstRow * 256 + firstCol;
+      face->defaultChar = firstRow * 256U + firstCol;
       FT_TRACE0(( "pcf_get_encodings:"
-                  " Invalid default character set to %d\n",
+                  " Invalid default character set to %u\n",
                   face->defaultChar ));
 
       defaultCharRow = face->defaultChar >> 8;
@@ -1054,9 +1051,8 @@ THE SOFTWARE.
     /* `stream->cursor' still points at the beginning of the frame; */
     /* we can thus easily get the offset to the default character   */
     pos = stream->cursor +
-            2 * ( ( defaultCharRow - (FT_UShort)firstRow ) *
-                    ( lastCol - firstCol + 1 ) +
-                  defaultCharCol - (FT_UShort)firstCol );
+            2 * ( ( defaultCharRow - firstRow ) * ( lastCol - firstCol + 1 ) +
+                  defaultCharCol - firstCol );
 
     if ( PCF_BYTE_ORDER( format ) == MSBFirst )
       defaultCharEncodingOffset = FT_PEEK_USHORT( pos );
@@ -1102,10 +1098,10 @@ THE SOFTWARE.
           else if ( encodingOffset == 0 )
             encodingOffset = defaultCharEncodingOffset;
 
-          encoding[k].enc   = i * 256 + j;
+          encoding[k].enc   = i * 256U + j;
           encoding[k].glyph = encodingOffset;
 
-          FT_TRACE5(( "  code %d (0x%04X): idx %d\n",
+          FT_TRACE5(( "  code %u (0x%04X): idx %u\n",
                       encoding[k].enc, encoding[k].enc, encoding[k].glyph ));
 
           k++;

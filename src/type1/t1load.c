@@ -86,7 +86,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t1load
+#define FT_COMPONENT  t1load
 
 
 #ifndef T1_CONFIG_OPTION_NO_MM_SUPPORT
@@ -1043,7 +1043,7 @@
       blend->default_weight_vector[n] =
       blend->weight_vector[n]         = T1_ToFixed( parser, 0 );
 
-      FT_TRACE4(( " %f", (float)blend->weight_vector[n] / 65536 ));
+      FT_TRACE4(( " %f", (double)blend->weight_vector[n] / 65536 ));
     }
 
     FT_TRACE4(( "]\n" ));
@@ -1308,7 +1308,7 @@
                 (double)temp[2] / 65536 / 1000,
                 (double)temp[3] / 65536 / 1000,
                 (double)temp[4] / 65536 / 1000,
-                (double)temp[5] / 65536 / 1000));
+                (double)temp[5] / 65536 / 1000 ));
 
     temp_scale = FT_ABS( temp[3] );
 
