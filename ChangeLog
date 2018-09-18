@@ -1,3 +1,91 @@
+2018-09-17  Werner Lemberg  <wl@gnu.org>
+
+	[pshinter] Handle numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10396
+
+	* src/pshinter/pshglob.c: Include FT_INTERNAL_CALC_H.
+	(psh_blues_snap_stems): Mask numeric overflow.
+
+2018-09-13  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Some fixes for VF checks.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10317
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): Properly exit memory
+	frame if we have invalid glyph variation data offsets.
+	(tt_face_vary_cvt): Protect against missing `tuplecoords' array.
+	Fix typo.
+
+2018-09-13  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/sfdriver.c (sfnt_get_var_ps_name): Fix last commit.
+
+2018-09-13  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/sfdriver.c (sfnt_get_var_ps_name): Check `result'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10316
+
+2018-09-12  John Tytgat  <John.Tytgat@esko.com>
+
+	[sfnt] Better PS name handling (#54629).
+
+	* src/sfnt/sfdriver (IS_WIN, IS_APPLE): Omit language ID checks.
+	(get_win_string, get_apple_string): Return NULL when the PostScript
+	font name characters is not according to specification.
+	(get_win_string): Make trace output work if the high byte if
+	non-zero.
+	(sfnt_get_var_ps_name, sfnt_get_ps_name): Previously we preferred
+	Win PS name (when there is also an Apple PS name); change this into
+	a fallback to Apple PS name in case the Win PS name is invalid.
+
+2018-09-12  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Improve VF check.
+
+	Triggered by
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10255
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): Use better limit check
+	for `tupleCount'.
+
+2018-09-12  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): Check `glyphoffsets'.
+
+2018-09-10  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	* src/pshinter/pshrec.c (t2_hints_stems): Mask numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10215
+
+2018-09-09  Ben Wagner  <bungeman@google.com>
+
+	* builds/freetype.mk (refdoc-venv): Ensure python version (#54631).
+
+2018-09-07  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix assertion failure.
+
+	Triggered by
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10212
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Reintroduce
+	`opened_frame' (removed in a change from 2018-08-26) to handle
+	deallocation of the second frame.
+
 2018-09-05  Werner Lemberg  <wl@gnu.org>
 
 	Synchronize `ftdebug.c' files.
@@ -592,7 +680,7 @@
 
 	[cid] Trace PostScript dictionaries.
 
-	* src/cid/cidload.c: Include FT_INTERNAL_POSTSCRIPT_AUX_H
+	* src/cid/cidload.c: Include FT_INTERNAL_POSTSCRIPT_AUX_H.
 	(cid_load_keyword, cid_parse_font_matrix, parse_fd_array,
 	parse_expansion_factor, cid_parse_dict): Add tracing calls.
 	(parse_font_name): New function to trace `/FontName' keywords in
