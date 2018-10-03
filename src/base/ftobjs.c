@@ -391,35 +391,40 @@
     case FT_RENDER_MODE_MONO:
       pixel_mode = FT_PIXEL_MODE_MONO;
 #if 1
-      /* undocumented but confirmed: bbox values get rounded    */
-      /* for narrow glyphs bbox is extended to one pixel first  */
-      if ( pbox.xMax - pbox.xMin <= 1 )
-      {
-        if ( pbox.xMax - pbox.xMin == 0 )
-        {
-          cbox.xMin = ( cbox.xMin + cbox.xMax ) / 2 - 32;
-          cbox.xMax = cbox.xMin + 64;
-        }
-        else if ( cbox.xMax - cbox.xMin < 0 )
-          cbox.xMin = cbox.xMax = ( cbox.xMin + cbox.xMax ) / 2;
-      }
+      /* x */
 
-      pbox.xMin += ( cbox.xMin + 32 ) >> 6;
+      /* undocumented but confirmed: bbox values get rounded;    */
+      /* we do asymmetric rounding so that the center of a pixel */
+      /* gets always included                                    */
+
+      pbox.xMin += ( cbox.xMin + 31 ) >> 6;
       pbox.xMax += ( cbox.xMax + 32 ) >> 6;
 
-      if ( pbox.yMax - pbox.yMin <= 1 )
+      /* if the bbox collapsed, we add a pixel based on the total */
+      /* rounding remainder to cover most of the original cbox    */
+
+      if ( pbox.xMin == pbox.xMax )
       {
-        if ( pbox.yMax - pbox.yMin == 0 )
-        {
-          cbox.yMin = ( cbox.yMin + cbox.yMax ) / 2 - 32;
-          cbox.yMax = cbox.yMin + 64;
-        }
-        else if ( cbox.yMax - cbox.yMin < 0 )
-          cbox.yMin = cbox.yMax = ( cbox.yMin + cbox.yMax ) / 2;
+        if ( ( ( cbox.xMin + 31 ) & 63 ) - 31 +
+             ( ( cbox.xMax + 32 ) & 63 ) - 32 < 0 )
+          pbox.xMin -= 1;
+        else
+          pbox.xMax += 1;
       }
 
-      pbox.yMin += ( cbox.yMin + 32 ) >> 6;
+      /* y */
+
+      pbox.yMin += ( cbox.yMin + 31 ) >> 6;
       pbox.yMax += ( cbox.yMax + 32 ) >> 6;
+
+      if ( pbox.yMin == pbox.yMax )
+      {
+        if ( ( ( cbox.yMin + 31 ) & 63 ) - 31 +
+             ( ( cbox.yMax + 32 ) & 63 ) - 32 < 0 )
+          pbox.yMin -= 1;
+        else
+          pbox.yMax += 1;
+      }
 
       break;
 #else
@@ -485,7 +490,7 @@
     if ( pbox.xMin < -0x8000 || pbox.xMax > 0x7FFF ||
          pbox.yMin < -0x8000 || pbox.yMax > 0x7FFF )
     {
-      FT_TRACE3(( "ft_glyphslot_peset_bitmap: [%ld %ld %ld %ld]\n",
+      FT_TRACE3(( "ft_glyphslot_preset_bitmap: [%ld %ld %ld %ld]\n",
                   pbox.xMin, pbox.yMin, pbox.xMax, pbox.yMax ));
       return 1;
     }
@@ -839,7 +844,7 @@
      * - Do only auto-hinting if we have
      *
      *   - a hinter module,
-     *   - a scalable font format dealing with outlines,
+     *   - a scalable font,
      *   - not a tricky font, and
      *   - no transforms except simple slants and/or rotations by
      *     integer multiples of 90 degrees.
@@ -857,8 +862,7 @@
     if ( hinter                                           &&
          !( load_flags & FT_LOAD_NO_HINTING )             &&
          !( load_flags & FT_LOAD_NO_AUTOHINT )            &&
-         FT_DRIVER_IS_SCALABLE( driver )                  &&
-         FT_DRIVER_USES_OUTLINES( driver )                &&
+         FT_IS_SCALABLE( face )                           &&
          !FT_IS_TRICKY( face )                            &&
          ( ( load_flags & FT_LOAD_IGNORE_TRANSFORM )    ||
            ( face->internal->transform_matrix.yx == 0 &&
@@ -958,8 +962,9 @@
 
 #ifdef GRID_FIT_METRICS
         if ( !( load_flags & FT_LOAD_NO_HINTING ) )
-          ft_glyphslot_grid_fit_metrics( slot,
-              FT_BOOL( load_flags & FT_LOAD_VERTICAL_LAYOUT ) );
+          ft_glyphslot_grid_fit_metrics(
+            slot,
+            FT_BOOL( load_flags & FT_LOAD_VERTICAL_LAYOUT ) );
 #endif
       }
     }
@@ -2732,8 +2737,8 @@
 
     /* close the attached stream */
     FT_Stream_Free( stream,
-                    (FT_Bool)( parameters->stream &&
-                               ( parameters->flags & FT_OPEN_STREAM ) ) );
+                    FT_BOOL( parameters->stream                     &&
+                             ( parameters->flags & FT_OPEN_STREAM ) ) );
 
   Exit:
     return error;
@@ -5150,9 +5155,9 @@
     service = (FT_Service_Properties)interface;
 
     if ( set )
-      missing_func = (FT_Bool)( !service->set_property );
+      missing_func = FT_BOOL( !service->set_property );
     else
-      missing_func = (FT_Bool)( !service->get_property );
+      missing_func = FT_BOOL( !service->get_property );
 
     if ( missing_func )
     {

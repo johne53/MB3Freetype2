@@ -1,3 +1,175 @@
+2018-10-03  Werner Lemberg  <wl@gnu.org>
+
+	[ftgrays] Fix typo in stand-alone mode (#54771).
+
+	* src/smooth/ftgrays.c (FT_THROW) [STANDALONE_ &&
+	FT_DEBUG_LEVEL_TRACE]: Fix call to `FT_ERR_CAT'.
+
+2018-10-02  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix segfault.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10768
+
+	* src/psaux/cffdecode.c (cff_decoder_parse_charstrings)
+	<cff_op_callothersubr> [CFF_CONFIG_OPTION_OLD_ENGINE]: Check
+	argument.
+
+2018-10-02  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10740
+
+	* src/psaux/cffdecode.c (cff_decoder_parse_charstrings) <cff_op_roll>
+	[CFF_CONFIG_OPTION_OLD_ENGINE]: Use NEG_INT.
+
+2018-10-02  Werner Lemberg  <wl@gnu.org>
+
+	[pshinter] Handle numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10550
+
+	* src/pshinter/pshglob.c (psh_blues_snap_stem): Mask numeric
+	overflow.
+
+2018-09-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Align FreeType with standard C memory management.
+
+	* include/freetype/ftsystem.h: Include FT_TYPES_H.
+	(*FT_Alloc_Func, *FT_Realloc_Func): Use size_t for the size arguments.
+	* src/raster/ftmisc.h: Ditto.
+
+	* builds/amiga/src/base/ftsystem.c, builds/unix/ftsystem.c,
+	* builds/vms/ftsystem.c, src/base/ftsystem.c (ft_alloc, ft_realloc):
+	Use size_t for the size arguments.
+
+	* src/base/ftdbgmem.c (ft_mem_debug_alloc, ft_mem_debug_realloc): Use
+	FT_Offset, aka size_t, for the size arguments.
+
+2018-09-25  Werner Lemberg  <wl@gnu.org>
+
+	Fix handling of `FT_Bool'.
+
+	Before this commit we had code like
+
+	  (FT_Bool)( globals->glyph_styles[gindex] & 0x8000)
+
+	Since `FT_Bool' is defined to be an `unsigned char', the code
+	evaluated to something like
+
+	  (unsigned char)( 0x8532 & 0x8000)
+
+	which in turn expanded to
+
+	  (unsigned char)( 0x8000)
+
+	and finally yielded 0x00 – i.e., false – not as expected.
+
+	Problem reported and analyzed by Tony Smith <tony.smith@macro4.com>.
+
+	* include/freetype/fttypes.h (FT_BOOL): Add a comparison against
+	zero so that we always have a Boolean expression.
+
+	*/*: Replace castings to `FT_Bool' with calls to `FT_BOOL' where
+	possible.
+
+2018-09-23  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[bdf] Speed up charmap access.
+
+	This makes FT_Get_Char_Index and FT_Get_Next_Char 4-5 times faster.
+
+	* src/bdf/bdfdrivr.c (bdf_cmap_char_{index,next}): Help binary search
+	with continuous prediction.
+
+2018-09-22  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bimap): Another tweak.
+
+	This one should be clearer. When the rounded monochrome bbox collapses
+	we add a pixel that covers most if not all original cbox.
+
+2018-09-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bimap): Further tweak.
+
+2018-09-21  Ben Wagner  <bungeman@google.com>
+
+	Improve auto-hinter handling of bitmap fonts (#54681).
+
+	For bitmap fonts, `FT_Load_Glyph' should either return an error or
+	not set the format to `FT_GLYPH_FORMAT_OUTLINE'.  However, in this
+	case `FT_Load_Glyph' calls into the auto-hinter which calls back
+	into `FT_Load_Glyph' with `FT_LOAD_NO_SCALE' in the flags, which
+	marks the glyph as `FT_GLYPH_FORMAT_OUTLINE' with an empty path
+	(even though it doesn't have any path).  It appears that the
+	auto-hinter should not be called when the face doesn't have
+	outlines.  The current test for using the auto-hinter in
+	`FT_Load_Glyph' checks whether the driver supports scalable
+	outlines, but not if the face supports scalable outlines.
+
+	* src/base/ftobjs.c (FT_Load_Glyph): Directly check whether we have
+	scalable outlines.
+
+2018-09-21  Werner Lemberg  <wl@gnu.org>
+
+	[raster] Fix disappearing vertical lines (#54589).
+
+	* src/raster/ftraster.c (Vertical_Sweep_Span): Handle special case
+	where both left and right outline exactly pass pixel centers.
+
+2018-09-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/base/ftobjs.c (ft_glyphslot_preset_bimap): Tiny rounding tweak.
+
+	This adds pixels in case a contour goes through the center
+	and they need to be turned on in the b/w rasterizer.
+
+2018-09-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[pcf] Replace charmap implementation.
+
+	PCF comes with charmap lookup table, aka PCF encodings.  Using it
+	directly makes FT_Get_Char_Index and FT_Get_Next_Char 4-5 times
+	faster than the original BDF-like binary searches.
+
+	* src/pcf/pcf.h (PCF_EncodingRec): Removed.
+	(PCF_FaceRec): Remove `nencodings' and `encodings'.
+	* src/pcf/pcfdrivr.c (pcf_cmap_char_{index,next}): Replaced.
+	* src/pcf/pcfread.c (pcf_get_encodings): Store data differently.
+
+2018-09-20  Werner Lemberg  <wl@gnu.org>
+
+	[base] Remove unused function `FT_GlyphLoader_CopyPoints'.
+
+	* include/freetype/internal/ftgloadr.h, src/base/ftgloadr.c
+	(FT_GlyphLoader_CopyPoints): Do it.
+
+2018-09-19  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[pcf] Prepare to replace charmap implementation.
+
+	* src/pcf/pcf.h (PCF_FaceRec): Updated to include...
+	(PCF_EncRec): ... this new structure to store charmap geometry.
+
+	* src/pcf/pcfread.c (pcf_get_encodings): Store charmap geometry.
+
+2018-09-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Remove unused fields.
+
+	* src/pcf.h (PCF_FaceRec): Remove `charmap' and `charmap_handle'.
+	* src/bdfdrvr.h (BDF_FaceRec): Ditto.
+	* src/winfonts/winfnt.h (FNT_FaceRec): Ditto.
+
 2018-09-17  Werner Lemberg  <wl@gnu.org>
 
 	[pshinter] Handle numeric overflow.
@@ -7,7 +179,7 @@
 	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10396
 
 	* src/pshinter/pshglob.c: Include FT_INTERNAL_CALC_H.
-	(psh_blues_snap_stems): Mask numeric overflow.
+	(psh_blues_snap_stem): Mask numeric overflow.
 
 2018-09-13  Werner Lemberg  <wl@gnu.org>
 
