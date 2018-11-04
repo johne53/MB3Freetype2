@@ -1,3 +1,107 @@
+2018-11-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Adjust condition.
+
+2018-11-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Tracing tweaks.
+
+2018-11-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Revert due to specs: [truetype] Speed up variation IUP.
+
+2018-11-02  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgxvar.c (ft_var_get_item_delta): Fixed logic.
+
+	Reported and tested by Behdad.
+
+2018-11-02  Shailesh Mistry  <shailesh.mistry@hotmail.co.uk>
+
+	[autofit] Prevent SEGV.
+
+	See
+
+	  https://bugs.ghostscript.com/show_bug.cgi?id=697545
+
+	for more details on how the bug was found.
+
+	* src/autofit/afloader.c (af_loader_load_glyph): Propagate error
+	code.
+
+2018-10-31  Alexei Podtelezhnikov <apodtele@gmail.com>
+
+	[truetype] Speed up variation IUP.
+
+	* src/truetype/ttgxvar.c (tt_delta_interpolate): Separate trivial
+	snapping to the same position from true interpolation.
+
+2018-10-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/type1/t1load.c (t1_set_mm_blend): Optimized.
+
+2018-10-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgxvar.c (ft_var_get_item_delta): Optimized.
+
+2018-10-29  Werner Lemberg  <wl@gnu.org>
+
+	[base] Fix numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11080
+
+	* src/base/ftoutln.c (FT_Outline_Get_Orientation): Use `MUL_LONG'.
+
+2018-10-29  Werner Lemberg  <wl@gnu.org>
+
+	[cff] Fix numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10988
+
+	* src/cff/cffparse.c (cff_parser_run)
+	[CFF_CONFIG_OPTION_OLD_ENGINE]: Use `NEG_LONG'.
+
+2018-10-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[sfnt] Make `head' timestamps unsigned.
+
+	It's been more than 2^31 seconds since 1904.
+
+	* include/freetype/tttables.h (TT_Header): Change field types.
+	* src/sfnt/ttload.c (tt_face_load_generic_header): Updated.
+
+2018-10-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Revert: Align FreeType with standard C memory management.
+
+2018-10-27  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix numeric overflow.
+
+	Triggered by
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11157
+
+	* src/psaux/cffdecode.c (cff_decoder_parse_charstrings) <cff_op_blend>
+	[CFF_CONFIG_OPTION_OLD_ENGINE]: Fix integer overflow.
+
+2018-10-20  Werner Lemberg  <wl@gnu.org>
+
+	Avoid endless loop while tracing (#54858).
+
+	* src/type1/t1load.c (parse_buildchar): Guard tracing stuff with
+	FT_DEBUG_LEVEL_TRACE.
+
+2018-10-17  David Demelier  <markand@malikania.fr>
+
+	* CMakeLists.txt: Specify `RUNTIME DESTINATION'.
+
+	This is needed for DLL builds.
+
 2018-10-07  Werner Lemberg  <wl@gnu.org>
 
 	A missing Unicode cmap is not a fatal error.
@@ -113,7 +217,7 @@
 	* src/base/ftobjs.c (ft_glyphslot_preset_bimap): Another tweak.
 
 	This one should be clearer. When the rounded monochrome bbox collapses
-	we add a pixel that covers most if not all original cbox.
+	we add a pixel that covers most if not all original cbox. 
 
 2018-09-21  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
