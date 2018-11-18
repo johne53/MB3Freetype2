@@ -1,3 +1,65 @@
+2018-11-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Placeholder only for library-enabled LCD filtering.
+
+	* src/smooth/ftsmooth.c (ft_smooth_init): Add disabled
+	`FT_Library_SetLcdFilter' call.
+
+2018-11-09  Young Xiao  <yangx92@hotmail.com>
+
+	[psaux] Add safety guard (#54985).
+
+	* src/psaux/psobjs.c (cff_builder_close_contour): Do it.
+
+2018-11-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/unix/configure.raw: Require `windows.h' for windres.
+
+2018-11-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[ftstroke] Fix unpredictable failures (#54986).
+
+	* src/base/ftstroke.c (ft_sroke_border_lineto): Fix lineto check.
+
+2018-11-08  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[ftstroke] Fix unpredictable failures (#54976).
+
+	* src/base/ftstroke.c (ft_sroke_border_close): Set the start tags.
+
+2018-11-07  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Fix VF check from 2018-09-12 (#54973).
+
+	* src/truetype/ttgxvar.c (TT_Vary_Apply_Glyph_Deltas): Use correct
+	offsets for estimates.
+
+2018-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[pshinter] Fix numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11242
+
+	* src/pshinter/pshrec.c (ps_dimension_add_t1stem): Implement it.
+
+2018-11-06  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix timeout in old CFF engine.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11260
+
+	* src/psaux/cffdecode.c (cff_decoder_parse_charstrings)
+	<cff_op_sqrt> [CFF_CONFIG_OPTION_OLD_ENGINE]: Fix potential endless
+	loop.
+
+2018-11-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgxvar.c: Use enum definitions.
+
 2018-11-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Adjust condition.
