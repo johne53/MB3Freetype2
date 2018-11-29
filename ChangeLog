@@ -1,3 +1,81 @@
+2018-11-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/windows/vc2010/freetype.vcxproj: Simplify.
+
+2018-11-27  Chris Liddell  <chris.liddell@artifex.com>
+
+	[type1,cff] Add FT_{Set,Get}_MM_WeightVector API calls.
+
+	For multiple master fonts, common usage (in Postscript) is to modify
+	the WeightVector of an existing font instance, this addition
+	supports that use.
+
+	* include/freetype/ftmm.h, src/base/ftmm.c (FT_Set_MM_WeightVector,
+	FT_Get_MM_WeightVector): New API functions.
+
+	* include/freetype/internalservices/svmm.h
+	(FT_Set_MM_WeightVector_Func, FT_Get_MM_WeightVector_Func): New
+	function types.
+	(MultiMasters): Add `set_mm_weightvector' and `get_mm_weightvector'
+	members.
+	(FT_DEFINE_SERVICE_MULTIMASTERSREC): Updated.
+
+	* src/cffcffdrivr.c (cff_set_mm_weightvector,
+	cff_get_mm_weightvector): New functions.
+	(cff_service_multi_masters): Register them.
+
+	* src/truetype/ttdriver.c (tt_service_gx_multi_masters): Updated.
+	This driver doesn't use the new interface.
+
+	* src/type1/t1load.c (T1_Set_MM_WeightVector,
+	T1_Get_MM_WeightVector): New functions.
+	* src/type1/t1driver.c (t1_service_multi_masters): Register them.
+	* src/type1/t1load.h: Updated.
+
+2018-11-27  Ben Wagner  <bungeman@google.com>
+
+	[cff] Fix compiler warning (#55105).
+
+	* src/cff/cffparse.c (cff_parser_run): Guard label only used if
+	CFF_CONFIG_OPTION_OLD_ENGINE is active.
+
+2018-11-27  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Fix numeric overflow (#55103).
+
+	* src/truetype/ttgload.c (compute_glyph_metrics): Use `SUB_LONG'.
+
+2018-11-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[builds] Belated DLL support with vc2002-vc2008.
+
+	The solution and project files should be automatically upgraded for
+	the approriate Visual C++ version.
+
+	* builds/windows/visualc/freetype.{sln,vcproj}: Major upgrades.
+	* builds/windows/visualc/index.html: Document the change.
+	* builds/windows/vc2005, builds/windows/vc2008: Removed as redundant.
+
+2018-11-22  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	* src/cff/cffparse.c: Please the compiler.
+
+2018-11-22  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	[cff] Fix memory overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=9869
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=10869
+
+	* src/cff/cffparse.c (destruct_t2s_item, cff_parser_run): Store
+	evaluated T2 charstrings in separately allocated memory.
+
+2018-11-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/windows/{visualc,vc2005,vc2008}/freetype.vcproj: Fix it.
+
 2018-11-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[smooth] Placeholder only for library-enabled LCD filtering.
