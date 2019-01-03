@@ -1,3 +1,30 @@
+2018-12-29  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin2.c: Some fixes from `aflatin.c' (#55310).
+
+2018-12-25  Werner Lemberg  <wl@gnu.org>
+
+	* src/psaux/cffdecode.c (cff_operaor_seac): Fix numeric overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11915
+
+2018-12-12  Werner Lemberg  <wl@gnu.org>
+
+	[gxvalid] Fix compiler warnings.
+
+	* src/gxvalid/gxvjust.c (gxv_just_check_max_gid),
+	src/gxvalid/gxvmort.c (gxv_mort_coverage_validate): Use `FT_UNUSED'.
+
+2018-12-11  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgload.c (TT_Hint_Glyph): Remove useless test.
+
+	`control_len' only gets its value from `n_ins' (and vice versa),
+	which is always read as `unsigned short' and thus can't be larger
+	than 0xFFFF.
+
 2018-12-04  Werner Lemberg  <wl@gnu.org>
 
 	[bdf] Ignore data after `ENDFONT'.
@@ -559,7 +586,7 @@
 
 	Reported as
 
-	  http://lists.nongnu.org/archive/html/freetype-devel/2018-08/msg00124.html
+	  https://lists.nongnu.org/archive/html/freetype-devel/2018-08/msg00124.html
 
 	* docs/reference/markdown/stylesheets/extra.css (.md-typeset code):
 	Add rule `white-space'.
@@ -712,7 +739,7 @@
 
 	Reported as
 
-	  http://lists.nongnu.org/archive/html/freetype-devel/2018-08/msg00083.html
+	  https://lists.nongnu.org/archive/html/freetype-devel/2018-08/msg00083.html
 
 2018-08-26  Werner Lemberg  <wl@gnu.org>
 
