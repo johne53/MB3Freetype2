@@ -1,3 +1,55 @@
+2019-03-05  Werner Lemberg  <wl@gnu.org>
+
+	[base] Handle numeric overflow (#55827).
+
+	* src/base/ftglyph.c (FT_Glyph_Get_CBox): Use `FT_PIX_CEIL_LONG'.
+
+2019-03-05  Sebastian Rasmussen  <sebras@gmail.com>
+
+	[psaux] Fix use of uninitialized memory (#55832).
+
+	* src/psaux/psintrp.c (cf2_interpT2CharString): The call to
+	`cf2_arrstack_setCount' may fail because the allocator ran out of
+	memory.  When this happens the stack is still written to before the
+	error condition is checked.  This means that FreeType writes outside
+	of allocated memory.  This commit moves the error check prior to the
+	stack assignment, hence the function now properly returns with an
+	error condition.
+
+2019-02-23  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftbitmap.c (FT_Bitmap_Blend): No fractional offsets.
+
+	The function only provided a framework without an actual
+	implementation, which this commit removes.
+
+2019-02-23  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/update-copyright-year: Insert `(C)'.
+
+2019-02-21  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	[truetype] Mask numeric overflows.
+
+	* src/truetype/ttinterp.c (Move_CVT, Move_CVT_Stretched, Ins_MIRP):
+	Mask numeric overflows.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11681
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11734
+
+2019-02-21  Armin Hasitzka  <prince.cherusker@gmail.com>
+
+	[psaux] Mask numeric overflow.
+
+	* src/psaux/cffdecode.c (cff_decoder_parse_charstrings): Mask numeric
+	overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=13041
+
 2019-02-16  Wink Saville  <wink@saville.com>
 
 	* src/autofit/afwarp.h (af_warper_compute): Fix declaration.
@@ -4753,7 +4805,7 @@
 
 ----------------------------------------------------------------------------
 
-Copyright 2017-2019 by
+Copyright (C) 2017-2019 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
