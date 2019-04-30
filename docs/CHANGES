@@ -11,6 +11,14 @@ CHANGES BETWEEN 2.10.0 and 2.10.1
   - For distribution,  `.tar.bz2' packages are replaced with `.tar.xz'
     bundles.
 
+  - The handling of  the default character in PCF fonts as  introduced
+    in version 2.10.0 was partially broken, causing premature abortion
+    of charmap iteration for many fonts.
+
+  - If  `FT_Set_Named_Instance' was  called  with  the same  arguments
+    twice in a row, the function  returned an incorrect error code the
+    second time.
+
 
 ======================================================================
 
