@@ -45,7 +45,7 @@
    * This is a new anti-aliasing scan-converter for FreeType 2.  The
    * algorithm used here is _very_ different from the one in the standard
    * `ftraster' module.  Actually, `ftgrays' computes the _exact_
-   * coverage of the outline on each pixel cell.
+   * coverage of the outline on each pixel cell by straight segments.
    *
    * It is based on ideas that I initially found in Raph Levien's
    * excellent LibArt graphics library (see https://www.levien.com/libart
@@ -58,6 +58,14 @@
    * different way, and I don't use sorted vector paths.  Also, it doesn't
    * use floating point values.
    *
+   * Bézier segments are flattened by splitting them until their deviation
+   * from straight line becomes much smaller than a pixel.  Therefore, the
+   * pixel coverage by a Bézier curve is calculated approximately.  To
+   * estimate the deviation, we use the distance from the control point
+   * to the conic chord centre or the cubic chord trisection.  These
+   * distances vanish fast after each split.  In the conic case, they vanish
+   * predictably and the number of necessary splits can be calculated.
+   *
    * This renderer has the following advantages:
    *
    * - It doesn't need an intermediate bitmap.  Instead, one can supply a
@@ -67,7 +75,7 @@
    *   callback.
    *
    * - A perfect anti-aliaser, i.e., it computes the _exact_ coverage on
-   *   each pixel cell.
+   *   each pixel cell by straight segments.
    *
    * - It performs a single pass on the outline (the `standard' FT2
    *   renderer makes two passes).
@@ -75,7 +83,7 @@
    * - It can easily be modified to render to _any_ number of gray levels
    *   cheaply.
    *
-   * - For small (< 20) pixel sizes, it is faster than the standard
+   * - For small (< 80) pixel sizes, it is faster than the standard
    *   renderer.
    *
    */
@@ -327,17 +335,9 @@ typedef ptrdiff_t  FT_PtrDist;
   /* must be at least 6 bits! */
 #define PIXEL_BITS  8
 
-#undef FLOOR
-#undef CEILING
-#undef TRUNC
-#undef SCALED
-
 #define ONE_PIXEL       ( 1 << PIXEL_BITS )
-#define TRUNC( x )      ( (TCoord)( (x) >> PIXEL_BITS ) )
-#define SUBPIXELS( x )  ( (TPos)(x) * ONE_PIXEL )
-#define FLOOR( x )      ( (x) & -ONE_PIXEL )
-#define CEILING( x )    ( ( (x) + ONE_PIXEL - 1 ) & -ONE_PIXEL )
-#define ROUND( x )      ( ( (x) + ONE_PIXEL / 2 ) & -ONE_PIXEL )
+#define TRUNC( x )      (TCoord)( (x) >> PIXEL_BITS )
+#define FRACT( x )      (TCoord)( (x) & ( ONE_PIXEL - 1 ) )
 
 #if PIXEL_BITS >= 6
 #define UPSCALE( x )    ( (x) * ( ONE_PIXEL >> 6 ) )
@@ -388,9 +388,9 @@ typedef ptrdiff_t  FT_PtrDist;
 #define FT_UDIVPREP( c, b )                                        \
   long  b ## _r = c ? (long)( FT_ULONG_MAX >> PIXEL_BITS ) / ( b ) \
                     : 0
-#define FT_UDIV( a, b )                                        \
-  ( ( (unsigned long)( a ) * (unsigned long)( b ## _r ) ) >>   \
-    ( sizeof( long ) * FT_CHAR_BIT - PIXEL_BITS ) )
+#define FT_UDIV( a, b )                                                \
+  (TCoord)( ( (unsigned long)( a ) * (unsigned long)( b ## _r ) ) >>   \
+            ( sizeof( long ) * FT_CHAR_BIT - PIXEL_BITS ) )
 
 
   /**************************************************************************
@@ -618,8 +618,8 @@ typedef ptrdiff_t  FT_PtrDist;
       return;
     }
 
-    fx1   = (TCoord)( x1 - SUBPIXELS( ex1 ) );
-    fx2   = (TCoord)( x2 - SUBPIXELS( ex2 ) );
+    fx1   = FRACT( x1 );
+    fx2   = FRACT( x2 );
 
     /* everything is located in a single cell.  That is easy! */
     /*                                                        */
@@ -711,8 +711,8 @@ typedef ptrdiff_t  FT_PtrDist;
          ( ey1 <  ras.min_ey && ey2 <  ras.min_ey ) )
       goto End;
 
-    fy1 = (TCoord)( ras.y - SUBPIXELS( ey1 ) );
-    fy2 = (TCoord)( to_y - SUBPIXELS( ey2 ) );
+    fy1 = FRACT( ras.y );
+    fy2 = FRACT( to_y );
 
     /* everything is on a single scanline */
     if ( ey1 == ey2 )
@@ -728,7 +728,7 @@ typedef ptrdiff_t  FT_PtrDist;
     if ( dx == 0 )
     {
       TCoord  ex     = TRUNC( ras.x );
-      TCoord  two_fx = (TCoord)( ( ras.x - SUBPIXELS( ex ) ) << 1 );
+      TCoord  two_fx = FRACT( ras.x ) << 1;
       TArea   area;
 
 
@@ -839,8 +839,9 @@ typedef ptrdiff_t  FT_PtrDist;
   gray_render_line( RAS_ARG_ TPos  to_x,
                              TPos  to_y )
   {
-    TPos    dx, dy, fx1, fy1, fx2, fy2;
-    TCoord  ex1, ex2, ey1, ey2;
+    TPos    dx, dy;
+    TCoord  fx1, fy1, fx2, fy2;
+    TCoord  ex1, ey1, ex2, ey2;
 
 
     ey1 = TRUNC( ras.y );
@@ -854,8 +855,8 @@ typedef ptrdiff_t  FT_PtrDist;
     ex1 = TRUNC( ras.x );
     ex2 = TRUNC( to_x );
 
-    fx1 = ras.x - SUBPIXELS( ex1 );
-    fy1 = ras.y - SUBPIXELS( ey1 );
+    fx1 = FRACT( ras.x );
+    fy1 = FRACT( ras.y );
 
     dx = to_x - ras.x;
     dy = to_y - ras.y;
@@ -864,8 +865,8 @@ typedef ptrdiff_t  FT_PtrDist;
       ;
     else if ( dy == 0 ) /* ex1 != ex2 */  /* any horizontal line */
     {
-      ex1 = ex2;
-      gray_set_cell( RAS_VAR_ ex1, ey1 );
+      gray_set_cell( RAS_VAR_ ex2, ey2 );
+      goto End;
     }
     else if ( dx == 0 )
     {
@@ -892,7 +893,7 @@ typedef ptrdiff_t  FT_PtrDist;
     }
     else                                  /* any other line */
     {
-      TPos  prod = dx * fy1 - dy * fx1;
+      TPos  prod = dx * (TPos)fy1 - dy * (TPos)fx1;
       FT_UDIVPREP( ex1 != ex2, dx );
       FT_UDIVPREP( ey1 != ey2, dy );
 
@@ -906,7 +907,7 @@ typedef ptrdiff_t  FT_PtrDist;
                   prod - dx * ONE_PIXEL                  >  0 ) /* left */
         {
           fx2 = 0;
-          fy2 = (TPos)FT_UDIV( -prod, -dx );
+          fy2 = FT_UDIV( -prod, -dx );
           prod -= dy * ONE_PIXEL;
           ras.cover += ( fy2 - fy1 );
           ras.area  += ( fy2 - fy1 ) * ( fx1 + fx2 );
@@ -918,7 +919,7 @@ typedef ptrdiff_t  FT_PtrDist;
                   prod - dx * ONE_PIXEL + dy * ONE_PIXEL >  0 ) /* up */
         {
           prod -= dx * ONE_PIXEL;
-          fx2 = (TPos)FT_UDIV( -prod, dy );
+          fx2 = FT_UDIV( -prod, dy );
           fy2 = ONE_PIXEL;
           ras.cover += ( fy2 - fy1 );
           ras.area  += ( fy2 - fy1 ) * ( fx1 + fx2 );
@@ -931,7 +932,7 @@ typedef ptrdiff_t  FT_PtrDist;
         {
           prod += dy * ONE_PIXEL;
           fx2 = ONE_PIXEL;
-          fy2 = (TPos)FT_UDIV( prod, dx );
+          fy2 = FT_UDIV( prod, dx );
           ras.cover += ( fy2 - fy1 );
           ras.area  += ( fy2 - fy1 ) * ( fx1 + fx2 );
           fx1 = 0;
@@ -941,7 +942,7 @@ typedef ptrdiff_t  FT_PtrDist;
         else /* ( prod                  + dy * ONE_PIXEL <  0 &&
                   prod                                   >  0 )    down */
         {
-          fx2 = (TPos)FT_UDIV( prod, -dy );
+          fx2 = FT_UDIV( prod, -dy );
           fy2 = 0;
           prod += dx * ONE_PIXEL;
           ras.cover += ( fy2 - fy1 );
@@ -955,8 +956,8 @@ typedef ptrdiff_t  FT_PtrDist;
       } while ( ex1 != ex2 || ey1 != ey2 );
     }
 
-    fx2 = to_x - SUBPIXELS( ex2 );
-    fy2 = to_y - SUBPIXELS( ey2 );
+    fx2 = FRACT( to_x );
+    fy2 = FRACT( to_y );
 
     ras.cover += ( fy2 - fy1 );
     ras.area  += ( fy2 - fy1 ) * ( fx1 + fx2 );
@@ -1337,7 +1338,7 @@ typedef ptrdiff_t  FT_PtrDist;
                         void*                    user )
   {
 #undef SCALED
-#define SCALED( x )  ( ( (x) << shift ) - delta )
+#define SCALED( x )  ( (x) * ( 1L << shift ) - delta )
 
     FT_Vector   v_last;
     FT_Vector   v_control;
