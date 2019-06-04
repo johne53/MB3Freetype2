@@ -1083,14 +1083,11 @@
         {
           FT_Vector*  u = unrounded;
 
-          FT_Fixed  xs = x_scale >> 6;
-          FT_Fixed  ys = y_scale >> 6;
-
 
           for ( ; vec < limit; vec++, u++ )
           {
-            vec->x = FT_MulFix( u->x, xs );
-            vec->y = FT_MulFix( u->y, ys );
+            vec->x = ( FT_MulFix( u->x, x_scale ) + 32 ) >> 6;
+            vec->y = ( FT_MulFix( u->y, y_scale ) + 32 ) >> 6;
           }
         }
         else
@@ -2021,11 +2018,13 @@
         /* recalculate linear horizontal and vertical advances */
         /* if we don't have HVAR and VVAR, respectively        */
         if ( !( face->variation_support & TT_FACE_FLAG_VAR_HADVANCE ) )
-          loader->linear = FT_PIX_ROUND( unrounded[1].x -
-                                         unrounded[0].x ) / 64;
+          loader->linear =
+            FT_PIX_ROUND( unrounded[outline.n_points - 3].x -
+                          unrounded[outline.n_points - 4].x ) / 64;
         if ( !( face->variation_support & TT_FACE_FLAG_VAR_VADVANCE ) )
-          loader->vadvance = FT_PIX_ROUND( unrounded[3].x -
-                                           unrounded[2].x ) / 64;
+          loader->vadvance =
+            FT_PIX_ROUND( unrounded[outline.n_points - 1].x -
+                          unrounded[outline.n_points - 2].x ) / 64;
 
       Exit1:
         FT_FREE( outline.points );
