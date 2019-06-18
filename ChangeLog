@@ -1,3 +1,98 @@
+2019-06-16  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/apinames.c: Formatting, minor edits.
+
+2019-06-16  Werner Lemberg  <wl@gnu.org>
+
+	[autofit] Disable hinting if no blue zones are available (#56450).
+
+	* src/autofit/afglobal.c (af_face_global_get_metrics): Start again
+	(with dummy hinter module) if no blue zones are present.
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_blues): Change
+	signature to return error code.
+	If no blue zones are found, update `glyph_styles' array to hold
+	AF_STYLE_NONE_DFLT instead of the current style.
+	(af_latin_metrics_init): Return internal error code if no blue zones
+	are found.
+
+2019-06-16  Werner Lemberg  <wl@gnu.org>
+
+	Towards better VMS support.
+
+	More to come.
+
+	* builds/vms/LIBS.OPT_IA64, builds/vms/_LINK.OPT_IA64,
+	builds/vms/vmslib.dat: New files provided by Jouk Jansen
+	<joukj@hrem.nano.tudelft.nl>.
+
+	* builds/vms/ftconfig.h: Update, also from Jouk.
+
+2019-06-13  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin.c (af_latin_metrics_init_widths): Minor.
+
+2019-06-13  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth] Restore the span buffering for direct mode only.
+
+	The buffer size FT_MAX_GRAY_SPANS is set to 10 spans, which should be
+	enough to cover the entire scanline for simple glyphs in most cases:
+	each slightly slanted edge needs up to two spans, plus a filling span
+	in-between.  This is not new, we used to do it before cb4388783cecc.
+
+	* src/smooth/ftgrays.c (gray_TWorker): Add `spans' and `num_spans'.
+	(gray_hline, gray_sweep): Implement the span buffering.
+	(gray_raster_render): Use negative `num_spans' to avoid the direct
+	mode.
+
+2019-06-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* include/freetype/ftmodapi.h (FT_DebugHook_Func): Return error.
+
+	Fix a warning by adding a return value as in `TT_RunIns',
+	which should not be a compatibility issue. 
+
+2019-06-11  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttobjs.c (tt_check_trickyness_family): Add `const'.
+
+2019-06-11  Moazin Khatti  <moazinkhatri@gmail.com>
+
+	[gzip] Add support for `gzip' encoded header.
+
+	* src/gzip/ftgzip.c (FT_Gzip_Uncompress): Modify the the call to
+	`inflateInit2' to enable support for `gzip' encoded headers. 
+
+2019-06-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type1,type42] Use `const' for string literals.
+
+	* include/freetype/internal/psaux.h (PS_Table_FuncsRec): Updated.
+	* include/freetype/internal/t1types.h (T1_EncodingRec): Updated.
+	* src/psaux/psobjs.[ch] (ps_table_add): Updated.
+	* src/type1/t1load.c (T1_Open_Face, parse_encoding): Updated.
+	* src/type42/t42objs.c (T42_Open_Face): Updated.
+	* src/type42/t42parse.c (t42_parse_encoding): Updated.
+
+	* src/cff/cffobjs.c (cff_face_init): Minor.
+
+2019-06-10  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[bdf,pcf] Use `const' for string literals.
+
+	* src/bdf/bdf.h (bdf_property_t): Updated `name'.
+	* src/bdf/bdflib.c (_bdf_list_split,bdf_create_property,
+	_bdf_add_property,_bdf_ato*): Updated.
+	* src/bdf/bdfdrivr.c (bdf_interpret_style): Updated.
+	* src/pcf/pcfread.c (pcf_intrpret_style): Ditto.
+
+2019-06-07  Philip Race  <philip.race@oracle.com>
+
+	* src/base/ftinit.c (FT_Set_Default_Properties): Fix crash.
+
+	Terminate loop at end of environment.
+
 2019-05-31  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	Solidify VC2005 builds.

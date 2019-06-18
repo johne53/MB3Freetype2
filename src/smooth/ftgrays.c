@@ -432,6 +432,9 @@ typedef ptrdiff_t  FT_PtrDist;
 #define FT_MAX_GRAY_POOL  ( 2048 / sizeof ( TCell ) )
 #endif
 
+  /* FT_Span buffer size for direct rendering only */
+#define FT_MAX_GRAY_SPANS  10
+
 
 #if defined( _MSC_VER )      /* Visual C++ (and Intel C++) */
   /* We disable the warning `structure was padded due to   */
@@ -465,6 +468,8 @@ typedef ptrdiff_t  FT_PtrDist;
 
     FT_Raster_Span_Func  render_span;
     void*                render_span_data;
+    FT_Span              spans[FT_MAX_GRAY_SPANS];
+    int                  num_spans;
 
   } gray_TWorker, *gray_PWorker;
 
@@ -646,6 +651,9 @@ typedef ptrdiff_t  FT_PtrDist;
       dx    = -dx;
     }
 
+    /* the fractional part of y-delta is mod/dx. It is essential to */
+    /* keep track of its accumulation for accurate rendering.       */
+    /* XXX: y-delta and x-delta below should be related.            */
     FT_DIV_MOD( TCoord, p, dx, delta, mod );
 
     ras.area  += (TArea)( ( fx1 + first ) * delta );
@@ -783,6 +791,8 @@ typedef ptrdiff_t  FT_PtrDist;
       dy    = -dy;
     }
 
+    /* the fractional part of x-delta is mod/dy. It is essential to */
+    /* keep track of its accumulation for accurate rendering.       */
     FT_DIV_MOD( TCoord, p, dy, delta, mod );
 
     x = ras.x + delta;
@@ -1221,16 +1231,21 @@ typedef ptrdiff_t  FT_PtrDist;
         coverage = 255;
     }
 
-    if ( ras.render_span )  /* for FT_RASTER_FLAG_DIRECT only */
+    if ( ras.num_spans >= 0 )  /* for FT_RASTER_FLAG_DIRECT only */
     {
-      FT_Span  span;
+      FT_Span*  span = ras.spans + ras.num_spans++;
 
 
-      span.x        = (short)x;
-      span.len      = (unsigned short)acount;
-      span.coverage = (unsigned char)coverage;
+      span->x        = (short)x;
+      span->len      = (unsigned short)acount;
+      span->coverage = (unsigned char)coverage;
 
-      ras.render_span( y, 1, &span, ras.render_span_data );
+      if ( ras.num_spans == FT_MAX_GRAY_SPANS )
+      {
+        /* flush the span buffer and reset the count */
+        ras.render_span( y, ras.num_spans, ras.spans, ras.render_span_data );
+        ras.num_spans = 0;
+      }
     }
     else
     {
@@ -1304,6 +1319,13 @@ typedef ptrdiff_t  FT_PtrDist;
 
       if ( cover != 0 )
         gray_hline( RAS_VAR_ x, y, cover, ras.max_ex - x );
+
+      if ( ras.num_spans > 0 )  /* for FT_RASTER_FLAG_DIRECT only */
+      {
+        /* flush the span buffer and reset the count */
+        ras.render_span( y, ras.num_spans, ras.spans, ras.render_span_data );
+        ras.num_spans = 0;
+      }
     }
   }
 
@@ -1773,6 +1795,7 @@ typedef ptrdiff_t  FT_PtrDist;
 
       ras.render_span      = (FT_Raster_Span_Func)params->gray_spans;
       ras.render_span_data = params->user;
+      ras.num_spans        = 0;
 
       ras.min_ex = params->clip_box.xMin;
       ras.min_ey = params->clip_box.yMin;
@@ -1802,6 +1825,7 @@ typedef ptrdiff_t  FT_PtrDist;
 
       ras.render_span      = (FT_Raster_Span_Func)NULL;
       ras.render_span_data = NULL;
+      ras.num_spans        = -1;  /* invalid */
 
       ras.min_ex = 0;
       ras.min_ey = 0;
