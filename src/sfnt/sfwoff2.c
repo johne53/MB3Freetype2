@@ -937,7 +937,7 @@
       FT_Bool    have_bbox  = FALSE;
       FT_Byte    bbox_bitmap;
       FT_ULong   bbox_offset;
-      FT_UShort  x_min;
+      FT_UShort  x_min      = 0;
 
 
       /* Set `have_bbox'. */
@@ -1478,6 +1478,8 @@
                     FT_ULong*     sfnt_size,
                     FT_Memory     memory )
   {
+    /* Memory management of `transformed_buf' is handled by the caller. */
+
     FT_Error   error       = FT_Err_Ok;
     FT_Stream  stream      = NULL;
     FT_Byte*   buf_cursor  = NULL;
@@ -1492,7 +1494,7 @@
     FT_ULong   checksum      = 0;
     FT_ULong   loca_checksum = 0;
     FT_Int     nn            = 0;
-    FT_UShort  num_hmetrics;
+    FT_UShort  num_hmetrics  = 0;
     FT_ULong   font_checksum = info->header_checksum;
     FT_Bool    is_glyf_xform = FALSE;
 
@@ -1532,10 +1534,8 @@
 
     /* Create a stream for the uncompressed buffer. */
     if ( FT_NEW( stream ) )
-      return FT_THROW( Invalid_Table );
+      goto Fail;
     FT_Stream_OpenMemory( stream, transformed_buf, transformed_buf_size );
-    stream->memory = memory;
-    stream->close  = stream_close;
 
     FT_ASSERT( FT_STREAM_POS() == 0 );
 
@@ -1554,16 +1554,16 @@
                   (FT_Char)( table.Tag       ) ));
 
       if ( FT_STREAM_SEEK( table.src_offset ) )
-        return FT_THROW( Invalid_Table );
+        goto Fail;
 
       if ( table.src_offset + table.src_length > transformed_buf_size )
-        return FT_THROW( Invalid_Table );
+        goto Fail;
 
       /* Get stream size for fields of `hmtx' table. */
       if ( table.Tag == TTAG_hhea )
       {
         if ( read_num_hmetrics( stream, &num_hmetrics ) )
-          return FT_THROW( Invalid_Table );
+          goto Fail;
       }
 
       info->num_hmetrics = num_hmetrics;
@@ -1575,7 +1575,7 @@
         if ( table.Tag == TTAG_head )
         {
           if ( table.src_length < 12 )
-            return FT_THROW( Invalid_Table );
+            goto Fail;
 
           buf_cursor = transformed_buf + table.src_offset + 8;
           /* Set checkSumAdjustment = 0 */
@@ -1590,7 +1590,7 @@
 
         if ( WRITE_SFNT_BUF( transformed_buf + table.src_offset,
                              table.src_length ) )
-          return FT_THROW( Invalid_Table );
+          goto Fail;
       }
       else
       {
@@ -1611,7 +1611,7 @@
                                  &dest_offset,
                                  info,
                                  memory ) )
-            return FT_THROW( Invalid_Table );
+            goto Fail;
 
           FT_TRACE4(( "Checksum = %09x.\n", checksum ));
         }
@@ -1625,7 +1625,7 @@
           if ( !is_glyf_xform )
           {
             if ( get_x_mins( stream, indices, num_tables, info, memory ) )
-              return FT_THROW( Invalid_Table );
+              goto Fail;
           }
 
           table.dst_offset = dest_offset;
@@ -1639,13 +1639,13 @@
                                  sfnt_size,
                                  &dest_offset,
                                  memory ) )
-            return FT_THROW( Invalid_Table );
+            goto Fail;
         }
         else
         {
           /* Unknown transform. */
           FT_ERROR(( "Unknown table transform.\n" ));
-          return FT_THROW( Invalid_Table );
+          goto Fail;
         }
       }
 
@@ -1675,11 +1675,14 @@
 
     /* Update `head' checkSumAdjustment. */
     head_table = find_table( indices, num_tables, TTAG_head );
-    if ( head_table )
+    if ( !head_table )
     {
-      if ( head_table->dst_length < 12 )
-        goto Fail;
+      FT_ERROR(( "`head' table is missing.\n" ));
+      goto Fail;
     }
+
+    if ( head_table->dst_length < 12 )
+      goto Fail;
 
     buf_cursor    = sfnt + head_table->dst_offset + 8;
     font_checksum = 0xB1B0AFBA - font_checksum;
@@ -1725,7 +1728,7 @@
     FT_Int     face_index;
 
     WOFF2_HeaderRec  woff2;
-    WOFF2_InfoRec    info;
+    WOFF2_InfoRec    info         = { 0, 0, 0, NULL };
     WOFF2_Table      tables       = NULL;
     WOFF2_Table*     indices      = NULL;
     WOFF2_Table*     temp_indices = NULL;
@@ -1812,6 +1815,8 @@
     }
 
     FT_TRACE2(( "woff2_open_font: WOFF2 Header is valid.\n" ));
+
+    woff2.ttc_fonts = NULL;
 
     /* Read table directory. */
     if ( FT_NEW_ARRAY( tables, woff2.num_tables )  ||
@@ -1975,6 +1980,13 @@
             goto Exit;
 
           FT_TRACE6(( "%hu ", table_index ));
+          if ( table_index >= woff2.num_tables )
+          {
+            FT_ERROR(( "woff2_open_font: invalid table index\n" ));
+            error = FT_THROW( Invalid_Table );
+            goto Exit;
+          }
+
           ttc_font->table_indices[j] = table_index;
 
           table = indices[table_index];
@@ -1999,8 +2011,10 @@
       }
 
       /* Collection directory reading complete. */
-      FT_TRACE2(( "WOFF2 collection dirtectory is valid.\n" ));
+      FT_TRACE2(( "WOFF2 collection directory is valid.\n" ));
     }
+    else
+      woff2.ttc_fonts = NULL;
 
     woff2.compressed_offset = FT_STREAM_POS();
     file_offset             = ROUND4( woff2.compressed_offset +
@@ -2096,8 +2110,8 @@
       /* However, adjust the value to something reasonable. */
 
       /* Factor 64 is heuristic. */
-      if ( ( woff2.totalSfntSize >> 6 ) > sfnt_size )
-        sfnt_size <<= 6;
+      if ( ( woff2.totalSfntSize >> 6 ) > woff2.length )
+        sfnt_size = woff2.length << 6;
       else
         sfnt_size = woff2.totalSfntSize;
 
@@ -2105,8 +2119,11 @@
       if (sfnt_size >= (1 << 26))
         sfnt_size = 1 << 26;
 
-      FT_TRACE4(( "adjusting estimate of uncompressed font size to %lu\n",
-                  sfnt_size ));
+#ifdef FT_DEBUG_LEVEL_TRACE
+      if ( sfnt_size != woff2.totalSfntSize )
+        FT_TRACE4(( "adjusting estimate of uncompressed font size to %lu\n",
+                    sfnt_size ));
+#endif
     }
 
     /* Write sfnt header. */
@@ -2153,6 +2170,13 @@
       goto Exit;
     }
 
+    if ( woff2.uncompressed_size > sfnt_size )
+    {
+      FT_ERROR(( "woff2_open_font: SFNT table lengths are too large.\n" ));
+      error = FT_THROW( Invalid_Table );
+      goto Exit;
+    }
+
     /* Allocate memory for uncompressed table data. */
     if ( FT_ALLOC( uncompressed_buf, woff2.uncompressed_size ) ||
          FT_FRAME_ENTER( woff2.totalCompressedSize )           )
@@ -2163,10 +2187,11 @@
                               woff2.uncompressed_size,
                               stream->cursor,
                               woff2.totalCompressedSize );
-    if ( error )
-      goto Exit;
 
     FT_FRAME_EXIT();
+
+    if ( error )
+      goto Exit;
 
     error = reconstruct_font( uncompressed_buf,
                               woff2.uncompressed_size,
@@ -2176,6 +2201,7 @@
                               &sfnt,
                               &sfnt_size,
                               memory );
+
     if ( error )
       goto Exit;
 
@@ -2214,6 +2240,22 @@
   Exit:
     FT_FREE( tables );
     FT_FREE( indices );
+    FT_FREE( uncompressed_buf );
+    FT_FREE( info.x_mins );
+
+    if ( woff2.ttc_fonts )
+    {
+      WOFF2_TtcFont  ttc_font = woff2.ttc_fonts;
+
+
+      for ( nn = 0; nn < woff2.num_fonts; nn++ )
+      {
+        FT_FREE( ttc_font->table_indices );
+        ttc_font++;
+      }
+
+      FT_FREE( woff2.ttc_fonts );
+    }
 
     if ( error )
     {
