@@ -1,3 +1,17 @@
+2020-02-04  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttinterp.c (TT_RunIns): Adjust loop counter (#57732).
+
+	The font that exceeds the old limit is Constantine, version 1.001.
+
+2020-01-04  Werner Lemberg  <wl@gnu.org>
+
+	[base] Fix `FREETYPE_PROPERTIES=type1:hinting-engine=adobe`.
+
+	* src/base/ftpsprop.c (ps_property_set) [hinting-engine]: Avoid an
+	incorrect return value that caused a warning.  The function did the
+	right thing, though.
+
 2020-01-03  Werner Lemberg  <wl@gnu.org>
 
 	[woff2] Fix memory leaks and a runtime warning.
@@ -4017,7 +4031,7 @@
 
 ----------------------------------------------------------------------------
 
-Copyright (C) 2018-2019 by
+Copyright (C) 2018-2020 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
