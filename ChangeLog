@@ -1,3 +1,127 @@
+2020-03-02  Moazin Khatti  <moazinkhatri@gmail.com>
+
+	[gzip] Support `gzip' encoded header conditionally.
+
+	In order to support `gzip' encoded header the call to
+	`inflateInit2' was modified in commit 6a92b1fadde26477a9179.
+	However, this code breaks with the outdated internal version
+	of zlib.  This is a temporary fix to conditionally support
+	`gzip' encoded header whenever a system installation of zlib
+	is being used.
+
+	Problem report in
+
+	  https://lists.nongnu.org/archive/html/freetype-devel/2020-02/msg00023.html
+
+	* src/gzip/ftgzip.c (FT_Gzip_Uncompress): Change the the call to
+	`inflateInit2' depending on whether the system installation is
+	being used or the internal copy.
+
+2020-02-29  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Fix state of `FT_Face' for buggy `gvar' tables (#57923).
+
+	By resetting the blend as implemented with this commit fonts with
+	invalid `gvar' tables may keep calling into `ft_var_load_gvar' from
+	`tt_set_mm_blend' and failing, but the font was invalid anyway and
+	we want to keep seeing the failure in `tt_set_mm_blend'.
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): Calculate length of
+	offset array once.
+	Allocate arrays after `FT_FRAME_ENTER' (extra check before
+	allocating and avoid needing to free array later if error entering
+	frame).
+	Always call `FT_FRAME_EXIT'.
+	Consistently set counts immediately after array initialized.
+	Reset the blend (particularly `blend->glyphoffsets') on failure.
+
+2020-03-01  Nikhil Ramakrishnan  <ramakrishnan.nikhil@gmail.com>
+
+	[docs] Update docwriter stylesheet.
+
+	This change is required to support docwriter 1.2.1.
+
+	See
+
+	  https://github.com/freetype/docwriter/issues/36
+
+	for more information.
+
+	* docs/markdown/stylesheets/extra.css:
+	(.md-typeset code) -> (.md-typeset pre>code)
+	(pre) -> (pre>code)
+	(p, .md-typeset p, h4): Remove commented styles.
+	(table.index): Remove unused styles.
+
+2020-02-28  Ben Wagner  <bungeman@google.com>
+
+	[truetype] Add better checks for loading `gvar' table (#57905).
+
+	* src/truetype/ttgxvar.c (ft_var_load_gvar): Delay settings of any
+	`blend->xxxcount' values until the corresponding data has been
+	checked.
+	Also do some sanitizing to avoid a too early exit.
+
+	(TT_Vary_Apply_Glyph_Deltas): Improve tracing message.
+
+2020-02-27  Werner Lemberg  <wl@gnu.org>
+
+	Make `FT_HAS_*' and `FT_IS_*' really return true (#57906).
+
+	* include/freetype/freetype.h (FT_HAS_*, FT_IS_*): Implement it.
+
+2020-02-25  Dominik Röttsches  <drott@chromium.org>
+
+	Fix for CFF space glyph regression (#57541).
+
+	* src/psaux/psft.c (cf2_decoder_parse_substrings): Replace early-out
+	  with FT_OFFSET.
+
+2020-02-22  Werner Lemberg  <wl@gnu.org>
+
+	[woff2] Fix font table access.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=20778
+
+	* src/sfnt/sfwoff2.c (get_x_mins): Explicitly check for presence of
+	`head' table, which might not have been processed yet.
+
+2020-02-21  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Make `t1_decoder_parse_metrics' handle `op_div' (#57519).
+
+	* src/psaux/t1decode.c (t1_decoder_parse_metrics): Copy
+	corresponding code from old engine's `t1_decoder_parse_charstrings'
+	function.
+
+2020-02-19  Nikolaus Waxweiler  <nikolaus.waxweiler@daltonmaag.com>
+
+	[autofit] Add support for Hanifi Rohingya script.
+
+	* src/autofit/afblue.dat: Add blue zone data for Hanifi Rohingya.
+	* src/autofit/afblue.c, src/autofit/afblue.h: Regenerated.
+
+	* src/autofit/afscript.h: Add Hanifi Rohingya standard character.
+
+	* src/autofit/afranges.c, src/autofit/afstyles.h: Add Hanifi
+	  Rohingya data.
+
+2020-02-19  Werner Lemberg  <wl@gnu.org>
+
+	Require HarfBuzz 1.8.
+
+	* builds/unix/configure.raw, CMakeLists.txt: Request HarfBuzz 1.8.0
+	or newer.
+
+	We are going to add auto-hinter support for Hanifi Rohingya, which
+	was introduced in Unicode 11.0.
+
+2020-02-12  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/ttcmap.c (tt_face_build_cmaps): Ignore version (#57708).
+
 2020-02-04  Werner Lemberg  <wl@gnu.org>
 
 	* src/truetype/ttinterp.c (TT_RunIns): Adjust loop counter (#57732).
