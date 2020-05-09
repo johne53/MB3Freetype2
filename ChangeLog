@@ -1,3 +1,65 @@
+2020-05-09  Werner Lemberg  <wl@gnu.org>
+
+	* Version 2.10.2 released.
+	==========================
+
+
+	Tag sources with `VER-2-10-2'.
+
+	* docs/VERSION.TXT: Add entry for version 2.10.2.
+
+	* README, Jamfile (RefDoc), src/base/ftver.rc,
+	builds/windows/vc2010/index.html, builds/windows/visualc/index.html,
+	builds/windows/visualce/index.html,
+	builds/wince/vc2005-ce/index.html,
+	builds/wince/vc2008-ce/index.html, docs/freetype-config.1:
+	s/2.10.1/2.10.2/, s/2101/2102/.
+
+	* include/freetype/freetype.h (FREETYPE_PATCH): Set to 2.
+
+	* builds/unix/configure.raw (version_info): Set to 23:2:17.
+	* CMakeLists.txt (VERSION_PATCH): Set to 2.
+
+	* docs/CHANGES: Updated.
+
+2020-05-08  Jakub Alba  <jalba@vewd.com>
+
+	* src/truetype/ttinterp.c (TT_RunIns): Adjust loop counter (#58319).
+
+	The font that exceeds the old limit is Icono Regular, version
+	1.00000.
+
+2020-05-03  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* builds/freetype.mk: Refactor for readability.
+
+2020-05-02  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[builds] Clean up Windows CE project files.
+
+	Remove version from filenames that caused a lot of polution in the
+	release process. Use VERSIONINFO resource instead.
+
+	* builds/wince/vc2005-ce/freetype.vcproj,
+	builds/wince/vc2008-ce/freetype.vcproj,
+	builds/windows/visualce/freetype.vcproj,
+	builds/windows/visualce/freetype.dsp: s/2101//g, but add `ftver.rc'.
+	* builds/wince/vc2008-ce/index.html,
+	builds/wince/vc2005-ce/index.html,
+	builds/windows/visualce/index.html: s/2101//g.
+
+2020-05-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* devel/ft2build.h: Override FT_CONFIG_MODULES_H here as well.
+
+2020-05-01  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[builds/unix] Consolidate marco overrides (for the demos to see them).
+
+	* builds/unix/unix-cc.in (FT_CONFIG_MODULES_H, FT_CONFIG_OPTIONS_H):
+	Override them here...
+	* builds/freetype.mk: ... instead of here.
+
 2020-04-08  Werner Lemberg  <wl@gnu.org>
 
 	Allow setting `CC' in Unix build (#58051).
