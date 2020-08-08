@@ -1,3 +1,76 @@
+2020-08-05  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[truetype] Retain OVERLAP_SIMPLE and OVERLAP_COMPOUND.
+
+	For glyphs with OVERLAP_SIMPLE or OVERLAP_COMPOUND, set
+	FT_OUTLINE_OVERLAP to render them with direct oversampling, which
+	mitigates artifacts (see 3bb512bc9f62).
+
+	* include/freetype/ftimage.h (FT_OUTLINE_OVERLAP): Redefine to rhyme
+	with OVERLAP_SIMPLE.
+	* src/base/ftgloadr.c (FT_GlyphLoader_Rewind): Reset outline flags.
+	* src/truetype/ttgload.c
+	(TT_Load_Simple_Glyph): Retain OVERLAP_SIMPLE.
+	(load_truetype_glyph): Retain OVERLAP_COMPOUND.
+
+2020-08-04  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttgload.c (TT_Load_Glyph): More tracing.
+
+2020-07-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Hide internal functions with SunPro.
+
+	* include/freetype/internal/compiler-macros.h
+	(FT_INTERNAL_FUNCTION_ATTRIBUTE) <__SUNPRO_C>: Define as __hidden.
+
+2020-07-28  Anuj Verma  <anujv@iitbhilai.ac.in>
+
+	Fix static compilation with Visual C.
+
+	* include/freetype/internal/compiler-macros.h
+	(FT_INTERNAL_FUNCTION_ATTRIBUTE) <_WIN32>: Define as empty.
+
+2020-07-28  Priyesh Kumar  <priyeshkkumar@gmail.com>
+
+	Fix `-Wformat' compiler warnings.
+
+	* src/*: Fix format specifiers.
+
+	* builds/unix/ftsystem.c (FT_Stream_Open): Ditto.
+
+2020-07-25  Werner Lemberg  <wl@gnu.org>
+
+	Fix `-Wformat' compiler warnings.
+
+	Problem reported by Priyesh kumar <priyeshkkumar@gmail.com>
+
+	* src/base/ftoutln.c (FT_Outline_Decompose): Fix number of arguments
+	to tracing macro.
+
+	* src/bdf/bdfdrivr.c (bdf_cmap_char_next, bdf_get_bdf_property):
+	Ditto.
+
+	* src/cache/ftcbasic.c (ftc_basic_family_get_count): Ditto.
+	Reformulate message.
+
+	* src/pcf/pcfdrivr.c (pcf_get_bdf_property): Ditto.
+
+	* src/sfnt/sfwoff2.c (woff2_open_font): Ditto.
+	Trace table offset, too.
+
+	* src/truetype/ttgxvar.c (ft_var_apply_tuple): Ditto.
+
+2020-07-23  Werner Lemberg  <wl@gnu.org>
+
+	* src/sfnt/sfwoff2.c (woff2_decompress): Fix compiler warning.
+
+	Reported by Hin-Tak.
+
+2020-07-12  Werner Lemberg  <wl@gnu.org>
+
+	* builds/unix/configure.raw: Fix inclusion of `ftoption.h'.
+
 2020-07-07  Werner Lemberg  <wl@gnu.org>
 
 	Fix clang warnings.
@@ -186,7 +259,7 @@
 
 	[smooth] Introduce direct oversampling for overlaps.
 
-	This implements oversampling to metigate artifacts in pixels partially
+	This implements oversampling to mitigate artifacts in pixels partially
 	covered by overlapping contours.  It turns out that the 4x4
 	oversampling is sufficient but, at least, quadruples the rendering
 	time.  The outline has to set FT_OUTLINE_OVERLAP to use this method.
@@ -4487,7 +4560,7 @@
 2018-05-13  Shao Yu Zhang  <shaozhang@fb.com>
 	    Werner Lemberg  <wl@gnu.org>
 
-	[sfnt] Preliminary support of coloured layer outlines (#44689).
+	[sfnt] Preliminary support of colored layer outlines (#44689).
 
 	This commit enables OpenType's COLR/CPAL table handling; a typical
 	application are color emojis that can be scaled to any size.
