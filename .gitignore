@@ -165,3 +165,4 @@ pip-log.txt
 config.mk
 include/dlg/
 src/dlg/dlg.c
+/builds/win32/msvc/freetype.vsprops
