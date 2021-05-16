@@ -130,6 +130,7 @@
     FT_Pointer  p  = NULL;
 
 
+    /* allocate and zero out */
     (void)FT_ALLOC( p, sz );
     return p;
   }
@@ -671,7 +672,7 @@
         FT_Byte*  zip_buff = NULL;
 
 
-        if ( !FT_ALLOC( zip_buff, zip_size ) )
+        if ( !FT_QALLOC( zip_buff, zip_size ) )
         {
           FT_ULong  count;
 
