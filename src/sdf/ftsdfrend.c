@@ -142,7 +142,7 @@
 
     if ( ft_strcmp( property_name, "spread" ) == 0 )
     {
-      FT_Int*  val = (FT_Int*)value;
+      FT_UInt*  val = (FT_UInt*)value;
 
 
       *val = render->spread;
@@ -313,9 +313,9 @@
     bitmap->width += x_pad * 2;
 
     /* ignore the pitch, pixel mode and set custom */
-    bitmap->pixel_mode = FT_PIXEL_MODE_GRAY16;
-    bitmap->pitch      = bitmap->width * 2;
-    bitmap->num_grays  = 65535;
+    bitmap->pixel_mode = FT_PIXEL_MODE_GRAY;
+    bitmap->pitch      = (int)( bitmap->width );
+    bitmap->num_grays  = 255;
 
     /* allocate new buffer */
     if ( FT_ALLOC_MULT( bitmap->buffer, bitmap->rows, bitmap->pitch ) )
@@ -323,8 +323,11 @@
 
     slot->internal->flags |= FT_GLYPH_OWN_BITMAP;
 
-    x_shift  = 64 * -( slot->bitmap_left - x_pad );
-    y_shift  = 64 * -( slot->bitmap_top + y_pad );
+    slot->bitmap_top  += y_pad;
+    slot->bitmap_left -= x_pad;
+
+    x_shift  = 64 * -slot->bitmap_left;
+    y_shift  = 64 * -slot->bitmap_top;
     y_shift += 64 * (FT_Int)bitmap->rows;
 
     if ( origin )
@@ -520,13 +523,13 @@
     y_pad = sdf_module->spread;
 
     /* apply padding, which extends to all directions */
-    target.rows  = bitmap->rows + y_pad * 2;
+    target.rows  = bitmap->rows  + y_pad * 2;
     target.width = bitmap->width + x_pad * 2;
 
     /* set up the target bitmap */
-    target.pixel_mode = FT_PIXEL_MODE_GRAY16;
-    target.pitch      = target.width * 2;
-    target.num_grays  = 65535;
+    target.pixel_mode = FT_PIXEL_MODE_GRAY;
+    target.pitch      = (int)( target.width );
+    target.num_grays  = 255;
 
     if ( FT_ALLOC_MULT( target.buffer, target.rows, target.pitch ) )
       goto Exit;
@@ -553,6 +556,8 @@
       }
 
       slot->bitmap           = target;
+      slot->bitmap_top      += y_pad;
+      slot->bitmap_left     -= x_pad;
       slot->internal->flags |= FT_GLYPH_OWN_BITMAP;
     }
     else if ( target.buffer )

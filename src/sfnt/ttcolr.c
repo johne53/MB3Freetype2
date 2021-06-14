@@ -228,17 +228,17 @@
 
   static FT_Bool
   find_base_glyph_record( FT_Byte*          base_glyph_begin,
-                          FT_Int            num_base_glyph,
+                          FT_UInt           num_base_glyph,
                           FT_UInt           glyph_id,
                           BaseGlyphRecord*  record )
   {
-    FT_Int  min = 0;
-    FT_Int  max = num_base_glyph - 1;
+    FT_UInt  min = 0;
+    FT_UInt  max = num_base_glyph;
 
 
-    while ( min <= max )
+    while ( min < max )
     {
-      FT_Int    mid = min + ( max - min ) / 2;
+      FT_UInt   mid = min + ( max - min ) / 2;
       FT_Byte*  p   = base_glyph_begin + mid * BASE_GLYPH_SIZE;
 
       FT_UShort  gid = FT_NEXT_USHORT( p );
@@ -247,7 +247,7 @@
       if ( gid < glyph_id )
         min = mid + 1;
       else if (gid > glyph_id )
-        max = mid - 1;
+        max = mid;
       else
       {
         record->gid               = gid;
@@ -327,7 +327,7 @@
     FT_PaintExtend  paint_extend;
 
 
-    paint_extend = FT_NEXT_BYTE( p );
+    paint_extend = (FT_PaintExtend)FT_NEXT_BYTE( p );
     if ( paint_extend > FT_COLR_PAINT_EXTEND_REFLECT )
       return 0;
 
@@ -392,7 +392,7 @@
          p >= ( (FT_Byte*)colr->table + colr->table_size ) )
       return 0;
 
-    apaint->format = FT_NEXT_BYTE( p );
+    apaint->format = (FT_PaintFormat)FT_NEXT_BYTE( p );
 
     if ( apaint->format >= FT_COLR_PAINT_FORMAT_MAX )
       return 0;
@@ -425,8 +425,8 @@
 
     else if ( apaint->format == FT_COLR_PAINTFORMAT_SOLID )
     {
-      apaint->u.solid.color.palette_index = FT_NEXT_USHORT ( p );
-      apaint->u.solid.color.alpha         = FT_NEXT_USHORT ( p );
+      apaint->u.solid.color.palette_index = FT_NEXT_USHORT( p );
+      apaint->u.solid.color.alpha         = FT_NEXT_SHORT( p );
 
       return 1;
     }
@@ -454,12 +454,12 @@
                              &apaint->u.linear_gradient.colorline ) )
         return 0;
 
-      apaint->u.linear_gradient.p0.x = FT_NEXT_SHORT ( p );
-      apaint->u.linear_gradient.p0.y = FT_NEXT_SHORT ( p );
-      apaint->u.linear_gradient.p1.x = FT_NEXT_SHORT ( p );
-      apaint->u.linear_gradient.p1.y = FT_NEXT_SHORT ( p );
-      apaint->u.linear_gradient.p2.x = FT_NEXT_SHORT ( p );
-      apaint->u.linear_gradient.p2.y = FT_NEXT_SHORT ( p );
+      apaint->u.linear_gradient.p0.x = FT_NEXT_SHORT( p );
+      apaint->u.linear_gradient.p0.y = FT_NEXT_SHORT( p );
+      apaint->u.linear_gradient.p1.x = FT_NEXT_SHORT( p );
+      apaint->u.linear_gradient.p1.y = FT_NEXT_SHORT( p );
+      apaint->u.linear_gradient.p2.x = FT_NEXT_SHORT( p );
+      apaint->u.linear_gradient.p2.y = FT_NEXT_SHORT( p );
 
       return 1;
     }
@@ -470,15 +470,15 @@
                              &apaint->u.radial_gradient.colorline ) )
         return 0;
 
-      apaint->u.radial_gradient.c0.x = FT_NEXT_SHORT ( p );
-      apaint->u.radial_gradient.c0.y = FT_NEXT_SHORT ( p );
+      apaint->u.radial_gradient.c0.x = FT_NEXT_SHORT( p );
+      apaint->u.radial_gradient.c0.y = FT_NEXT_SHORT( p );
 
-      apaint->u.radial_gradient.r0 = FT_NEXT_USHORT ( p );
+      apaint->u.radial_gradient.r0 = FT_NEXT_USHORT( p );
 
-      apaint->u.radial_gradient.c1.x = FT_NEXT_SHORT ( p );
-      apaint->u.radial_gradient.c1.y = FT_NEXT_SHORT ( p );
+      apaint->u.radial_gradient.c1.x = FT_NEXT_SHORT( p );
+      apaint->u.radial_gradient.c1.y = FT_NEXT_SHORT( p );
 
-      apaint->u.radial_gradient.r1 = FT_NEXT_USHORT ( p );
+      apaint->u.radial_gradient.r1 = FT_NEXT_USHORT( p );
 
       return 1;
     }
@@ -489,8 +489,8 @@
                              &apaint->u.sweep_gradient.colorline ) )
         return 0;
 
-      apaint->u.sweep_gradient.center.x = FT_NEXT_SHORT ( p );
-      apaint->u.sweep_gradient.center.y = FT_NEXT_SHORT ( p );
+      apaint->u.sweep_gradient.center.x = FT_NEXT_SHORT( p );
+      apaint->u.sweep_gradient.center.y = FT_NEXT_SHORT( p );
 
       apaint->u.sweep_gradient.start_angle = FT_NEXT_LONG( p );
       apaint->u.sweep_gradient.end_angle = FT_NEXT_LONG( p );
@@ -572,7 +572,7 @@
       if ( composite_mode >= FT_COLR_COMPOSITE_MAX )
         return 0;
 
-      apaint->u.composite.composite_mode = composite_mode;
+      apaint->u.composite.composite_mode = (FT_Composite_Mode)composite_mode;
 
       if ( !get_child_table_pointer( colr, paint_base, &p, &child_table_p ) )
          return 0;
@@ -590,18 +590,18 @@
 
 
   static FT_Bool
-  find_base_glyph_v1_record ( FT_Byte *           base_glyph_begin,
-                              FT_Int              num_base_glyph,
-                              FT_UInt             glyph_id,
-                              BaseGlyphV1Record  *record )
+  find_base_glyph_v1_record( FT_Byte *           base_glyph_begin,
+                             FT_UInt             num_base_glyph,
+                             FT_UInt             glyph_id,
+                             BaseGlyphV1Record  *record )
   {
-    FT_Int  min = 0;
-    FT_Int  max = num_base_glyph - 1;
+    FT_UInt  min = 0;
+    FT_UInt  max = num_base_glyph;
 
 
-    while ( min <= max )
+    while ( min < max )
     {
-      FT_Int  mid = min + ( max - min ) / 2;
+      FT_UInt  mid = min + ( max - min ) / 2;
 
       /*
        * `base_glyph_begin` is the beginning of `BaseGlyphV1List`;
@@ -616,7 +616,7 @@
       if ( gid < glyph_id )
         min = mid + 1;
       else if (gid > glyph_id )
-        max = mid - 1;
+        max = mid;
       else
       {
         record->gid          = gid;
@@ -629,7 +629,7 @@
   }
 
 
-  FT_LOCAL_DEF ( FT_Bool )
+  FT_LOCAL_DEF( FT_Bool )
   tt_face_get_colr_glyph_paint( TT_Face                  face,
                                 FT_UInt                  base_glyph,
                                 FT_Color_Root_Transform  root_transform,
@@ -702,6 +702,13 @@
     p = iterator->p;
 
     /*
+     * First ensure that p is within COLRv1.
+     */
+    if ( p < colr->base_glyphs_v1                          ||
+         p >= ( (FT_Byte*)colr->table + colr->table_size ) )
+      return 0;
+
+    /*
      * Do a cursor sanity check of the iterator.  Counting backwards from
      * where it stands, we need to end up at a position after the beginning
      * of the `LayerV1List` table and not after the end of the
@@ -738,7 +745,7 @@
   }
 
 
-  FT_LOCAL_DEF ( FT_Bool )
+  FT_LOCAL_DEF( FT_Bool )
   tt_face_get_colorline_stops( TT_Face                face,
                                FT_ColorStop*          color_stop,
                                FT_ColorStopIterator  *iterator )
@@ -763,11 +770,11 @@
     /* Iterator points at first `ColorStop` of `ColorLine`. */
     p = iterator->p;
 
-    color_stop->stop_offset = FT_NEXT_USHORT ( p );
+    color_stop->stop_offset = FT_NEXT_SHORT( p );
 
-    color_stop->color.palette_index = FT_NEXT_USHORT ( p );
+    color_stop->color.palette_index = FT_NEXT_USHORT( p );
 
-    color_stop->color.alpha = FT_NEXT_USHORT ( p );
+    color_stop->color.alpha = FT_NEXT_SHORT( p );
 
     iterator->p = p;
     iterator->current_color_stop++;

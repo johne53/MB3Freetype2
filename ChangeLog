@@ -1,3 +1,290 @@
+2021-06-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type42] Fix new memory leak.
+
+	We need to inverse inheritance of FT_GlyphSlot_Internal so that we
+	have a chance to free the rendered bitmap from the parent slot.
+
+	* src/type42/t42objs.c (T42_GlyphSlot_Init): Remove the internal parts
+	of the child `ttslot' and replace it with the parent structure.
+	(T42_GlyphSlot_Done): Updated accordingly.
+
+2021-06-12  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix another assertion.
+
+	* src/psaux/psintrp.c (cf2_interpT2CharString)
+	<cf2_escCALLOTHERSUBR>: Convert assertion into error, since the
+	problem can happen with invalid user input.
+
+	Test case is file
+
+	  fuzzing/corpora/legacy/oss-fuzz/5754332360212480-unknown-read
+
+	in the `freetype2-testing` repository.
+
+2021-06-12  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix assertions.
+
+	* src/psaux/pshints.c (cf2_hintmap_adjustHints): Check for overflow
+	before emitting an assertion error.
+
+	Test case is file
+
+	 fuzzing/corpora/legacy/oss-fuzz/4594115297673216-integer-overflow
+
+	in the `freetype2-testing` repository.
+
+2021-06-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/truetype/ttinterp.c (TT_RunIns): Optimize tracing. 
+
+2021-06-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[sdf] Fix SDF positioning.
+
+	* src/sdf/ftsdfrend.c (ft_sdf_render, ft_bsdf_render): Add padding to
+	`bitmap_top' and `bitmap_left'.
+
+	* sdf/sdf/ftsdf.c (sdf_generate_with_overlaps): Fix VC++ warning.
+
+2021-06-08  Werner Lemberg  <wl@gnu.org>
+
+	Fix 'devel' build for COLR 'v1'.
+
+	* devel/ftoption.h: Synchronize with
+	  `include/freetype/config/ftoption.h`.
+
+2021-06-08  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Sanitize cmap4 table better.
+
+	Fixes #1062.
+
+	* src/sfnt/ttcmap.c (tt_cmap4_validate): Handle a too-small value of
+	`length` gracefully.
+
+2021-06-08  Dominik Röttsches  <drott@chromium.org>
+
+	[sfnt] Pointer validity check when reading COLR 'v1' layers
+
+	* src/sfnt/ttcolr.c (tt_face_get_paint_layers): In addition to the
+	existing sanity checks, ensure that the pointer to the layer to be
+	read is within the 'COLR' v1 table.
+
+2021-06-08  Werner Lemberg  <wl@gnu.org>
+
+	* src/sdf/ftsdfcommon.c: Fix inclusion of header files.
+
+2021-06-08  Werner Lemberg  <wl@gnu.org>
+
+	[sdf] Make `make multi` work.
+
+	* src/sdf/ftsdf.c: Include `ftbitmap.h`.
+
+	* src/sdf/ftsdfcommon.h: Move function bodies to `ftsdfcommon.c`.
+	Include `ftobjs.h` to get definitions of `FT_LOCAL` and friends.
+
+	* src/sdf/ftsdfcommon.c: New file.
+
+	* src/sdf/rules.mk, src/sdf/sdf.c: Updated.
+
+2021-06-08  Anuj Verma  <anujv@iitbhilai.ac.in>
+
+	[sdf] Use 8 bits for final SDF output instead of 16bits.
+
+	Since 8-bits is enough to represent SDF data we no longer require
+	16-bits for this purpose.  Also, we now normalize the output data
+	to use the entire 8-bit range efficiently.  For example: if we use
+	3.5 format with a spread of 1 we basically only use the starting
+	5-bits.  By normalizing we can use the entire 8-bit range.
+
+	* include/freetype/freetype.h (FT_Render_Mode): Updated description
+	for `FT_RENDER_MODE_SDF` regarding this change.
+
+	* include/freetype/ftimage.h (FT_Pixel_Mode): Removed
+	`FT_PIXEL_MODE_GRAY16` since no longer required.
+
+	* include/freetype/fttypes.h (FT_F6Dot10): Removed since no longer
+	required.
+
+	* src/sdf/ftsdfrend.c (ft_sdf_render, ft_bsdf_render): Allocate 8-bit
+	bitmap instead of 16-bit buffer.
+
+	* src/sdf/ftsdfcommon.h (map_fixed_to_sdf): Added function to convert
+	16.16 distance value to our desired format.
+
+	* src/sdf/ftsdf.c (sdf_generate_with_overlaps,
+	sdf_generate_bounding_box): Use the new `map_fixed_to_sdf` function
+	and also use 8-bit output buffer.
+
+	* src/sdf/ftbsdf.c (finalize_sdf): Output to a 8-bit buffer instead
+	of 16-bit buffer.
+
+2021-06-02  Ben Wagner  <bungeman@chromium.org>
+	    Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix fallout from 2021-05-29 change.
+
+	* src/sfnt/ttcolr.c (find_base_glyph_record,
+	find_base_glyph_v1_record): Adjust binary search.
+
+	Needs to be updated with change to unsigned.
+
+2021-06-02  Werner Lemberg  <wl@gnu.org>
+
+	* src/autofit/aflatin.c (af_latin_metrics_scale_dim): Fix tracing.
+
+	Problem reported by Alexei.
+
+2021-06-02  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Fix MSVC compiler warnings.
+
+	* src/psaux/afmparse.c (afm_parse_track_kern, afm_parse_kern_pairs):
+	Add cast.
+
+2021-05-29  Werner Lemberg  <wl@gnu.org>
+
+	Fix compilation errors and (some) warnings for clang++.
+
+	* src/autofit/afmodule.c (AF_GlyphHintsRec): Make it static.
+
+	* src/cache/ftcache.c (FTC_Cache_NewNode), src/cache/ftcsbits.c
+	(ftc_snode_compare): Remove semicolon.
+
+	* src/cff/cffparse.c (cff_parser_run): Add `break` statement.
+
+	* src/cid/cidload.c (cid_hex_to_binary): Add cast.
+
+	* src/sdf/ftbsdf.c (CHECK_NEIGHBOR): Use `do {} while(0)` loop.
+	(bsdf_init_distance_map, finalize_sdf, bsdf_raster_render): Add
+	casts.
+	* src/sdf/ftsdf.c (sdf_generate_bounding_box,
+	sdf_generate_with_overlaps): Ditto.
+	* src/sdf/ftsdfcommon.h (square_root): Ditto.
+	* src/sdf/ftsdfrend.c (sdf_property_get, ft_sdf_render,
+	ft_bsdf_render): Ditto.
+
+	* src/sfnt/ttcolr.c (find_base_glyph_record,
+	find_base_glyph_v1_record): Fix variable signedness.
+	(read_color_line): Add cast.
+	(read_paint): Add casts.
+	Fix signedness issue.
+	(tt_face_get_colorline_stops) Fix signedness issues.
+
+	* src/sfnt/ttpost.c (load_format_20): Add casts.
+
+	* src/truetype/ttsubpix.c (TWEAK_RULES, TWEAK_RULES_EXCEPTIONS):
+	Remove final semicolons.
+
+2021-05-29  Werner Lemberg  <wl@gnu.org>
+
+	[build] Allow overriding of `ANSIFLAGS` for GNU make build.
+
+	* builds/*: Implement it.
+
+2021-05-27  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type42] Fix auto-hinting.
+
+	The autohinter could not access the base (unscaled) outline in the
+	child TrueType glyph slot. We now share the internal parts between
+	the parent and child glyph slots. Fixes #1057.
+
+	* src/type42/t42objs.c (T42_GlyphSlot_Init): Remove the internal parts
+	of `T42_GlyphSlot' and replace it with the child TrueType structure.
+	(T42_GlyphSlot_Done): Updated accordingly.
+
+2021-05-25  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Guard and trace AFM kern data allocation.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=31543
+
+	* include/freetype/internal/fttrace.h: Add 'afmparse' trace
+	component.
+
+	* src/psaux/afmparse.c (FT_COMPONENT): Define.
+	(afm_parse_track_kern, afm_parse_kern_pairs): Protect against
+	allocations bombs.
+	Add tracing.
+	(afm_parse_kern_data): Don't allow multiple kern data sections.
+
+2021-05-23  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* meson.build (ft2_public_headers): Add missing `ftcid.h'.
+
+	Fixes #1058.
+
+2021-05-20  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[type42] Avoid some memory zeroing.
+
+	* src/type42/t42objs.c (T42_Open_Face): Tweak allocation macro.
+	* src/type42/t42parse.c (t42_parse_sfnts): Ditto.
+
+2021-05-19  Nikolaus Waxweiler  <madigens@gmail.com>
+
+	[CMake] Update dependency finders.
+
+	1. Fixes CMake using any found HarfBuzz version lower than the minimum
+	required. This is based on HALX99's merge request at
+	https://gitlab.freedesktop.org/freetype/freetype/-/merge_requests/31
+	2. Update FindHarfBuzz.cmake from
+	https://github.com/WebKit/WebKit/blob/1ce32454/Source/cmake/FindHarfBuzz.cmake
+	and guard post-CMake-3.1 features to keep the minimum version unchanged
+	3. Update FindBrotliDec.cmake to stop the warnings, based on what
+	https://github.com/google/woff2/blob/a0d0ed7d/cmake/FindBrotliDec.cmake
+	is doing
+
+	* CMakeLists.txt, builds/cmake/FindHarfBuzz.cmake: Implement 1 and 2.
+	* builds/cmake/FindBrotliDec.cmake: Implement 3.
+
+2021-05-19  Ben Wagner  <bungeman@chromium.org>
+
+	[gzip] Use exact type for `ft_gzip_alloc` and `ft_gzip_free`.
+
+	While a function pointer may be cast to another function pointer
+	type, it is required to cast the function pointer back to the
+	original function pointer type before calling it.  If a parameter is
+	a pointer the exact pointer type is required.  Using a pointer to a
+	different underlying type is technically undefined behavior.  The
+	wrapper functions `ft_gzip_alloc` and `ft_gzip_free` took
+	`FT_Memory` (a `FT_MemoryRec_*`) instead of `voidpf` (`void*`), so
+	when gzip calls these callbacks through `alloc_func` or `free_func`
+	it invokes undefined behavior.  On most platforms this works out as
+	expected, but newer undefined behavior detectors and targets like
+	wasm can detect this and will produce an error.
+
+	* src/gzip/ftgzip.c (ft_gzip_alloc, ft_gzip_free): Update signatures
+	to exactly match `alloc_func` and `free_func`, respectively.
+	Internally, cast the `void*` opaque pointer to `FT_Memory`.
+
+2021-05-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	Prioritize the anti-aliasing renderer module.
+
+	* modules.cfg: Reorder the renderers.
+	* include/freetype/config/ftmodule.h: Ditto.
+
+2021-05-16  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[sfnt] Additional guards on the POST table.
+
+	Fixes timeout (#1055) analyzed by Ben Wagner, reported as
+
+	  https://crbug.com/1194092
+
+	* src/sfnt/ttload.c (tt_face_load_post): Check POST format.
+	* src/sfnt/sfobjs.c (sfnt_load_face): Synthesize the missing unicode
+	charmap only if the glyph names exist.
+	* src/psnames/psmodule.c (ps_unicode_value): Short cut ".notdef" and
+	".null".
+
 2021-05-13  Daniel McArdle  <dmcardle@chromium.org>
 
 	[psaux] Use doubling allocation strategy for CF2_ArrStack.
