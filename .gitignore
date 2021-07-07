@@ -1,3 +1,6 @@
+/build/
+/config.mk
+
 #################
 ## Eclipse
 #################
@@ -163,6 +166,6 @@ pip-log.txt
 .DS_Store
 
 config.mk
-objs/vc2010/
-build
+include/dlg/
+src/dlg/dlg.c
 /builds/win32/msvc/freetype.vsprops

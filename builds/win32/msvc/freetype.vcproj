@@ -306,6 +306,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\sdf\sdf.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\smooth\smooth.c"
 				>
 			</File>

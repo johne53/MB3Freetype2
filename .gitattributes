@@ -1,3 +1,4 @@
+ChangeLog       merge=merge-changelog
 # Auto detect text files and perform LF normalization
 *.vcxproj text eol=crlf
 * text=auto

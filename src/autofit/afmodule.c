@@ -4,7 +4,7 @@
  *
  *   Auto-fitter module implementation (body).
  *
- * Copyright (C) 2003-2020 by
+ * Copyright (C) 2003-2021 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -48,7 +48,7 @@
   int  _af_debug_disable_blue_hints;
 
   /* we use a global object instead of a local one for debugging */
-  AF_GlyphHintsRec  _af_debug_hints_rec[1];
+  static AF_GlyphHintsRec  _af_debug_hints_rec[1];
 
   void*  _af_debug_hints = _af_debug_hints_rec;
 #endif
@@ -148,7 +148,7 @@
 
       if ( !af_style_classes[ss] )
       {
-        FT_TRACE0(( "af_property_set: Invalid value %d for property `%s'\n",
+        FT_TRACE2(( "af_property_set: Invalid value %d for property `%s'\n",
                     *fallback_script, property_name ));
         return FT_THROW( Invalid_Argument );
       }
@@ -307,7 +307,7 @@
       return error;
     }
 
-    FT_TRACE0(( "af_property_set: missing property `%s'\n",
+    FT_TRACE2(( "af_property_set: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
@@ -410,7 +410,7 @@
       return error;
     }
 
-    FT_TRACE0(( "af_property_get: missing property `%s'\n",
+    FT_TRACE2(( "af_property_get: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
