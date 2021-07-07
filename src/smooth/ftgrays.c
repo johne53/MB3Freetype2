@@ -168,10 +168,11 @@
 typedef ptrdiff_t  FT_PtrDist;
 
 
-#define ErrRaster_Invalid_Mode      -2
-#define ErrRaster_Invalid_Outline   -1
-#define ErrRaster_Invalid_Argument  -3
-#define ErrRaster_Memory_Overflow   -4
+#define Smooth_Err_Ok                    0
+#define Smooth_Err_Invalid_Outline      -1
+#define Smooth_Err_Cannot_Render_Glyph  -2
+#define Smooth_Err_Invalid_Argument     -3
+#define Smooth_Err_Raster_Overflow      -4
 
 #define FT_BEGIN_HEADER
 #define FT_END_HEADER
@@ -229,18 +230,18 @@ typedef ptrdiff_t  FT_PtrDist;
 #define FT_ERROR( varformat )   FT_Message varformat
 #endif
 
-#define FT_THROW( e )                               \
-          ( FT_Throw( FT_ERR_CAT( ErrRaster_, e ),  \
-                      __LINE__,                     \
-                      __FILE__ )                  | \
-            FT_ERR_CAT( ErrRaster_, e )           )
+#define FT_THROW( e )                                \
+          ( FT_Throw( FT_ERR_CAT( Smooth_Err_, e ),  \
+                      __LINE__,                      \
+                      __FILE__ )                   | \
+            FT_ERR_CAT( Smooth_Err_, e )           )
 
 #else /* !FT_DEBUG_LEVEL_TRACE */
 
 #define FT_TRACE5( x )  do { } while ( 0 )     /* nothing */
 #define FT_TRACE7( x )  do { } while ( 0 )     /* nothing */
 #define FT_ERROR( x )   do { } while ( 0 )     /* nothing */
-#define FT_THROW( e )   FT_ERR_CAT( ErrRaster_, e )
+#define FT_THROW( e )   FT_ERR_CAT( Smooth_Err_, e )
 
 
 #endif /* !FT_DEBUG_LEVEL_TRACE */
@@ -285,10 +286,6 @@ typedef ptrdiff_t  FT_PtrDist;
 #include <freetype/ftoutln.h>
 
 #include "ftsmerrs.h"
-
-#define Smooth_Err_Invalid_Mode     Smooth_Err_Cannot_Render_Glyph
-#define Smooth_Err_Memory_Overflow  Smooth_Err_Out_Of_Memory
-#define ErrRaster_Memory_Overflow   Smooth_Err_Out_Of_Memory
 
 
 #endif /* !STANDALONE_ */
@@ -1605,7 +1602,7 @@ typedef ptrdiff_t  FT_PtrDist;
     }
 
     FT_TRACE5(( "FT_Outline_Decompose: Done\n", n ));
-    return 0;
+    return Smooth_Err_Ok;
 
   Exit:
     FT_TRACE5(( "FT_Outline_Decompose: Error 0x%x\n", error ));
@@ -1654,7 +1651,7 @@ typedef ptrdiff_t  FT_PtrDist;
     }
     else
     {
-      error = FT_THROW( Memory_Overflow );
+      error = FT_THROW( Raster_Overflow );
 
       FT_TRACE7(( "band [%d..%d]: to be bisected\n",
                   ras.min_ey, ras.max_ey ));
@@ -1730,8 +1727,8 @@ typedef ptrdiff_t  FT_PtrDist;
           band--;
           continue;
         }
-        else if ( error != ErrRaster_Memory_Overflow )
-          return 1;
+        else if ( error != Smooth_Err_Raster_Overflow )
+          return error;
 
         /* render pool overflow; we will reduce the render band by half */
         width >>= 1;
@@ -1740,7 +1737,7 @@ typedef ptrdiff_t  FT_PtrDist;
         if ( width == 0 )
         {
           FT_TRACE7(( "gray_convert_glyph: rotten glyph\n" ));
-          return 1;
+          return FT_THROW( Raster_Overflow );
         }
 
         band++;
@@ -1749,7 +1746,7 @@ typedef ptrdiff_t  FT_PtrDist;
       } while ( band >= bands );
     }
 
-    return 0;
+    return Smooth_Err_Ok;
   }
 
 
@@ -1770,14 +1767,14 @@ typedef ptrdiff_t  FT_PtrDist;
 
     /* this version does not support monochrome rendering */
     if ( !( params->flags & FT_RASTER_FLAG_AA ) )
-      return FT_THROW( Invalid_Mode );
+      return FT_THROW( Cannot_Render_Glyph );
 
     if ( !outline )
       return FT_THROW( Invalid_Outline );
 
     /* return immediately if the outline is empty */
     if ( outline->n_points == 0 || outline->n_contours <= 0 )
-      return 0;
+      return Smooth_Err_Ok;
 
     if ( !outline->contours || !outline->points )
       return FT_THROW( Invalid_Outline );
@@ -1791,7 +1788,7 @@ typedef ptrdiff_t  FT_PtrDist;
     if ( params->flags & FT_RASTER_FLAG_DIRECT )
     {
       if ( !params->gray_spans )
-        return 0;
+        return Smooth_Err_Ok;
 
       ras.render_span      = (FT_Raster_Span_Func)params->gray_spans;
       ras.render_span_data = params->user;
@@ -1809,7 +1806,7 @@ typedef ptrdiff_t  FT_PtrDist;
 
       /* nothing to do */
       if ( !target_map->width || !target_map->rows )
-        return 0;
+        return Smooth_Err_Ok;
 
       if ( !target_map->buffer )
         return FT_THROW( Invalid_Argument );
@@ -1833,7 +1830,7 @@ typedef ptrdiff_t  FT_PtrDist;
 
     /* exit if nothing to do */
     if ( ras.max_ex <= ras.min_ex || ras.max_ey <= ras.min_ey )
-      return 0;
+      return Smooth_Err_Ok;
 
     return gray_convert_glyph( RAS_VAR );
   }

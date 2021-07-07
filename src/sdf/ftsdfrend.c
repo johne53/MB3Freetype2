@@ -278,9 +278,6 @@
     /* check whether render mode is correct */
     if ( mode != FT_RENDER_MODE_SDF )
     {
-      FT_ERROR(( "[sdf] ft_sdf_render:"
-                 " sdf module only render when"
-                 " using `FT_RENDER_MODE_SDF'\n" ));
       error = FT_THROW( Cannot_Render_Glyph );
       goto Exit;
     }
@@ -293,7 +290,7 @@
     }
 
     /* preset the bitmap using the glyph's outline;         */
-    /* the sdf bitmap is similar to an antialiased bitmap   */
+    /* the sdf bitmap is similar to an anti-aliased bitmap  */
     /* with a slightly bigger size and different pixel mode */
     if ( ft_glyphslot_preset_bitmap( slot, FT_RENDER_MODE_NORMAL, origin ) )
     {
@@ -490,8 +487,6 @@
     /* check whether slot format is correct before rendering */
     if ( slot->format != render->glyph_format )
     {
-      FT_ERROR(( "ft_bsdf_render: slot format must be a bitmap\n" ));
-
       error = FT_THROW( Invalid_Glyph_Format );
       goto Exit;
     }
@@ -499,8 +494,6 @@
     /* check whether render mode is correct */
     if ( mode != FT_RENDER_MODE_SDF )
     {
-      FT_ERROR(( "ft_bsdf_render: need `FT_RENDER_MODE_SDF' mode\n" ));
-
       error = FT_THROW( Cannot_Render_Glyph );
       goto Exit;
     }

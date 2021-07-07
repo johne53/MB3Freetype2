@@ -1,3 +1,266 @@
+2021-07-05  Werner Lemberg  <wl@gnu.org>
+
+	* src/base/ftlcdfil.c (FT_Library_SetLcdGeometry): Fix argument.
+
+	Reported by Hin-Tak.
+
+2021-07-03  Werner Lemberg  <wl@gnu.org>
+
+	* meson_options.txt: Sort alphabetically; no final full stops.
+
+2021-07-01  Ben Wagner  <bungeman@chromium.org>
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Test `coords`.
+
+	It is undefined behavior to pass `NULL` to `memcpy`.  `coords' is
+	passed to `memcpy` but `TT_Get_MM_Blend` and `TT_Get_Var_Design`
+	explictly call `tt_set_mm_blend` with `coords` as `NULL`.  In
+	addition, `TT_Set_MM_Blend` has a similar possible issue.
+
+2021-06-30  Dominik Röttsches  <drott@chromium.org>
+
+	[sfnt] Support PaintScale in 'COLR' v1 parsing.
+
+	* include/freetype/ftcolor.h (FT_PaintFormat): Renumber values, add
+	`FT_COLR_PAINTFORMAT_SCALE`.
+	(FT_PaintScale): New structure to represent 'PaintScale*' tables.
+	(FT_COLR_Paint): Updated.
+
+	* src/sfnt/ttcolr.c (FT_PaintFormat_Internal): New enumeration.
+	(read_paint): Parse 'PaintScale' and friends.
+
+2021-06-30  Dominik Röttsches  <drott@chromium.org>
+
+	[sfnt] Handle fonts without layer list in 'COLR' v1.
+
+	'COLR' v1 fonts do not necessarily need to have a layer list; for
+	this reason, 'fontTools' recently started generating fonts in a way
+	that drops the layer list if there are no layers in it.  This
+	results in the layer list offset becoming zero, which FreeType
+	treated as an invalid table.  Fix that and handle the case for layer
+	list offset being 0.  This slightly changes how we need to calculate
+	the starting offset for paints.
+
+	* src/sfnt/ttcolr.c (tt_face_load_colr): Handle case of layer list
+	offset being zero without outright rejecting table.
+
+2021-06-30  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/raster/ftraster.c (Render_Single_Pass): Simplify `band_stack'.
+
+2021-06-29  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Do not skip the second pass without dropout control.
+
+	The second pass also fixes horizontal lines through the pixel centers.
+
+	* src/raster/ftraster.c (black_TWorker): Do not use `second_pass'.
+	(Render_Glyph): Skip the second pass only with the appropriate flag.
+
+2021-06-29  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Handle sub-band stack locally.
+
+	* src/raster/ftraster.c (black_TWorker): Move `band_stack' from here..
+	(Render_Single_Pass): ... to here and accept limit arguments.
+	(Render_Glyph): Updated.
+
+2021-06-25  Anurag Thakur  <anuthadev@gmail.com>
+
+	[CI] Introduce linux CI and refactor job names.
+
+	* .gitlab-ci.yml: Added jobs for building freetype on linux.
+
+2021-06-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Handle Bézier stack locally.
+
+	* src/raster/ftraster.c (black_TWorker): Move `arcs' from here...
+	(Conic_To, Cubic_To): ... to here to tighten their scope.
+	(Bezier_Up, Bezier_Down): ... Take the current `arc' argument.
+
+2021-06-28  Dominik Röttsches  <drott@chromium.org>
+
+	[sfnt] Improve paint limit checks
+
+	Paint tables can appear before the `base_glyphs_v1` offset if the
+	font is produced with the layer list before the base glyph list.  In
+	this case paint tables can occur after the layer list but before the
+	base glyph list.  Checks in the 'COLR' v1 code were rejecting fonts
+	with this layout.  Improve these checks by calculating a minimum
+	offset after which paint tables can occur and use that in safety
+	checks.
+
+	* src/sfnt/ttcolr.c (Colr, tt_face_load_colr): Declare
+	`paint_start_v1` and calculate that as the minimum of the end of
+	layer list and base glyph list.
+	(get_child_table_pointer, read_paint, tt_face_get_paint_layers):
+	Use that in safety checks.
+
+2021-06-28  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Clean up vertical sweep.
+
+	* src/raster/ftraster.c (black_TWorker): Replace the current line
+	offset with the pointer and drop the increment.
+	(Function_Sweep_Init): Take values as arguments instead of pointers.
+	(Vertical_Sweep_*, Horizontal_Sweep_Init, Draw_Sweep): Updated.
+
+2021-06-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Make `band_top' local variable.
+
+	* src/raster/ftraster.c (black_TWorker): Move `band_top' from here...
+	(Render_Single_Pass): ... to here, and refactor.
+	(Render_Glyph): Updated.
+
+2021-06-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[raster] Adjust sub-band bisecting limits.
+
+	We can bisect a band until it is just a single scan line.  This might
+	be slow and cause time-outs but if we need to impose limits it should
+	be elsewhere.
+
+	* src/raster/ftraster.c (Render_Single_Pass): Tweak sub-banding.
+
+2021-06-25  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/raster/ftraster.c (Render_Single_Pass): Remove dead code.
+
+2021-06-25  Werner Lemberg  <wl@gnu.org>
+
+	[base] Add trace level to logging output.
+
+	Some practical debugging work has shown that displaying level X of
+	an `FT_TRACEX` macro in the output of `FT2_DEBUG="...  -v"` would be
+	very helpful to find out which trace level should be selected.  As
+	an example, we now get output like
+
+	```
+	[ttobjs:2]    TTF driver
+	[ttobjs:2]      SFNT driver
+	[sfobjs:2]      not a font using the SFNT container format
+	[t1objs:2]    Type 1 driver
+	[stream:7]    FT_Stream_EnterFrame: 14 bytes
+	```
+
+	* include/freetype/internal/ftdebug.h (FT_LOGGING_TAGX): New macro.
+	(FT_LOG): Use it to add the trace level to the logging tag.
+
+	* include/freetype/internal/fttrace.h (FT_MAX_TRACE_LEVEL_LENGTH):
+	Adjust.
+
+	* docs/DEBUG: Updated.
+
+2021-06-24  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth, raster] Fix up and align error codes.
+
+	FT_Render_Glyph picked up FAILURE or 1 returned from the raster
+	function, which became a confusing error code. Instead, return
+	Raster_Overflow in the unlikely event that banding does not help or
+	another meaningful error.
+
+	* src/smooth/ftgrays.c (gray_convert_glyph_inner, gray_convert_glyph):
+	Use Raster_Overflow when the rendering pool is exhausted and return it
+	if banding does not help.
+	(gray_raster_render): Use Smooth_Err_Ok.
+
+	* src/raster/ftraster.c (Render_Single_Pass): Return Raster_Overflow
+	if banding does not help or another error code.
+
+2021-06-23  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	[smooth, raster] Remove synonymous error macros.
+
+	* src/smooth/ftgays.c [STANDALONE_]: s/ErrRaster_/Smooth_Err_/.
+	(gray_convert_glyph_inner): Updated accordingly.
+
+	* src/raster/ftraster.c [STANDALONE_]: Do not abbreviate error macros.
+	(New_Profile, End_Profile, Insert_Y_Turn, Line_Up, Bezier_Up,
+	Decompose_Curve, Draw_Sweep, Render_Single_Pass, ft_black_render):
+	Updated accordingly.
+
+2021-06-22  Dominik Röttsches  <drott@chromium.org>
+
+	[sfnt] s/PaintTransformed/PaintTransform/, s/transformed/transform/.
+
+	* include/freetype/ftcolor.h (FT_PaintTransformed, FT_PaintFormat,
+	FT_COLR_Paint): Do it to make it harmonize with other names such as
+	'PaintTranslate'.
+
+	* src/sfnt/ttcolr.c (read_paint, tt_face_get_paint): Ditto.
+
+2021-06-22  Dominik Röttsches  <drott@chromium.org>
+
+	Move 'COLR' API to `ftcolor.h`.
+
+	* include/freetype/freetype.h: Cut section layer managament
+	containing 'COLR' v0 and v1 API and move it to `ftcolor.h` as
+	requested by Werner on freetype-devel.
+	* include/freetype/ftcolor.h: Paste that section.
+
+2021-06-19  Werner Lemberg  <david@freetype.org>
+
+	[truetype] Fix integer overflow.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=35312
+
+	* src/truetype/ttinterp.c (Ins_JMPR): Use `ADD_LONG`.
+
+2021-06-19  Werner Lemberg  <david@freetype.org>
+
+	[autofit] Prevent hinting if there are too many segments.
+
+	This speeds up handling of broken glyphs.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=35309
+
+	* src/autofit/aflatin.c (af_latin_hints_compute_segments): Implement
+	it.
+
+2021-06-18  Alexei Podtelezhnikov  <apodtele@gmail.com>
+
+	* src/sdf/ftsdfrend.c (ft_(b)sdf_render): Do not FT_ERROR routinely.
+
+2021-06-16  David Turner  <david@freetype.org>
+
+	[autofit] Fix return value of `FT_Load_Glyph`.
+
+	* src/autofit/afglobal.c (af_face_globals_get_metrics): The issue is
+	that `style_metrics_init` sometimes returns -1 without clearing
+	`error`.  While looping to `Again`, the next operation is
+	successful, but -1 is still returned by the function.  The fix is to
+	set `error` to 0 appropriately.
+
+	Fixes #1063.
+
+2021-06-15  David Turner  <david@freetype.org>
+
+	[meson] Add first regression test to FreeType.
+
+	* tests/README.md: New file that explains how to build and run the
+	tests with the Meson build.
+
+	* tests/scripts/download-test-fonts.sh: New bash script to download
+	test font files to the `tests/data` folder.
+
+	* meson.build, meson_options.txt: Add 'tests' option to enable
+	building and running the test programs (disabled by default).
+
+	* tests/meson.build: New file.
+
+	* tests/issue-1063/main.c: Simple regression test to exhibit issue
+	1063.
+
+	* .gitignore: Ignore the content of the `tests/data` folder for
+	now.
+
 2021-06-12  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
 	[type42] Fix new memory leak.
@@ -38,7 +301,7 @@
 
 2021-06-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
-	* src/truetype/ttinterp.c (TT_RunIns): Optimize tracing. 
+	* src/truetype/ttinterp.c (TT_RunIns): Optimize tracing.
 
 2021-06-09  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
@@ -51,7 +314,7 @@
 
 2021-06-08  Werner Lemberg  <wl@gnu.org>
 
-	Fix 'devel' build for COLR 'v1'.
+	Fix 'devel' build for 'COLR' v1.
 
 	* devel/ftoption.h: Synchronize with
 	  `include/freetype/config/ftoption.h`.
@@ -67,7 +330,7 @@
 
 2021-06-08  Dominik Röttsches  <drott@chromium.org>
 
-	[sfnt] Pointer validity check when reading COLR 'v1' layers
+	[sfnt] Pointer validity check when reading 'COLR' v1 layers
 
 	* src/sfnt/ttcolr.c (tt_face_get_paint_layers): In addition to the
 	existing sanity checks, ensure that the pointer to the layer to be

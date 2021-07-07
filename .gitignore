@@ -169,3 +169,6 @@ config.mk
 include/dlg/
 src/dlg/dlg.c
 /builds/win32/msvc/freetype.vsprops
+subprojects/*
+!subprojects/*.wrap
+/tests/data/*
